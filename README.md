@@ -7,3 +7,4 @@ A web application for scheduling group consultations between students and lectur
 **Group members:** 
 - Suné Toerien
 - Aditya Raghunandan
+- Thandeka Malasa
