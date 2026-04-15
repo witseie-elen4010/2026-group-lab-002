@@ -1,0 +1,50 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.npm
+.cache/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+.ionide
+
+# Testing and Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Logs and Runtime
+logs
+*.log
+npm-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build and Patch Outputs
+# Includes requested Serverless/SvelteKit patches
+build/Release
+.webpack/
+.svelte-kit/
+dist/
+out/
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# OS Files
+.DS_Store
+Thumbs.db
