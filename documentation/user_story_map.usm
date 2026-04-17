@@ -1,0 +1,48 @@
+KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
+    Authenticate securely: |{"bg":"#3E9BCD"}
+        User Sign Up (5 pts)
+        Log in (2 pts)
+            Google OAuth with Wits domains (5 pts)
+                Role-based access control (3 pts)
+                Create Admin login (2 pts)
+                    Session security      (3 pts)
+    Manage lecturer availability
+        Set availability (5 pts)
+        Set max students per consultation (2 pts)
+        Set consultation duration (2 pts)
+            Configure consultation schedule (3 pts)
+            Set max consultations per day (2 pts)
+                    Cancel consultations (3 pts)
+                    Flag a student if they ding door dash (2 pts)
+    Book and manage consultations
+        Student Creates a Consultation Booking (5 pts)
+            Student joins a consultation (3 pts)
+            Student cancels their consultation (3 pts)
+                Student leaves a joined consultation (2 pts)
+                    Waiting list when full (3 pts)
+    Enforce booking rules
+        N/A
+            Reject bookings outside availability (3 pts)
+            Reject overlapping consultations (3 pts)
+            Reject when max students reached (2 pts)
+                Reject when daily limit reached (2 pts)
+                    Clear error messages on rule violations (2 pts)
+    View consultation dashboards
+        Static Student Dashboard (8 pts)
+        Static Lecturer Dashboard (8 pts)
+            Cancellations sync across dashboards (3 pts)
+                Monthly calendar view (5 pts)
+                    Filter by department and lecturer (3 pts)
+    Audit activity
+        N/A
+            System logs all actions (2 pts)
+                Activity log viewable by admin on website (3 pts)
+                    Filter log by user, date, action (2 pts)
+    Database foundation
+        Create Student Table (2 pts)
+        Create Staff Table (2 pts)
+        Create Consultation Table (3 pts)
+            Create activity log table (2 pts)
+            Input test data (3 pts)
+                Add field for student and staff tables (3 pts)
+                    Optimise database queries (3 pts)
