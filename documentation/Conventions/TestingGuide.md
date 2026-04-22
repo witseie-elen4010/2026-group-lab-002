@@ -199,6 +199,7 @@ from the Playwright team's public guidance):
 5. **Mock external services**, not the app itself. We want to test *our*
    code, not RapidAPI's.
 
+
 ### Browser coverage
 All E2E tests run against Chromium only. We explicitly chose not to run
 tests against Firefox, WebKit, or mobile browsers for these reasons:
