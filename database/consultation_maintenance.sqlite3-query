@@ -1,39 +1,47 @@
 -- database: ./database.db
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE consultations (
+BEGIN TRANSACTION;
+
+
+CREATE TABLE consultations_new (
     const_id TEXT PRIMARY KEY,
-    consultation_title TEXT NOT NULL CHECK(length(consultation_title) <= 100) DEFAULT 'Consultation Available',
+    consultation_title TEXT NOT NULL CHECK(length(consultation_title) BETWEEN 5 AND 100) DEFAULT 'Consultation Available',
     consultation_description TEXT  CHECK(length(consultation_description) <= 500),
-    consultation_date date NOT NULL,
-    consultation_time time NOT NULL,
+    consultation_date TEXT NOT NULL CHECK (consultation_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+    consultation_time TEXT NOT NULL CHECK (consultation_time GLOB '[0-9][0-9]:[0-9][0-9]'),
     lecturer_id text NOT NULL,
     organiser integer, --FOREIGN KEY REFERENCES student(student_number),
     --attendees integer[] NOT NULL FOREIGN KEY REFERENCES student(student_number),  -- Array of student numbers attending the consultation
-    duration time,
-    max_number_of_students integer NOT NULL,
-    venue text NOT NULL, -- if online a link must be provided
-    status text NOT NULL CHECK (status IN ('Available', 'Booked', 'Ongoing', 'Missed', 'Cancelled', 'Rescheduled', 'RescheduledToNow')),
+    duration_min INTEGER NOT NULL DEFAULT 60 CHECK (duration_min > 0 AND duration_min <= 480), -- Duration in minutes, must be positive and reasonable
+    max_number_of_students INTEGER NOT NULL DEFAULT 1 CHECK (max_number_of_students > 0 ),
+    venue TEXT NOT NULL CHECK(length(venue) >= 3), -- if online a link must be provided
+    status TEXT NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Booked', 'Ongoing', 'Missed', 'Cancelled', 'Rescheduled', 'RescheduledToNow')),
+    attendees JSON DEFAULT '[]',
     --review_for_lecturer text(max_characters(300)),
 	--review_for_students  text(max_characters(300))[],
 	--reports_flags text[]  -- Array of flags/reports for the consultation
 
     FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number)
     --FOREIGN KEY (organiser) REFERENCES student(student_number)
+    --FOREIGN KEY (attendees) REFERENCES student(student_number)
 );
 
-ALTER TABLE consultations ADD COLUMN attendees JSON; -- FOREIGN KEY REFERENCES staff(staff_number)
+DROP TABLE IF EXISTS consultations;
+ALTER TABLE consultations_new RENAME TO consultations;
+
+--ALTER TABLE consultations ADD COLUMN attendees JSON; -- FOREIGN KEY REFERENCES staff(staff_number)
 -- ALTER TABLE staff ADD COLUMN reports_flags JSON;
 -- ALTER TABLE staff MODIFY COLUMN review_for_students JSON;
 
 SELECT * FROM consultations;
 
-INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id   , duration  , max_number_of_students, venue     , status)
-VALUES                      ('2026-04-26-00001' , '2026-04-26'      , '10:00'           , 'A000357'     , '01:00'   , 10                    , 'Venue 1' , 'Available');
+INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id    , duration_min  , max_number_of_students, venue     , status)
+VALUES                      ('2026-04-26-00001' , '2026-04-26'      , '10:00'                       , 'A000357'     , 60            , 10                    , 'Venue 1' , 'Available');
 
 SELECT * FROM consultations;
 
-INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id   , duration  , max_number_of_students , venue     , status   , organiser , attendees             , consultation_title, consultation_description)
-VALUES                      ('2026-04-26-00002' , '2026-04-26'      , '11:00'           , 'A000357'       , '01:00'   , 5                      , 'Venue 1' , 'Booked' , 1234567  , '[2345678, 45678978]', 'Test Test Fly'   , 'This is a test consultation for demonstration purposes.');
+INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id   , duration_min  , max_number_of_students , venue     , status   , organiser , attendees             , consultation_title, consultation_description)
+VALUES                      ('2026-04-26-00002' , '2026-04-26'      , '11:00'           , 'A000357'       , 60   , 5                      , 'Venue 1' , 'Booked' , 1234567  , '[2345678, 45678978]', 'Test Test Fly'   , 'This is a test consultation for demonstration purposes.');
 
 SELECT * FROM consultations;
