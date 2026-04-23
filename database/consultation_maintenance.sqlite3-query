@@ -22,9 +22,9 @@ CREATE TABLE consultations_new (
 	--review_for_students  text(max_characters(300))[],
 	--reports_flags text[]  -- Array of flags/reports for the consultation
 
-    FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number)
-    --FOREIGN KEY (organiser) REFERENCES student(student_number)
-    --FOREIGN KEY (attendees) REFERENCES student(student_number)
+    FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number) ON DELETE SET NULL
+    --FOREIGN KEY (organiser) REFERENCES student(student_number) ON DELETE SET NULL,
+    --FOREIGN KEY (attendees) REFERENCES student(student_number) ON DELETE SET NULL
 );
 
 DROP TABLE IF EXISTS consultations;
