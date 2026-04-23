@@ -8,3 +8,15 @@ A web application for scheduling group consultations between students and lectur
 - Suné Toerien
 - Aditya Raghunandan
 - Thandeka Malasa
+
+## Running Tests
+
+Install dependencies:
+```bash
+npm install
+```
+
+Run the test suite:
+```bash
+npm test
+```
