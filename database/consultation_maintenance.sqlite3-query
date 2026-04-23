@@ -1,7 +1,7 @@
 -- database: ./database.db
 PRAGMA foreign_keys = ON;
 
-BEGIN TRANSACTION;
+--BEGIN TRANSACTION;
 
 
 CREATE TABLE consultations_new (
