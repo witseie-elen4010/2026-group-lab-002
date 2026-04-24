@@ -12,3 +12,6 @@ INSERT OR IGNORE INTO courses (course_code, course_name, year_level, degree_code
   ('ELEN2020', 'Circuit Theory',             2, 'BSCENGELEC'),
   ('ELEN3001', 'Electrical Machines',        3, 'BSCENGELEC'),
   ('ELEN4020', 'Power Systems',              4, 'BSCENGELEC');
+
+INSERT INTO students (student_number, name, email, password, degree_code)
+VALUES (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', 'pass', 'BSCENGINFO');
