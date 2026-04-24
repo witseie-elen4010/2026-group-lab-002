@@ -1,10 +1,10 @@
 const { showLogin, login, logout } = require('../../src/controllers/auth-controller');
 
-jest.mock('../../src/database/db', () => ({
+jest.mock('../../src/models/db', () => ({
   prepare: jest.fn()
 }));
 
-const db = require('../../src/database/db');
+const db = require('../../src/models/db');
 
 const mockReq = (overrides = {}) => ({
   session: {},
