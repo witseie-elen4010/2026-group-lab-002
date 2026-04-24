@@ -1,23 +1,27 @@
 // Unit tests for student schema constraints and FK enforcement
-const openDatabase = require('../../database/db')
+const Database = require('better-sqlite3')
+const path = require('path')
+const fs = require('fs')
+
+const MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, '../../database/migration-001-student-schema.sql'),
+  'utf8'
+)
 
 describe('Student schema constraints', () => {
   let db
 
   beforeAll(() => {
-    db = openDatabase()
+    db = new Database(':memory:')
+    db.exec(MIGRATION_SQL)
+    db.pragma('foreign_keys = ON')
+
     db.prepare("INSERT OR IGNORE INTO degrees (degree_code, degree_name) VALUES ('BSCENGINFO', 'BSc Eng (Information)')").run()
-    db.prepare("DELETE FROM enrollments WHERE course_code LIKE 'JEST%'").run()
-    db.prepare("DELETE FROM students WHERE email LIKE '%jest-test%'").run()
-    db.prepare("DELETE FROM courses WHERE course_code LIKE 'JEST%'").run()
     db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, degree_code) VALUES ('JEST3001', 'Jest Course Year 3', 3, 'BSCENGINFO')").run()
     db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, degree_code) VALUES ('JEST4001', 'Jest Course Year 4', 4, 'BSCENGINFO')").run()
   })
 
   afterAll(() => {
-    db.prepare("DELETE FROM enrollments WHERE course_code LIKE 'JEST%'").run()
-    db.prepare("DELETE FROM students WHERE email LIKE '%jest-test%'").run()
-    db.prepare("DELETE FROM courses WHERE course_code LIKE 'JEST%'").run()
     db.close()
   })
 
