@@ -32,6 +32,12 @@ After cloning, set up your local SQLite database with:
 ```bash
 npm run setup
 ```
+
+To run locally
+```bash
+node app.js
+```
+
 This script will 
 - Create the database
 - Run the schema 
