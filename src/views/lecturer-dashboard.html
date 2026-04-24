@@ -22,9 +22,12 @@
 <body>
 
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, Prof</div>
+    <div class="brand">Knock Knock, <%= user.name %></div>
     <div class="d-flex align-items-center gap-3">
-      <a href="/" class="btn btn-outline-secondary btn-sm">Home</a>
+     
+      <form action="/logout" method="POST" class="d-inline">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+      </form>
     </div>
   </header>
 
