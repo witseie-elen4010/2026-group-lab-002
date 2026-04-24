@@ -18,3 +18,11 @@ PRAGMA index_list(staff);
 PRAGMA index_info('sqlite_autoindex_staff_1');
 PRAGMA index_info('sqlite_autoindex_staff_2');
 -- Confirms email and staff number is unique
+
+
+SELECT * FROM consultations;
+
+PRAGMA table_info(consultations);
+
+PRAGMA index_list(consultations);
+PRAGMA index_info('sqlite_autoindex_consultations_1');
