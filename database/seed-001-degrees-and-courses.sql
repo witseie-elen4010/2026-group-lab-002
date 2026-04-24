@@ -1,3 +1,4 @@
+-- database: database.db
 -- Seed 001: degrees and course catalog for initial app launch
 
 INSERT OR IGNORE INTO degrees (degree_code, degree_name) VALUES

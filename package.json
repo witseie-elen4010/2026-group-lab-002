@@ -2,8 +2,9 @@
   "name": "knockknock-prof",
   "version": "0.1.0",
   "description": "Group consultation scheduling app for Wits students and lecturers",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
+    "setup": "node database/setup.js",
     "test": "jest --coverage"
   },
   "devDependencies": {

@@ -36,8 +36,11 @@ app.get('/', (req, res) => {
   return res.redirect('/login');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// ── Start ─────────────────────────────────────────────────────────────────
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
