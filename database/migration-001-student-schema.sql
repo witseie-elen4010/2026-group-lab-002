@@ -1,3 +1,4 @@
+-- database: database.db
 -- Migration 001: create degrees, students, courses, enrollments tables (ADR-005)
 
 -- Foreign key enforcement must be off while dropping tables that reference each other.
