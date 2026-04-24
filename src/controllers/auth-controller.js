@@ -1,4 +1,4 @@
-const db = require('../models/db');
+const db = require('../../database/db');
 
 const showLogin = (req, res) => {
   if (req.session && req.session.userId) {
