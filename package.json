@@ -12,12 +12,10 @@
     "supertest": "^7.2.2"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
     "ejs": "^5.0.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0"
-  },
-  "dependencies": {
-    "better-sqlite3": "^12.9.0"
   }
 }
