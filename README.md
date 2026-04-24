@@ -26,11 +26,14 @@ npm test
 
 ## Local database setup
 
-After cloning, create your local SQLite database:
+After cloning, set up your local SQLite database with:
 
 ```bash
-sqlite3 database/database.db < database/migration-001-student-schema.sql
-sqlite3 database/database.db < database/seed-001-degrees-and-courses.sql
+npm run setup
 ```
+This script will 
+- Create the database
+- Run the schema 
+- Seed the initial degrees and courses
 
 This is gitignored — each dev maintains their own local copy.

@@ -4,6 +4,7 @@
   "description": "Group consultation scheduling app for Wits students and lecturers",
   "main": "server.js",
   "scripts": {
+    "setup": "node database/setup.js",
     "test": "jest --coverage"
   },
   "devDependencies": {
