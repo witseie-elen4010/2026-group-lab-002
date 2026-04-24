@@ -1,4 +1,4 @@
-const db = require('../models/db')
+const db = require('../../database/db')
 
 const showSignupPage = (req, res) => {
   res.render('sign-up', { message: null, error: null })
