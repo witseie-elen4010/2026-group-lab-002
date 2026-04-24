@@ -48,3 +48,10 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Jest coverage output
+jest
+knockknock-prof@0.1.0
+
+# Database files should not be committed to version control
+database/database.db
