@@ -2,7 +2,7 @@ const db = require('../models/db')
 
 const showSignupPage = (req, res) => {
   res.render('sign-up', { message: null, error: null })
-};
+}
 
 const registerUser = (req, res) => {
   try {
@@ -36,21 +36,20 @@ const registerUser = (req, res) => {
       `)
       stmt.run(number, fullName, email, specificDetail, password, courses || null)
     } else {
-      // Ensure the table name matches your DB schema (used 'students' here)
       const stmt = db.prepare(`
+        
         INSERT INTO students (student_number, name, email, degree_code, password)
         VALUES (?, ?, ?, ?, ?)
       `)
-      stmt.run(number, fullName, email, specificDetail, password)
+      stmt.run(number, fullName, email, 'BSCENGINFO', password)
     }
 
     return res.redirect('/?success=true')
-
   } catch (error) {
     console.error('Signup error:', error)
     return res.render('sign-up', {
       message: null,
-      error: 'An error occurred during registration. Please try again.'
+      error: 'An error occurred during registration. Please contact admin for help sunet110803@gmail.com.'
     })
   }
 }
