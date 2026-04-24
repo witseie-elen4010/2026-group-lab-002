@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Knock Knock, Prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Inherited Theme Styles */
+    body { background: #f5f7fb; }
+    .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
+    .brand { font-size: 1.5rem; font-weight: 700; }
+    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); border: none; }
+    
+    /* Specific Layout Styles for Authentication */
+    .auth-wrapper { 
+      min-height: calc(100vh - 75px); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+    .auth-card { 
+      width: 100%; 
+      max-width: 450px; 
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <div class="brand">Knock Knock, Prof</div>
+   <!--  <div class="d-flex align-items-center gap-3">
+       <a href="/login" class="btn btn-outline-secondary btn-sm">Log in</a> 
+    </div> -->
+  </header>
+
+  <main class="container-fluid p-4 auth-wrapper">
+    <div class="card p-4 auth-card">
+      
+      <div class="text-center mb-4">
+        <h3 class="fw-bold">Create an Account</h3>
+        <p class="text-muted">Sign up to manage your consultations.</p>
+      </div>
+
+
+        <!-- app.get("/signup", (req, res) => { 
+        res.render("signup", { error: null, success: null });
+        }); -->
+  
+
+
+    <form action="/signup" method="POST">
+        <div class="mb-3">
+        <label for="fullName" class="form-label fw-semibold">Full Name</label>
+        <input type="text" class="form-control" id="fullName" name="fullName" required>
+        </div>
+
+    <form action="/signup" method="POST">
+        <div class="mb-3">
+            <label for="number" class="form-label fw-semibold">Student/staff number</label>
+            <input type="text" class="form-control" id="number" name="number" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">University Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="confirmPassword" class="form-label fw-semibold">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+        </div>
+
+        <!-- <div 
+        if number starts with A, ask for department, else degree
+        <label for="confirmPassword" class="form-label fw-semibold">Enter degree/department</label>
+            <input type="text" class="form-control" id="dep/deg" name="deg/dep" placeholder="Confirm your password" required>
+        /div> -->
+
+        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">Sign Up</button>
+        
+        <div class="text-center small">
+            <span class="text-muted">Already have an account?</span> 
+            <a href="/login" class="text-decoration-none fw-semibold">Log in here</a>
+        </div>
+
+        
+    </form>
+
+    </div>
+</main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
