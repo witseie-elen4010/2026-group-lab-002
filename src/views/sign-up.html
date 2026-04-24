@@ -49,13 +49,13 @@
   
 
 
-    <form action="/signup" method="POST">
+    <!-- <form action="/signup" method="POST"> -->
         <div class="mb-3">
         <label for="fullName" class="form-label fw-semibold">Full Name</label>
         <input type="text" class="form-control" id="fullName" name="fullName" required>
         </div>
 
-    <form action="/signup" method="POST">
+    <!-- <form action="/signup" method="POST"> -->
         <div class="mb-3">
             <label for="number" class="form-label fw-semibold">Student/staff number</label>
             <input type="text" class="form-control" id="number" name="number" required>
@@ -65,6 +65,22 @@
             <label for="email" class="form-label fw-semibold">University Email</label>
             <input type="email" class="form-control" id="email" name="email" required>
         </div>
+
+        <div class="mb-3">
+            <label for="department/degree" class="form-label fw-semibold">Department (lecturer)/Degree (student)</label>
+            <input type="text" class="form-control" id="department/degree" name="department/degree" required>
+        </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Add your courses</label>
+        <input type="text" id="courses" class="form-control">
+    </div>
+
+    <button class="btn btn-primary mb-3" id="addBtn">Add</button>
+
+    <ul id="list" class="list-group"></ul>
+
+
         <div class="mb-3">
             <label for="password" class="form-label fw-semibold">Password</label>
             <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required>
@@ -81,11 +97,13 @@
             <input type="text" class="form-control" id="dep/deg" name="deg/dep" placeholder="Confirm your password" required>
         /div> -->
 
-        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">Sign Up</button>
-        
+        <form action="/signup" method="POST">
+            <button type="submit" id="signupButton" class="btn btn-primary w-100 py-2 mb-3">Sign Up</button>
+        </form>
+
         <div class="text-center small">
             <span class="text-muted">Already have an account?</span> 
-            <a href="/login" class="text-decoration-none fw-semibold">Log in here</a>
+            <a href="/login" id="LoginLink" class="text-decoration-none fw-semibold">Log in here</a>
         </div>
 
         
@@ -97,3 +115,33 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<script>
+  const courseInput = document.getElementById("courses");
+  const addCourseBtn = document.getElementById("addBtn");
+  const courseList = document.getElementById("list");
+
+  let courses = [];
+
+  addCourseBtn.addEventListener("click", () => {
+    const courseName = courseInput.value.trim();
+
+    if (courseName === "") return;
+
+    courses.push(courseName);
+    courseInput.value = "";
+
+    renderCourses();
+  });
+
+  function renderCourses() {
+    courseList.innerHTML = "";
+
+    courses.forEach((course) => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.textContent = course;
+      courseList.appendChild(li);
+    });
+  }
+</script>
