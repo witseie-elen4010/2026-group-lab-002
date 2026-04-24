@@ -16,5 +16,8 @@
     "ejs": "^5.0.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0"
   }
 }
