@@ -28,9 +28,9 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
                     Waiting list when full (3 pts)
     Enforce booking rules
         N/A
-            Reject bookings outside availability (3 pts)
-            Reject overlapping consultations (3 pts)
             Reject when max students reached (2 pts)
+                Reject bookings outside availability (3 pts)
+                Reject overlapping consultations (3 pts)
                 Reject when daily limit reached (2 pts)
                     Clear error messages on rule violations (2 pts)
     View consultation dashboards
