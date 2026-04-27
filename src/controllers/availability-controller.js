@@ -1,4 +1,5 @@
 const db = require('../../database/db');
+const { generateConstId, validateSlotFields } = require('../services/availability-helpers');
 
 const showAvailability = (req, res) => {
   const user = {
@@ -16,7 +17,7 @@ const saveAvailability = (req, res) => {
   const lecturerId = req.session.userId;
   const { consultation_date, consultation_time, venue, duration_min, max_number_of_students } = req.body;
 
-  if (!consultation_date || !consultation_time || !venue || !duration_min || !max_number_of_students) {
+  if (!validateSlotFields(req.body)) {
     return res.render('availability', {
       user: { id: lecturerId, name: req.session.userName, role: req.session.userRole },
       availability: db.prepare('SELECT * FROM consultations WHERE lecturer_id = ?').all(lecturerId),
@@ -42,8 +43,7 @@ const saveAvailability = (req, res) => {
     'SELECT COUNT(*) AS total FROM consultations WHERE lecturer_id = ? AND consultation_date = ?'
   ).get(lecturerId, consultation_date).total;
 
-  const sequence = String(count + 1).padStart(5, '0');
-  const constId = `${consultation_date}-${sequence}`;
+  const constId = generateConstId(consultation_date, count);
 
   db.prepare(`
     INSERT INTO consultations (const_id, consultation_date, consultation_time, lecturer_id, duration_min, max_number_of_students, venue, status, attendees)
