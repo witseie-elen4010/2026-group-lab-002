@@ -2,9 +2,10 @@ const express = require('express')
 const session = require('express-session')
 const path = require('path')
 
-const authRoutes      = require('./src/routes/auth-routes');
-const dashboardRoutes = require('./src/routes/dashboard-routes')
-const signupRoutes    = require('./src/routes/signup-routes')
+const authRoutes         = require('./src/routes/auth-routes');
+const dashboardRoutes    = require('./src/routes/dashboard-routes')
+const signupRoutes       = require('./src/routes/signup-routes')
+const availabilityRoutes = require('./src/routes/availability-routes')
 
 const app  = express()
 const PORT = process.env.PORT || 3000
@@ -32,6 +33,7 @@ app.use(session({
 app.use('/', authRoutes)
 app.use('/', dashboardRoutes)
 app.use('/', signupRoutes)
+app.use('/', availabilityRoutes)
 
 app.get('/', (req, res) => {
   if (req.session && req.session.userId) {

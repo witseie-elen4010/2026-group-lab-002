@@ -1,5 +1,5 @@
-// Pure helpers for dashboard data extracted so we can unit test without hitting the database. 
-// These are not meant to be used outside of the dashboard controllers, but they are exported for testing purposes.
+// Pure helpers for dashboard data extracted so we can unit test without hitting the database.
+// These are not meant to be used outside of the dashboard controllers, but are exported for testing purposes.
 
 const parseAttendees = (row) => {
   let list = [];

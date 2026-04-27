@@ -1,5 +1,5 @@
 /* eslint-env jest */
-const { parseAttendees, splitByDate } = require('../../src/controllers/dashboard-helpers');
+const { parseAttendees, splitByDate } = require('../../src/services/dashboard-helpers');
 
 describe('parseAttendees()', () => {
   test('returns attendeeCount of 0 for empty attendees', () => {
