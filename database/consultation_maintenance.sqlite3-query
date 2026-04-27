@@ -45,3 +45,19 @@ INSERT OR REPLACE INTO consultations   (const_id           , consultation_date ,
 VALUES                      ('2026-04-26-00002' , '2026-04-26'      , '11:00'           , 'A000357'       , 60   , 5                      , 'Venue 1' , 'Booked' , 1234567  , '[2345678, 45678978]', 'Test Test Fly'   , 'This is a test consultation for demonstration purposes.');
 
 SELECT * FROM consultations;
+
+INSERT INTO consultations (
+  const_id, consultation_title, consultation_date, consultation_time,
+  lecturer_id, duration_min, max_number_of_students, venue, status, attendees
+) VALUES (
+  '2026-05-01-00001',
+  'Test Consultation for Students',
+  '2026-05-01',
+  '10:00',
+  'A000357',
+  60,
+  5,
+  'MSL001',
+  'Booked',
+  '[1234567, 2345678]'
+);

@@ -1,5 +1,10 @@
 {
+  "name": "knockknock-prof",
+  "version": "0.1.0",
+  "description": "Group consultation scheduling app for Wits students and lecturers",
+  "main": "app.js",
   "scripts": {
+    "setup": "node database/setup.js",
     "test": "jest --coverage"
   },
   "devDependencies": {
@@ -8,6 +13,10 @@
     "supertest": "^7.2.2"
   },
   "dependencies": {
-    "better-sqlite3": "^12.9.0"
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.9.0",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0"
   }
 }

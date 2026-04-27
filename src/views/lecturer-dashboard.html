@@ -15,21 +15,33 @@
     .calendar-table th, .calendar-table td { height: 55px; width: 55px; text-align: center; vertical-align: middle; }
     .calendar-table td { background-color: #f8f9fa; }
     .calendar-table .today { background-color: dodgerblue; color: white; font-weight: bold; }
+    .calendar-table .has-consultation { background-color: #d1e7dd; font-weight: 600; }
+    .calendar-table .empty { background-color: transparent; border: none; }
   </style>
 </head>
 <body>
 
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, Prof</div>
+    <div class="brand">Knock Knock, <%= user.name %></div>
     <div class="d-flex align-items-center gap-3">
-      <span class="text-muted">Welcome, Lecturer</span>
-      <a href="login.html" class="btn btn-outline-secondary btn-sm">Logout</a>
+     
+      <form action="/logout" method="POST" class="d-inline">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+      </form>
     </div>
   </header>
 
   <main class="container-fluid p-4">
     <h2>My Dashboard</h2>
     <p>Welcome back! Here's an overview of your consultations and availability.</p>
+
+    
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
 
     <div class="row g-4">
       <div class="col-lg-6">
@@ -38,36 +50,107 @@
           <h4>Availability Overview</h4>
           <div class="stats">
             <div class="stat-box">
-              <div class="h3 text-primary">0</div>
+              <div class="h3 text-primary"><%= stats.daysAvailable %></div>
               <small>Days Available</small>
             </div>
             <div class="stat-box">
-              <div class="h3 text-success">0</div>
+              <div class="h3 text-success"><%= stats.hoursAvailable %></div>
               <small>Hours Available</small>
             </div>
             <div class="stat-box">
-              <div class="h3 text-info">0</div>
+              <div class="h3 text-info"><%= stats.totalSlots %></div>
               <small>Max Consultations</small>
             </div>
           </div>
-          <a href="availability.html" class="btn btn-primary btn-sm mt-2">Set Availability</a>
+          <a href="/lecturer/availability" class="btn btn-primary btn-sm mt-2">Set Availability</a>
         </div>
 
         <div class="card p-4 mt-4">
           <h4>Upcoming Consultations</h4>
-          <p class="text-muted mb-0">No upcoming consultations.</p>
+          <% if (upcomingConsultations.length === 0) { %>
+            <p class="text-muted mb-0">No upcoming consultations.</p>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Venue</th>
+                    <th>Attendees</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% upcomingConsultations.forEach(c => { %>
+                    <tr>
+                      <td><%= c.consultation_title %></td>
+                      <td class="text-nowrap"><%= c.consultation_date %></td>
+                      <td class="text-nowrap"><%= c.consultation_time %></td>
+                      <td><%= c.venue %></td>
+                      <td>
+                        <span class="badge bg-secondary">
+                          <%= c.attendeeCount %>/<%= c.max_number_of_students %>
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge <%=
+                          c.status === 'Available' ? 'bg-success' :
+                          c.status === 'Booked'    ? 'bg-primary' : 'bg-warning text-dark'
+                        %>"><%= c.status %></span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
         </div>
 
+        <!-- Past Consultations -->
         <div class="card p-4 mt-4">
           <h4>Past Consultations</h4>
-          <p class="text-muted mb-0">No past consultations.</p>
+          <% if (pastConsultations.length === 0) { %>
+            <p class="text-muted mb-0">No past consultations.</p>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Attendees</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pastConsultations.forEach(c => { %>
+                    <tr>
+                      <td><%= c.consultation_title %></td>
+                      <td class="text-nowrap"><%= c.consultation_date %></td>
+                      <td class="text-nowrap"><%= c.consultation_time %></td>
+                      <td>
+                        <span class="badge bg-secondary">
+                          <%= c.attendeeCount %>/<%= c.max_number_of_students %>
+                        </span>
+                      </td>
+                      <td><span class="badge bg-secondary"><%= c.status %></span></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
         </div>
 
       </div>
 
+      <!-- Calendar  -->
       <div class="col-lg-6">
         <div class="card p-4">
-          <h4>Calendar Overview</h4>
+          <h4>Calendar Overview: <%= calendar.monthName %> <%= calendar.year %></h4>
           <table class="table table-bordered calendar-table">
             <thead>
               <tr>
@@ -76,13 +159,41 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td></td><td></td><td></td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
-              <tr><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
-              <tr><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td></tr>
-              <tr><td>19</td><td>20</td><td>21</td><td class="today">22</td><td>23</td><td>24</td><td>25</td></tr>
-              <tr><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td></td><td></td></tr>
+              <%
+                
+                const cells = [];
+                for (let i = 0; i < calendar.firstDayOfWeek; i++) cells.push(null);
+                for (let d = 1; d <= calendar.daysInMonth; d++) cells.push(d);
+                while (cells.length % 7 !== 0) cells.push(null);
+
+                for (let row = 0; row < cells.length / 7; row++) {
+              %>
+                <tr>
+                  <% for (let col = 0; col < 7; col++) {
+                    const day = cells[row * 7 + col];
+                    const isToday    = day === calendar.today;
+                    const hasConsult = day && calendar.consultationDays.includes(day);
+                    let cls = '';
+                    if (!day)         cls = 'empty';
+                    else if (isToday) cls = 'today';
+                    else if (hasConsult) cls = 'has-consultation';
+                  %>
+                    <td class="<%= cls %>"><%= day || '' %></td>
+                  <% } %>
+                </tr>
+              <% } %>
             </tbody>
           </table>
+          <div class="d-flex gap-3 mt-2 small text-muted">
+            <span>
+              <span style="display:inline-block;width:14px;height:14px;background:dodgerblue;border-radius:3px;vertical-align:middle"></span>
+              Today
+            </span>
+            <span>
+              <span style="display:inline-block;width:14px;height:14px;background:#d1e7dd;border-radius:3px;vertical-align:middle"></span>
+              Has consultation
+            </span>
+          </div>
         </div>
       </div>
 
