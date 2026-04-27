@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Availability - KnockKnock.prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-dark bg-dark px-4 d-flex justify-content-between">
+    <span class="navbar-brand fw-bold">KnockKnock.prof</span>
+    <form action="/logout" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+    </form>
+  </nav>
+
+  <main class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-7">
+
+        <div class="d-flex align-items-center mb-4 gap-3">
+          <a href="/lecturer/dashboard" class="btn btn-outline-secondary btn-sm">&larr; Dashboard</a>
+          <h1 class="h3 mb-0">Set Availability</h1>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+        <% if (typeof success !== 'undefined' && success) { %>
+          <div class="alert alert-success"><%= success %></div>
+        <% } %>
+
+        <div class="card">
+          <div class="card-header fw-semibold">New Consultation Slot</div>
+          <div class="card-body">
+            <form action="/lecturer/availability" method="POST">
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="consultation_date" class="form-label fw-semibold">Date</label>
+                  <input type="date" class="form-control" id="consultation_date"
+                    name="consultation_date" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="consultation_time" class="form-label fw-semibold">Time</label>
+                  <input type="time" class="form-control" id="consultation_time"
+                    name="consultation_time" required>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="venue" class="form-label fw-semibold">Venue</label>
+                <input type="text" class="form-control" id="venue" name="venue"
+                  placeholder="e.g. Room 101 or https://meet.link" required>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="duration_min" class="form-label fw-semibold">Duration (minutes)</label>
+                  <select class="form-select" id="duration_min" name="duration_min" required>
+                    <option value="15">15 minutes</option>
+                    <option value="30" selected>30 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">60 minutes</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="max_number_of_students" class="form-label fw-semibold">Max Students</label>
+                  <input type="number" class="form-control" id="max_number_of_students"
+                    name="max_number_of_students" min="1" max="10" value="1" required>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Slot</button>
+                <a href="/lecturer/dashboard" class="btn btn-outline-secondary">Cancel</a>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
