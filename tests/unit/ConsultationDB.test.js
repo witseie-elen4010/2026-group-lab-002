@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 
 const MIGRATION_SQL = fs.readFileSync(
-  path.join(__dirname, '../../database/migration-001-student-schema.sql'),
+  path.join(__dirname, '../../database/createSchema.sql'),
   'utf8'
 )
 
@@ -15,9 +15,10 @@ describe('Consultations DB (3NF + Constraints + Relations)', () => {
     db.pragma('foreign_keys = ON')
     db.exec(MIGRATION_SQL)
 
-    db.prepare(`INSERT OR IGNORE INTO degrees (degree_code, degree_name) VALUES ('BSCENGINFO', 'Bachelor of Science in Engineering')`).run();
-    db.prepare(` INSERT  INTO students (student_number, name, email, password, degree_code) VALUES (1234567, 'Jest User Two', 'jest-test-1@wits.ac.za', 'pw', 'BSCENGINFO')`).run()
-    db.prepare(`INSERT  INTO staff (staff_number, name, email, department, password, courses) VALUES ('A000357', 'Dr. Smith', 'dr.smith@wits.ac.za', 'Computer Science', 'pw', 'COMP2001')`).run()
+    db.prepare(`INSERT OR IGNORE INTO departments (dept_code, dept_name, faculty_name) VALUES ('EIE', 'School of Electrical and Information Engineering', 'Engineering and the Built Environment')`).run()
+    db.prepare(`INSERT OR IGNORE INTO degrees (degree_code, degree_name, dept_code) VALUES ('BSCENGINFO', 'Bachelor of Science in Engineering', 'EIE')`).run()
+    db.prepare(`INSERT INTO students (student_number, name, email, password, degree_code) VALUES (1234567, 'Jest User Two', 'jest-test-1@wits.ac.za', 'pw', 'BSCENGINFO')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, password) VALUES ('A000357', 'Dr. Smith', 'dr.smith@wits.ac.za', 'Computer Science', 'pw')`).run()
     db.prepare(` INSERT  INTO consultations (const_id, consultation_title, consultation_date, consultation_time, lecturer_id, venue, status) VALUES ('2026-04-29-00002', 'This is a valid consultation title', '2026-04-27', '10:00', 'A000357', 'Venue 1', 'Booked')`).run()
     db.prepare(`INSERT  INTO consultation_attendees (const_id, student_number) VALUES ('2026-04-29-00002', 1234567)`).run()
   })
