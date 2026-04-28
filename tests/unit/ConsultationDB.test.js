@@ -166,4 +166,10 @@ describe('Consultations DB (3NF + Constraints + Relations)', () => {
 
     expect(rows.length).toBe(0)
   })
+
+  test('staff_courses table exists and is queryable', () => {
+    expect(() => {
+      db.prepare(`SELECT * FROM staff_courses`).all()
+    }).not.toThrow()
+  })
 })
