@@ -17,38 +17,68 @@ const showLecturerDashboard = (req, res) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     // upcoming consultations (available, booked, ongoing)
-    const upcomingRows = db.prepare(
-      `SELECT
-         const_id, consultation_title, consultation_date, consultation_time,
-         duration_min, max_number_of_students, venue, status, attendees
-       FROM consultations
-       WHERE lecturer_id = ?
-         AND consultation_date >= ?
-         AND status IN ('Available', 'Booked', 'Ongoing')
-       ORDER BY consultation_date ASC, consultation_time ASC`
-    ).all(user.id, today);
+    const upcomingRows = db.prepare(`
+    SELECT
+      c.const_id,
+      c.consultation_title,
+      c.consultation_date,
+      c.consultation_time,
+      c.duration_min,
+      c.max_number_of_students,
+      c.venue,
+      c.status,
+      s.name AS lecturer_name,
+    COUNT(ca.student_number) AS attendeeCount
+    FROM consultations c
+    LEFT JOIN staff s ON s.staff_number = c.lecturer_id
+    LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id
+    WHERE c.consultation_date >= ?
+    AND c.status IN ('Available', 'Booked', 'Ongoing')
+    AND EXISTS (
+    SELECT 1 FROM consultation_attendees
+    WHERE const_id = c.const_id AND student_number = ?
+    )
+    GROUP BY c.const_id
+    ORDER BY c.consultation_date ASC, c.consultation_time ASC
+    `).all(today, user.id);
 
     // past consultations (completed, cancelled)
-    const pastRows = db.prepare(
-      `SELECT
-         const_id, consultation_title, consultation_date, consultation_time,
-         max_number_of_students, status, attendees
-       FROM consultations
-       WHERE lecturer_id = ?
-         AND consultation_date < ?
-       ORDER BY consultation_date DESC, consultation_time DESC`
-    ).all(user.id, today);
+    const pastRows = db.prepare(`
+    SELECT
+      c.const_id,
+      c.consultation_title,
+      c.consultation_date,
+      c.consultation_time,
+      c.max_number_of_students,
+      c.status,
+      s.name AS lecturer_name,
+    COUNT(ca.student_number) AS attendeeCount
+    FROM consultations c
+    LEFT JOIN staff s ON s.staff_number = c.lecturer_id
+    LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id
+    WHERE c.consultation_date < ?
+    AND EXISTS (
+    SELECT 1 FROM consultation_attendees
+    WHERE const_id = c.const_id AND student_number = ?
+    )
+    GROUP BY c.const_id
+    ORDER BY c.consultation_date DESC, c.consultation_time DESC
+    `).all(today, user.id);
 
     
-    const parseRow = (row) => {
-      let list = [];
-      try { list = JSON.parse(row.attendees || '[]'); } catch { /* leave empty */ }
-      return { ...row, attendeeCount: list.length };
-    };
+    // const parseRow = (row) => {
+    //   let list = [];
+    //   try { list = JSON.parse(row.attendees || '[]'); } catch { /* leave empty */ }
+    //   return { ...row, attendeeCount: list.length };
+    // };
 
-    const upcomingConsultations = upcomingRows.map(parseRow);
-    const pastConsultations     = pastRows.map(parseRow);
+    // const upcomingConsultations = upcomingRows.map(parseRow);
+    // const pastConsultations     = pastRows.map(parseRow);
 
+
+    const upcomingConsultations = upcomingRows;
+    const pastConsultations = pastRows;
+    
     // availability object for stats and calendar
     const availableSlots = upcomingConsultations.filter(c => c.status === 'Available');
     const stats = {
