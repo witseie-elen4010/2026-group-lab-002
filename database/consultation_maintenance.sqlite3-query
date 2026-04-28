@@ -1,74 +1,74 @@
--- database: ./database.db
-PRAGMA foreign_keys = ON;
+-- -- database: ./database.db
+-- PRAGMA foreign_keys = ON;
 
---BEGIN TRANSACTION;
+-- --BEGIN TRANSACTION;
 
 
-CREATE TABLE consultations_new (
-    const_id TEXT PRIMARY KEY,
-    consultation_title TEXT NOT NULL CHECK(length(consultation_title) BETWEEN 5 AND 100) DEFAULT 'Consultation Available',
-    consultation_description TEXT  CHECK(length(consultation_description) <= 500),
-    consultation_date TEXT NOT NULL CHECK (consultation_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
-    consultation_time TEXT NOT NULL CHECK (consultation_time GLOB '[0-9][0-9]:[0-9][0-9]'),
-    lecturer_id text,
-    organiser integer, --FOREIGN KEY REFERENCES student(student_number),
-    --attendees integer[] NOT NULL FOREIGN KEY REFERENCES student(student_number),  -- Array of student numbers attending the consultation
-    duration_min INTEGER NOT NULL DEFAULT 60 CHECK (duration_min > 0 AND duration_min <= 480), -- Duration in minutes, must be positive and reasonable
-    max_number_of_students INTEGER NOT NULL DEFAULT 1 CHECK (max_number_of_students > 0 ),
-    venue TEXT NOT NULL CHECK(length(venue) >= 3), -- if online a link must be provided
-    status TEXT NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Booked', 'Ongoing', 'Missed', 'Cancelled', 'Rescheduled', 'RescheduledToNow')),
-    --review_for_lecturer text(max_characters(300)),
-	--review_for_students  text(max_characters(300))[],
-	--reports_flags text[]  -- Array of flags/reports for the consultation
+-- CREATE TABLE consultations_new (
+--     const_id TEXT PRIMARY KEY,
+--     consultation_title TEXT NOT NULL CHECK(length(consultation_title) BETWEEN 5 AND 100) DEFAULT 'Consultation Available',
+--     consultation_description TEXT  CHECK(length(consultation_description) <= 500),
+--     consultation_date TEXT NOT NULL CHECK (consultation_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+--     consultation_time TEXT NOT NULL CHECK (consultation_time GLOB '[0-9][0-9]:[0-9][0-9]'),
+--     lecturer_id text,
+--     organiser integer, --FOREIGN KEY REFERENCES student(student_number),
+--     --attendees integer[] NOT NULL FOREIGN KEY REFERENCES student(student_number),  -- Array of student numbers attending the consultation
+--     duration_min INTEGER NOT NULL DEFAULT 60 CHECK (duration_min > 0 AND duration_min <= 480), -- Duration in minutes, must be positive and reasonable
+--     max_number_of_students INTEGER NOT NULL DEFAULT 1 CHECK (max_number_of_students > 0 ),
+--     venue TEXT NOT NULL CHECK(length(venue) >= 3), -- if online a link must be provided
+--     status TEXT NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Booked', 'Ongoing', 'Missed', 'Cancelled', 'Rescheduled', 'RescheduledToNow')),
+--     --review_for_lecturer text(max_characters(300)),
+-- 	--review_for_students  text(max_characters(300))[],
+-- 	--reports_flags text[]  -- Array of flags/reports for the consultation
 
-    FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number) ON DELETE SET NULL,
-    FOREIGN KEY (organiser) REFERENCES students(student_number) ON DELETE SET NULL
-    --FOREIGN KEY (attendees) REFERENCES student(student_number) ON DELETE SET NULL
-);
+--     FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number) ON DELETE SET NULL,
+--     FOREIGN KEY (organiser) REFERENCES students(student_number) ON DELETE SET NULL
+--     --FOREIGN KEY (attendees) REFERENCES student(student_number) ON DELETE SET NULL
+-- );
 
-DROP TABLE IF EXISTS consultations;
-ALTER TABLE consultations_new RENAME TO consultations;
+-- DROP TABLE IF EXISTS consultations;
+-- ALTER TABLE consultations_new RENAME TO consultations;
 
-CREATE TABLE consultation_attendees_new (
-    const_id TEXT,
-    student_number INTEGER,
+-- CREATE TABLE consultation_attendees_new (
+--     const_id TEXT,
+--     student_number INTEGER,
     
-    PRIMARY KEY (const_id, student_number),
+--     PRIMARY KEY (const_id, student_number),
 
-    FOREIGN KEY (const_id) REFERENCES consultations(const_id) ON DELETE CASCADE,
-    FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
-);
+--     FOREIGN KEY (const_id) REFERENCES consultations(const_id) ON DELETE CASCADE,
+--     FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
+-- );
 
-DROP TABLE IF EXISTS consultation_attendees;
-ALTER TABLE consultation_attendees_new RENAME TO consultation_attendees;
+-- DROP TABLE IF EXISTS consultation_attendees;
+-- ALTER TABLE consultation_attendees_new RENAME TO consultation_attendees;
 
---ALTER TABLE consultations ADD COLUMN attendees JSON; -- FOREIGN KEY REFERENCES staff(staff_number)
--- ALTER TABLE staff ADD COLUMN reports_flags JSON;
--- ALTER TABLE staff MODIFY COLUMN review_for_students JSON;
+-- --ALTER TABLE consultations ADD COLUMN attendees JSON; -- FOREIGN KEY REFERENCES staff(staff_number)
+-- -- ALTER TABLE staff ADD COLUMN reports_flags JSON;
+-- -- ALTER TABLE staff MODIFY COLUMN review_for_students JSON;
 
-SELECT * FROM consultations;
+-- SELECT * FROM consultations;
 
-INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id    , duration_min  , max_number_of_students, venue     , status)
-VALUES                      ('2026-04-26-00001' , '2026-04-26'      , '10:00'                       , 'A000357'     , 60            , 10                    , 'Venue 1' , 'Available');
+-- INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id    , duration_min  , max_number_of_students, venue     , status)
+-- VALUES                      ('2026-04-26-00001' , '2026-04-26'      , '10:00'                       , 'A000357'     , 60            , 10                    , 'Venue 1' , 'Available');
 
-SELECT * FROM consultations;
+-- SELECT * FROM consultations;
 
-INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id   , duration_min  , max_number_of_students , venue     , status   , organiser ,             consultation_title, consultation_description)
-VALUES                      ('2026-04-26-00002' , '2026-04-26'      , '11:00'           , 'A000357'       , 60   , 5                      , 'Venue 1' , 'Booked' , 1234567, 'Test Test Fly'   , 'This is a test consultation for demonstration purposes.');
+-- INSERT OR REPLACE INTO consultations   (const_id           , consultation_date , consultation_time , lecturer_id   , duration_min  , max_number_of_students , venue     , status   , organiser ,             consultation_title, consultation_description)
+-- VALUES                      ('2026-04-26-00002' , '2026-04-26'      , '11:00'           , 'A000357'       , 60   , 5                      , 'Venue 1' , 'Booked' , 1234567, 'Test Test Fly'   , 'This is a test consultation for demonstration purposes.');
 
-SELECT * FROM consultations;
+-- SELECT * FROM consultations;
 
-INSERT INTO consultations (
-  const_id, consultation_title, consultation_date, consultation_time,
-  lecturer_id, duration_min, max_number_of_students, venue, status
-) VALUES (
-  '2026-05-01-00001',
-  'Test Consultation for Students',
-  '2026-05-01',
-  '10:00',
-  'A000357',
-  60,
-  5,
-  'MSL001',
-  'Booked'
-);
+-- INSERT INTO consultations (
+--   const_id, consultation_title, consultation_date, consultation_time,
+--   lecturer_id, duration_min, max_number_of_students, venue, status
+-- ) VALUES (
+--   '2026-05-01-00001',
+--   'Test Consultation for Students',
+--   '2026-05-01',
+--   '10:00',
+--   'A000357',
+--   60,
+--   5,
+--   'MSL001',
+--   'Booked'
+-- );
