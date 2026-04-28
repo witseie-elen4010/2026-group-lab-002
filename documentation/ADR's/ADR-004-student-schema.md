@@ -1,4 +1,4 @@
-# ADR-005: Student data uses a 3NF relational schema (degrees, students, courses, enrollments)
+# ADR-004: Student data uses a 3NF relational schema (degrees, students, courses, enrollments)
 
 ## Status
 
