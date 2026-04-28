@@ -46,9 +46,9 @@ const saveAvailability = (req, res) => {
   const constId = generateConstId(consultation_date, count);
 
   db.prepare(`
-    INSERT INTO consultations (const_id, consultation_date, consultation_time, lecturer_id, duration_min, max_number_of_students, venue, status, attendees)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'Available', '[]')
-  `).run(constId, consultation_date, consultation_time, lecturerId, Number(duration_min), Number(max_number_of_students), venue);
+  INSERT INTO consultations (const_id, consultation_date, consultation_time, lecturer_id, duration_min, max_number_of_students, venue, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, 'Available')
+`).run(constId, consultation_date, consultation_time, lecturerId, Number(duration_min), Number(max_number_of_students), venue);
 
   return res.redirect('/lecturer/dashboard');
 };
