@@ -1,29 +1,28 @@
 const Database = require('better-sqlite3')
 const path = require('path')
+const fs = require('fs')
 
-const DB_PATH = path.join(__dirname, '../../database/database.db')
+const MIGRATION_SQL = fs.readFileSync(
+  path.join(__dirname, '../../database/migration-001-student-schema.sql'),
+  'utf8'
+)
 
 describe('Consultations DB (3NF + Constraints + Relations)', () => {
   let db
 
   beforeAll(() => {
-    db = new Database(DB_PATH)
+    db = new Database(':memory:')
     db.pragma('foreign_keys = ON')
+    db.exec(MIGRATION_SQL)
 
-    console.log('Database path being used:', DB_PATH)
-
-    // Clean only consultation-related data
-    db.exec(`
-      DELETE FROM consultation_attendees;
-      DELETE FROM consultations;
-    `)
+    db.prepare(`INSERT OR IGNORE INTO degrees (degree_code, degree_name) VALUES ('BSCENGINFO', 'Bachelor of Science in Engineering')`).run();
+    db.prepare(` INSERT  INTO students (student_number, name, email, password, degree_code) VALUES (1234567, 'Jest User Two', 'jest-test-1@wits.ac.za', 'pw', 'BSCENGINFO')`).run()
+    db.prepare(`INSERT  INTO staff (staff_number, name, email, department, password, courses) VALUES ('A000357', 'Dr. Smith', 'dr.smith@wits.ac.za', 'Computer Science', 'pw', 'COMP2001')`).run()
+    db.prepare(` INSERT  INTO consultations (const_id, consultation_title, consultation_date, consultation_time, lecturer_id, venue, status) VALUES ('2026-04-29-00002', 'This is a valid consultation title', '2026-04-27', '10:00', 'A000357', 'Venue 1', 'Booked')`).run()
+    db.prepare(`INSERT  INTO consultation_attendees (const_id, student_number) VALUES ('2026-04-29-00002', 1234567)`).run()
   })
 
   afterAll(() => {
-    db.exec(`
-      DELETE FROM consultation_attendees;
-      DELETE FROM consultations;
-    `)
     db.close()
   })
 
