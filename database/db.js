@@ -1,4 +1,6 @@
 // Centralised database connection and always enables foreign key enforcement.
+// This file is imported by all other modules that need to interact with the database
+// Ensuring they all use the same connection and have foreign keys enabled
 const Database = require('better-sqlite3');
 const path = require('path');
 
