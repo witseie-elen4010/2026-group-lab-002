@@ -1,5 +1,0 @@
---database: ./database.db
-
-SELECT * FROM staff;
-
---ALTER TABLE staff ADD COLUMN courses JSON;

@@ -4,7 +4,7 @@ const path = require('path')
 const fs = require('fs')
 
 const MIGRATION_SQL = fs.readFileSync(
-  path.join(__dirname, '../../database/migration-001-student-schema.sql'),
+  path.join(__dirname, '../../database/createSchema.sql'),
   'utf8'
 )
 
@@ -12,13 +12,14 @@ describe('Student schema constraints', () => {
   let db
 
   beforeAll(() => {
-    db = new Database(':memory:')
+    db = new Database(':memory:') 
     db.exec(MIGRATION_SQL)
     db.pragma('foreign_keys = ON')
 
-    db.prepare("INSERT OR IGNORE INTO degrees (degree_code, degree_name) VALUES ('BSCENGINFO', 'BSc Eng (Information)')").run()
-    db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, degree_code) VALUES ('JEST3001', 'Jest Course Year 3', 3, 'BSCENGINFO')").run()
-    db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, degree_code) VALUES ('JEST4001', 'Jest Course Year 4', 4, 'BSCENGINFO')").run()
+    db.prepare("INSERT OR IGNORE INTO departments (dept_code, dept_name, faculty_name) VALUES ('EIE', 'School of Electrical and Information Engineering', 'Engineering and the Built Environment')").run()
+    db.prepare("INSERT OR IGNORE INTO degrees (degree_code, degree_name, dept_code) VALUES ('BSCENGINFO', 'BSc Eng (Information)', 'EIE')").run()
+    db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, dept_code) VALUES ('JEST3001', 'Jest Course Year 3', 3, 'EIE')").run()
+    db.prepare("INSERT OR IGNORE INTO courses (course_code, course_name, year_level, dept_code) VALUES ('JEST4001', 'Jest Course Year 4', 4, 'EIE')").run()
   })
 
   afterAll(() => {

@@ -12,8 +12,7 @@ const registerUser = (req, res) => {
       email,
       password,
       confirmPassword,
-      specificDetail, // Matches input name='specificDetail'
-      courses
+      specificDetail // Matches input name='specificDetail'
     } = req.body
 
     if (password !== confirmPassword) {
@@ -31,10 +30,10 @@ const registerUser = (req, res) => {
     // Database Insertion
     if (role === 'lecturer') {
       const stmt = db.prepare(`
-        INSERT INTO staff (staff_number, name, email, department, password, courses)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO staff (staff_number, name, email, department, password)
+        VALUES (?, ?, ?, ?, ?)
       `)
-      stmt.run(number, fullName, email, specificDetail, password, courses || null)
+      stmt.run(number, fullName, email, specificDetail, password)
     } else {
       const stmt = db.prepare(`
         
