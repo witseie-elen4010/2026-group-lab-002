@@ -34,16 +34,16 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?)
       `)
       stmt.run(number, fullName, email, specificDetail, password)
+      return res.redirect('/?success=true')
     } else {
       const stmt = db.prepare(`
-        
+
         INSERT INTO students (student_number, name, email, degree_code, password)
         VALUES (?, ?, ?, ?, ?)
       `)
       stmt.run(number, fullName, email, 'BSCENGINFO', password)
+      return res.redirect('/student/courses?onboarding=true')
     }
-
-    return res.redirect('/?success=true')
   } catch (error) {
     console.error('Signup error:', error)
     return res.render('sign-up', {

@@ -15,10 +15,26 @@ const showStudentDashboard = (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
+        const degreeRow = db.prepare(`
+            SELECT d.degree_name
+            FROM students s
+            JOIN degrees d ON s.degree_code = d.degree_code
+            WHERE s.student_number = ?
+        `).get(user.id);
+        const degreeName = degreeRow ? degreeRow.degree_name : null;
+
         // student is in attendees JSON array AND date is today/future
         // json_each expands the attendees array so we can filter by it.
         // The CAST is because attendees are stored as numbers in JSON but
         // SQLite json_each returns them as text values by default.
+        const enrolledCourses = db.prepare(`
+            SELECT c.course_code, c.course_name, c.year_level, c.dept_code
+            FROM enrollments e
+            JOIN courses c ON e.course_code = c.course_code
+            WHERE e.student_number = ?
+            ORDER BY c.year_level, c.course_code
+        `).all(user.id);
+
         const upcomingRows = db.prepare(`
           SELECT
             c.const_id,
@@ -80,9 +96,11 @@ const showStudentDashboard = (req, res) => {
 
         return res.render('student-dashboard', {
             user,
+            degreeName,
+            enrolledCourses,
             upcomingConsultations,
             pastConsultations,
-            success: req.query.success || null,
+            success: req.query.success === 'true' ? 'Courses updated successfully.' : null,
             error: null,
         });
 
@@ -90,6 +108,8 @@ const showStudentDashboard = (req, res) => {
         console.error('Student dashboard error:', err);
         return res.render('student-dashboard', {
             user,
+            degreeName: null,
+            enrolledCourses: [],
             upcomingConsultations: [],
             pastConsultations: [],
             error: 'Could not load dashboard data. Please try again.',
