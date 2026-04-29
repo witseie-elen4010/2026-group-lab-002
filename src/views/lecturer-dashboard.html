@@ -22,9 +22,8 @@
 <body>
 
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, <%= user.name %></div>
+    <div class="brand">Knock Knock, Prof. <%= user.name %></div>
     <div class="d-flex align-items-center gap-3">
-     
       <form action="/logout" method="POST" class="d-inline">
         <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
       </form>
@@ -32,15 +31,15 @@
   </header>
 
   <main class="container-fluid p-4">
-    <h2>My Dashboard</h2>
+    <h2>Lecturer Dashboard</h2>
     <p>Welcome back! Here's an overview of your consultations and availability.</p>
 
     
     <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert alert-danger"><%= error %></div>
+      <div class="alert alert-danger" role="alert"><%= error %></div>
     <% } %>
     <% if (typeof success !== 'undefined' && success) { %>
-      <div class="alert alert-success"><%= success %></div>
+      <div class="alert alert-success" role="alert"><%= success %></div>
     <% } %>
 
     <div class="row g-4">
@@ -72,14 +71,18 @@
           <% } else { %>
             <div class="table-responsive">
               <table class="table table-sm align-middle mb-0">
+                <caption class="visually-hidden">Your upcoming consultations, sorted by soonest first</caption>
                 <thead>
                   <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Venue</th>
-                    <th>Attendees</th>
-                    <th>Status</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Duration</th>
+                    <th scope="col">Venue</th>
+                    <th scope="col">Organiser</th>
+                    <th scope="col">Attendees</th>
+                    <th scope="col">Capacity</th>
+                    <th scope="col">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -88,7 +91,10 @@
                       <td><%= c.consultation_title %></td>
                       <td class="text-nowrap"><%= c.consultation_date %></td>
                       <td class="text-nowrap"><%= c.consultation_time %></td>
+                      <td><%= c.duration_min %> min</td>
                       <td><%= c.venue %></td>
+                      <td><%= c.organiser_name || '—' %></td>
+                      <td><%= c.attendee_names || '—' %></td>
                       <td>
                         <span class="badge bg-secondary">
                           <%= c.attendeeCount %>/<%= c.max_number_of_students %>
@@ -100,43 +106,6 @@
                           c.status === 'Booked'    ? 'bg-primary' : 'bg-warning text-dark'
                         %>"><%= c.status %></span>
                       </td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
-          <% } %>
-        </div>
-
-        <!-- Past Consultations -->
-        <div class="card p-4 mt-4">
-          <h4>Past Consultations</h4>
-          <% if (pastConsultations.length === 0) { %>
-            <p class="text-muted mb-0">No past consultations.</p>
-          <% } else { %>
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Attendees</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% pastConsultations.forEach(c => { %>
-                    <tr>
-                      <td><%= c.consultation_title %></td>
-                      <td class="text-nowrap"><%= c.consultation_date %></td>
-                      <td class="text-nowrap"><%= c.consultation_time %></td>
-                      <td>
-                        <span class="badge bg-secondary">
-                          <%= c.attendeeCount %>/<%= c.max_number_of_students %>
-                        </span>
-                      </td>
-                      <td><span class="badge bg-secondary"><%= c.status %></span></td>
                     </tr>
                   <% }); %>
                 </tbody>

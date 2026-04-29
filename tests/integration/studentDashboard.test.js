@@ -11,8 +11,8 @@ describe('GET /student/dashboard', () => {
     expect(res.text).toContain('Past Consultations');
   });
 
-  test('shows lecturer name column header', async () => {
+  test('shows the student welcome message', async () => {
     const res = await request(app).get('/student/dashboard');
-    expect(res.text).toContain('Lecturer');
+    expect(res.text).toContain('Welcome back, Test Student');
   });
 });
