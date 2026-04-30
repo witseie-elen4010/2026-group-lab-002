@@ -100,7 +100,8 @@ const showStudentDashboard = (req, res) => {
             enrolledCourses,
             upcomingConsultations,
             pastConsultations,
-            success: req.query.success === 'true' ? 'Courses updated successfully.' : null,
+            success: req.query.welcome === '1' ? `Welcome back, ${user.name}!` :
+                     req.query.success === 'true' ? 'Courses updated successfully.' : null,
             error: null,
         });
 
