@@ -1,3 +1,5 @@
+// This script sets up the database by creating tables and inserting default data.
+
 const fs = require('fs');
 const path = require('path');
 const db = require('./db'); // Import shared database connection

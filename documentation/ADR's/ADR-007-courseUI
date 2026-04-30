@@ -1,0 +1,76 @@
+# ADR-007: Student Course Selection as a Dedicated Server-Rendered Page
+
+**Date:** 2026-04-29
+**Status:** Accepted
+**Deciders:** Aditya Raghunandan, Thandeka Malasa, Suné Toerien
+
+---
+
+## Context
+
+User story #44 requires students to view and update their enrolled degree and courses from the dashboard. Because the course list is large (40+ entries spanning two departments and four year levels currently), we needed to choose a UI pattern that presents this data clearly and integrates cleanly with our existing stack (Node.js, Express, EJS, Bootstrap 5, no frontend framework).
+
+We also identified that newly registered students land on the homepage immediately after signup with no prompt to select courses, leaving their profile incomplete. This created a secondary decision about where course selection fits in the onboarding flow.
+
+---
+
+## Decision
+
+We will implement course selection as a **dedicated server-rendered page** at `GET /student/courses`, submitted via a standard HTML `POST /student/courses` form.
+
+This page serves double duty:
+1. **Onboarding** — students are redirected here immediately after signup (`?onboarding=true` hides irrelevant navigation)
+2. **Profile editing** — accessible at any time from the student dashboard via an "Edit Courses" link
+
+---
+
+## Options Considered
+
+### Option A: Dedicated page (chosen)
+
+A standalone route renders a full page with a degree dropdown and scrollable course checklist grouped by year level and department.
+
+Pros:
+- Consistent with our existing server-rendered controller/route/view pattern — no new patterns introduced
+- Full page real estate for 40+ courses; grouping and search filter are straightforward
+- Easy to test with Supertest integration tests and Jest unit tests on the controller
+- Works without JavaScript (progressive enhancement — JS adds live search and checkbox counter only)
+- Works cleanly as both an onboarding step and a return visit
+
+Cons:
+- Navigates away from the dashboard; student loses their place
+
+### Option B: Bootstrap modal on the dashboard
+
+A modal dialog triggered from the dashboard containing the course checklist.
+
+Pros:
+- Stays on the dashboard page
+
+Cons:
+- Modals populated with server data require either a separate AJAX endpoint or embedding all course data in the dashboard HTML on every load — both add complexity
+- 40+ course checkboxes in a modal creates a poor mobile experience
+- Harder to test the form submission path in isolation
+- Breaks the onboarding use case (there is no dashboard to return to after signup)
+
+### Option C: Inline accordion panel on the dashboard
+
+An expandable section on the dashboard page itself.
+
+Pros:
+- No page navigation
+
+Cons:
+- Same data-loading complexity as the modal
+- Clutters the dashboard with a large form element that most visits do not need
+- Difficult to reuse for the post-signup onboarding step
+
+---
+
+## Consequences
+
+- A new route pair (`GET` and `POST /student/courses`), controller, view, and unit tests must be created — consistent with the established layer structure
+- The signup controller (`src/controllers/signup-controller.js`) must redirect students to `/student/courses?onboarding=true` instead of the homepage after successful registration; lecturer signup is unchanged
+- The student dashboard gains a degree summary line and an "Edit Courses" link in the header — minor additions, no restructuring required
+- No schema changes are needed: the `degrees`, `courses`, and `enrollments` tables already support this feature
+- The degree-to-department relationship (`degrees.dept_code` joined to `courses.dept_code`) is used to visually distinguish courses from the student's department; this is a UI hint only and does not restrict which courses a student may select

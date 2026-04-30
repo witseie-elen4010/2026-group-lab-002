@@ -10,6 +10,9 @@
     .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
     .brand { font-size: 1.5rem; font-weight: 700; }
     .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); border: none; }
+    .course-card { border-radius: 12px; }
+    .course-card.border-primary { border: 2px solid #0d6efd !important; }
+    .course-card.border-default { border: 1px solid #dee2e6 !important; }
   </style>
 </head>
 <body>
@@ -17,13 +20,17 @@
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
     <div class="brand">Knock Knock, <%= user.name %></div>
     <div class="d-flex align-items-center gap-3">
+      <a href="/student/courses" class="btn btn-outline-primary btn-sm">Edit Courses</a>
       <a href="/" class="btn btn-outline-secondary btn-sm">Home</a>
     </div>
   </header>
 
   <main class="container p-4">
-    <h2>My Consultations</h2>
-    <p>Welcome back<% if (user && user.name) { %>, <%= user.name %><% } %>! Here are your scheduled consultations.</p>
+    <h2>My Dashboard</h2>
+    <p>Welcome back<% if (user && user.name) { %>, <%= user.name %><% } %>!</p>
+    <% if (degreeName) { %>
+      <p class="text-muted">Enrolled in: <strong><%= degreeName %></strong></p>
+    <% } %>
 
     <% if (typeof error !== 'undefined' && error) { %>
       <div class="alert alert-danger" role="alert"><%= error %></div>
@@ -31,6 +38,40 @@
     <% if (typeof success !== 'undefined' && success) { %>
       <div class="alert alert-success" role="alert"><%= success %></div>
     <% } %>
+
+    <!-- Enrolled Courses -->
+    <div class="card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">My Courses</h4>
+        <a href="/student/courses" class="btn btn-sm btn-outline-primary">Edit</a>
+      </div>
+      <% if (enrolledCourses.length === 0) { %>
+        <p class="text-muted mb-0">You have no courses enrolled. <a href="/student/courses">Add courses</a> to get started.</p>
+      <% } else { %>
+        <%
+          const yearLevels = [1, 2, 3, 4];
+        %>
+        <% yearLevels.forEach(year => { %>
+          <% const yearCourses = enrolledCourses.filter(c => c.year_level === year); %>
+          <% if (yearCourses.length > 0) { %>
+            <p class="text-muted small mb-2 mt-3 mb-1">Year <%= year %></p>
+            <div class="row g-2">
+              <% yearCourses.forEach(c => { %>
+                <div class="col-md-6 col-lg-4">
+                  <div class="card course-card border-default p-3 h-100">
+                    <div class="fw-semibold"><%= c.course_code %></div>
+                    <div class="text-muted small"><%= c.course_name %></div>
+                    <div class="mt-1">
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary small"><%= c.dept_code %></span>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+        <% }); %>
+      <% } %>
+    </div>
 
     <!-- Upcoming -->
     <div class="card p-4">
