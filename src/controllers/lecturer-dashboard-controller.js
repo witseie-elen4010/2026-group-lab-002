@@ -50,7 +50,7 @@ const showLecturerDashboard = (req, res) => {
       upcomingConsultations: upcomingRows,
       stats,
       calendar,
-      success: req.query.success || null,
+      success: req.query.welcome === '1' ? `Welcome back, ${user.name}!` : (req.query.success || null),
       error:   null,
     });
 

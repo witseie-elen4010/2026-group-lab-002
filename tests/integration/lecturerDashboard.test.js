@@ -11,7 +11,7 @@ describe('GET /lecturer/dashboard', () => {
 
   test('renders dashboard with correct headings when authenticated as a lecturer', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffNumber: 'A000356', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
     const res = await agent.get('/lecturer/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Lecturer Dashboard');

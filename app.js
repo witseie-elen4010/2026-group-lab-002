@@ -36,10 +36,10 @@ app.use('/', signupRoutes)
 app.use('/', availabilityRoutes)
 
 app.get('/', (req, res) => {
-  if (req.session && req.session.userId) {
-    return res.redirect('/lecturer/dashboard');
-  }
-  return res.render('homepage');
+  const user = req.session && req.session.userId
+    ? { name: req.session.userName, role: req.session.userRole }
+    : null;
+  return res.render('homepage', { user });
 })
 
 if (require.main === module) {
