@@ -102,13 +102,17 @@ CREATE TABLE lecturer_availablity (
   day_of_week TEXT NOT NULL CHECK (day_of_week IN ('Mon','Tue','Wed','Thu','Fri')),
   
   start_time TEXT NOT NULL CHECK (start_time GLOB '[0-9][0-9]:[0-9][0-9]'),
-  end_time TEXT NOT NULL CHECK (end_time GLOB '[0-9][0-9]:[0-9][0-9]'),
+  end_time   TEXT NOT NULL CHECK (end_time   GLOB '[0-9][0-9]:[0-9][0-9]'),
   
-  max_booking_min INTEGER NOT NULL DEFAULT 60 CHECK (max_booking_min > 0 AND max_booking_min <= 480),
-  CHECK (end_time > start_time)
+  max_booking_min INTEGER NOT NULL DEFAULT 60 
+    CHECK (max_booking_min > 0 AND max_booking_min <= 480),
 
-  max_number_of_students   INTEGER NOT NULL DEFAULT 1 CHECK (max_number_of_students > 0),
-  venue                    TEXT NOT NULL CHECK(length(venue) >= 3),
+  max_number_of_students INTEGER NOT NULL DEFAULT 1 
+    CHECK (max_number_of_students > 0),
 
-  FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number) ON DELETE CASCADE,
+  venue TEXT NOT NULL CHECK(length(venue) >= 3),
+
+  CHECK (end_time > start_time),
+
+  FOREIGN KEY (staff_number) REFERENCES staff(staff_number) ON DELETE CASCADE
 );
