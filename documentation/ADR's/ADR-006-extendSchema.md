@@ -4,7 +4,7 @@
 
 Accepted — 2026-04-29
 
-## Context
+### Context
 
 ADR-004 established a 3NF schema for student data and noted a deferral:
 
