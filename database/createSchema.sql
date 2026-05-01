@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS staff;
 DROP TABLE IF EXISTS degrees;
 DROP TABLE IF EXISTS departments;
-DROP TABLE IF EXISTS lecturer_availablity;
+DROP TABLE IF EXISTS lecturer_availability;
 
 PRAGMA foreign_keys = ON;
 
@@ -96,8 +96,8 @@ CREATE TABLE consultation_attendees (
   FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
 );
 
-CREATE TABLE lecturer_availablity (
-  availability_id TEXT PRIMARY KEY,
+CREATE TABLE lecturer_availability (
+  availability_id INTEGER PRIMARY KEY,
   staff_number TEXT NOT NULL,
   day_of_week TEXT NOT NULL CHECK (day_of_week IN ('Mon','Tue','Wed','Thu','Fri')),
   
