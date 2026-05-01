@@ -51,11 +51,13 @@ CREATE TABLE lecturer_availability (
 
 | Column | Purpose |
 |---|---|
-| `availability_id` | PK to table - An incremental number|
+| `availability_id` | PK to table - An incremental number |
 | `staff_number` | FK to the lecturer who owns this window |
 | `day_of_week` | Recurring weekday - Mon–Fri only, enforced by constraint |
 | `start_time` / `end_time` | Window bounds in HH:MM, consistent with `consultations.consultation_time` |
 | `max_booking_min` | Maximum duration a student may request when booking within this window |
+| `max_number_of_students` | Maximum number of students permitted per availability slot |
+| `venue` | Location where the consultation will be held |
 
 reference — those belong on `consultations` when an actual booking is made.
 
