@@ -6,7 +6,7 @@
 
 ---
 
-## Context
+### Context
 
 User story #44 requires students to view and update their enrolled degree and courses from the dashboard. Because the course list is large (40+ entries spanning two departments and four year levels currently), we needed to choose a UI pattern that presents this data clearly and integrates cleanly with our existing stack (Node.js, Express, EJS, Bootstrap 5, no frontend framework).
 
