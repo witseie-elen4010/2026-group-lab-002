@@ -303,4 +303,3 @@ INSERT OR IGNORE INTO lecturer_availablity (availability_id, staff_number, day_o
   ('A000357-1', 'A000357', 'Tue', '11:00', '13:00', 120, 10, 'Room 102'),
   ('A000356-2', 'A000356', 'Wed', '10:00', '14:00', 180, 11, 'Room 103'),
   ('A000357-2', 'A000357', 'Thu', '11:00', '14:00', 120, 6, 'Room 104');
-);
