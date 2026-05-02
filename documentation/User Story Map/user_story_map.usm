@@ -16,19 +16,21 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
         Set consultation duration (1 pts)
         Set availability (5 pts)
             Fix availability setting (3 pts)
-            Set max consultations per day (2 pts)
+            Cancel availability (3 pts)
+            Set max consultations duration per day (2 pts)
                 Cancel consultations (3 pts)
                     Flag a student if they ding door dash (2 pts)
     Book and manage consultations
         Lecturer can view booked and available consulatations (3 pts)
-            Student Creates a Consultation Booking (5 pts)
-            Student joins a consultation (3 pts)
+            N/A
+                Student Creates a Consultation Booking (5 pts)
+                Student joins a consultation (3 pts)
                 Student cancels their consultation (3 pts)
                 Student leaves a joined consultation (2 pts)
                     Waiting list when full (3 pts)
     Enforce booking rules
         N/A
-            Reject when max students reached (2 pts)
+            Reject when max students reached in database (2 pts)
                 Reject bookings outside availability (3 pts)
                 Reject overlapping consultations (3 pts)
                 Reject when daily limit reached (2 pts)
@@ -37,8 +39,9 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
         Static Student Dashboard (8 pts)
         Static Lecturer Dashboard (8 pts)
         Lecturers view booked consultations (3 pts)
-            Students view available consultations (5 pts)
-            Students view booked consultations (5 pts)
+            N/A
+                Students view available consultations (5 pts)
+                Students view booked consultations (5 pts)
                 Cancellations sync across dashboards (3 pts)
                 Monthly calendar view (5 pts)
                     Filter by department and lecturer (3 pts)
