@@ -45,19 +45,26 @@
           <form action="/lecturer/availability" method="POST">
 
             <div class="mb-3">
-              <label for="consultation_date" class="form-label fw-semibold">Date</label>
-              <input type="date" class="form-control" id="consultation_date" name="consultation_date" required>
+              <label for="day_of_week" class="form-label fw-semibold">Day</label>
+              <select class="form-select" id="day_of_week" name="day_of_week" required>
+                <option value="" disabled selected>Select a day</option>
+                <option value="Mon">Monday</option>
+                <option value="Tue">Tuesday</option>
+                <option value="Wed">Wednesday</option>
+                <option value="Thu">Thursday</option>
+                <option value="Fri">Friday</option>
+              </select>
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label for="consultation_time" class="form-label fw-semibold">Start Time</label>
-                <input type="time" class="form-control" id="consultation_time" name="consultation_time"
+                <label for="start_time" class="form-label fw-semibold">Start Time</label>
+                <input type="time" class="form-control" id="start_time" name="start_time"
                   min="08:00" max="18:00" required>
               </div>
               <div class="col-6">
-                <label for="consultation_end_time" class="form-label fw-semibold">End Time</label>
-                <input type="time" class="form-control" id="consultation_end_time" name="consultation_end_time"
+                <label for="end_time" class="form-label fw-semibold">End Time</label>
+                <input type="time" class="form-control" id="end_time" name="end_time"
                   min="08:00" max="18:00" required>
               </div>
             </div>
@@ -74,7 +81,7 @@
                 name="max_number_of_students" min="1" max="10" value="1" required>
             </div>
 
-            <button type="button" class="btn btn-primary w-100" onclick="showComingSoon()">Save Slot</button>
+            <button type="submit" class="btn btn-primary w-100">Save Slot</button>
           </form>
         </div>
       </div>
@@ -90,36 +97,26 @@
                 <caption class="visually-hidden">Your current availability slots</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Date</th>
+                    <th scope="col">Day</th>
                     <th scope="col">Start</th>
                     <th scope="col">End</th>
                     <th scope="col">Venue</th>
                     <th scope="col">Max</th>
-                    <th scope="col">Status</th>
                     <th scope="col"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <% availability.forEach(slot => {
-                    const [h, m] = slot.consultation_time.split(':').map(Number);
-                    const endMin = h * 60 + m + slot.duration_min;
-                    const endTime = String(Math.floor(endMin / 60)).padStart(2,'0') + ':' + String(endMin % 60).padStart(2,'0');
-                  %>
+                  <% availability.forEach(slot => { %>
                     <tr>
-                      <td class="text-nowrap"><%= slot.consultation_date %></td>
-                      <td class="text-nowrap"><%= slot.consultation_time %></td>
-                      <td class="text-nowrap"><%= endTime %></td>
+                      <td class="text-nowrap"><%= slot.day_of_week %></td>
+                      <td class="text-nowrap"><%= slot.start_time %></td>
+                      <td class="text-nowrap"><%= slot.end_time %></td>
                       <td><%= slot.venue %></td>
                       <td><%= slot.max_number_of_students %></td>
                       <td>
-                        <span class="badge <%= slot.status === 'Available' ? 'bg-success' : 'bg-primary' %>">
-                          <%= slot.status %>
-                        </span>
-                      </td>
-                      <td>
-                        <% if (slot.status === 'Available') { %>
-                          <button type="button" class="btn btn-outline-danger btn-sm" onclick="showComingSoon()">Delete</button>
-                        <% } %>
+                        <form action="/lecturer/availability/<%= slot.availability_id %>/delete" method="POST" class="d-inline">
+                          <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
                       </td>
                     </tr>
                   <% }); %>
@@ -134,28 +131,5 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <div class="modal fade" id="comingSoonModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Coming Soon</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          This feature is not yet available. It will be enabled once the availability table has been set up by the team.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function showComingSoon() {
-      new bootstrap.Modal(document.getElementById('comingSoonModal')).show();
-    }
-  </script>
 </body>
 </html>
