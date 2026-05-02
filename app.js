@@ -2,13 +2,14 @@ const express = require('express')
 const session = require('express-session')
 const path = require('path')
 
-const authRoutes            = require('./src/routes/auth-routes');
-const dashboardRoutes       = require('./src/routes/dashboard-routes')
-const signupRoutes          = require('./src/routes/signup-routes')
-const availabilityRoutes    = require('./src/routes/availability-routes')
-const studentCoursesRoutes  = require('./src/routes/student-courses-routes')
+const authRoutes = require('./src/routes/auth-routes')
+const dashboardRoutes = require('./src/routes/dashboard-routes')
+const signupRoutes = require('./src/routes/signup-routes')
+const availabilityRoutes = require('./src/routes/availability-routes')
+const studentCoursesRoutes = require('./src/routes/student-courses-routes')
+const lecturerCoursesRoutes = require('./src/routes/lecturer-courses-routes')
 
-const app  = express()
+const app = express()
 const PORT = process.env.PORT || 3000
 
 app.engine('html', require('ejs').renderFile)
@@ -36,12 +37,13 @@ app.use('/', dashboardRoutes)
 app.use('/', signupRoutes)
 app.use('/', availabilityRoutes)
 app.use('/', studentCoursesRoutes)
+app.use('/', lecturerCoursesRoutes)
 
 app.get('/', (req, res) => {
   const user = req.session && req.session.userId
     ? { name: req.session.userName, role: req.session.userRole }
-    : null;
-  return res.render('homepage', { user });
+    : null
+  return res.render('homepage', { user })
 })
 
 if (require.main === module) {

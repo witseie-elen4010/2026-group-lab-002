@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= onboarding ? 'Course Selection' : 'Edit Courses' %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f7fb; }
+    .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
+    .brand { font-size: 1.5rem; font-weight: 700; }
+    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: none; }
+    .course-card { cursor: pointer; transition: box-shadow 0.15s; border-radius: 12px; }
+    .course-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .course-card.border-primary { border: 2px solid #0d6efd !important; }
+    .course-card.border-default { border: 1px solid #dee2e6 !important; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <div class="brand">Knock Knock, Prof</div>
+    <div class="d-flex align-items-center gap-3">
+      <% if (!onboarding) { %>
+        <a href="/lecturer/dashboard" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="container p-4">
+    <h2><%= onboarding ? 'Welcome! Select Your Courses' : 'Edit Your Courses' %></h2>
+    <p class="text-muted">
+      <% if (onboarding) { %>
+        Please select your department and the courses you are teaching.
+      <% } else { %>
+        Update your department and courses below.
+      <% } %>
+    </p>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-danger" role="alert"><%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success" role="alert"><%= success %></div>
+    <% } %>
+
+    <form method="POST" action="/lecturer/courses">
+
+      <div class="card p-4 mb-4">
+        <h5 class="mb-3">Your department</h5>
+        <div>
+          <label for="department_code" class="form-label fw-semibold">Department</label>
+          <select class="form-select" id="department_code" name="department_code" required>
+            <% departments.forEach(d => { %>
+              <option value="<%= d.department_code %>" data-dept="<%= d.dept_code %>" <%= d.department_code === currentdepartmentCode ? 'selected' : '' %>>
+                <%= d.department_name %>
+              </option>
+            <% }); %>
+          </select>
+          <small class="text-muted">Changing this will update your enrolled department when you save.</small>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Courses</h5>
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-secondary fs-6" id="course-count">0 selected</span>
+            <button type="submit" class="btn btn-primary btn-sm">Save Courses</button>
+          </div>
+        </div>
+        <input
+          type="text"
+          id="course-search"
+          class="form-control mb-4"
+          placeholder="Search by course code or name..."
+          autocomplete="off"
+        >
+        <div id="courses-wrapper"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary px-4">Save Courses</button>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const allCourses   = <%- JSON.stringify(courses) %>;
+    const initialEnrolled = <%- JSON.stringify(enrolledCodes) %>;
+
+    const checkedCourses = new Set(initialEnrolled);
+
+    function updateCount() {
+      document.getElementById('course-count').textContent = checkedCourses.size + ' selected';
+    }
+
+    function buildCard(c, isDept) {
+      const checked = checkedCourses.has(c.course_code) ? 'checked' : '';
+      const borderClass = isDept ? 'border-primary' : 'border-default';
+      const deptBadge = isDept
+        ? '<span class="badge bg-primary bg-opacity-10 text-primary small mt-1">Your dept</span>'
+        : '';
+      return `
+        <div class="col-md-6 col-lg-4 course-item"
+             data-course-code="${c.course_code.toLowerCase()}"
+             data-course-name="${c.course_name.toLowerCase()}">
+          <label class="d-block h-100">
+            <div class="card course-card ${borderClass} p-3 h-100">
+              <div class="d-flex align-items-start gap-2">
+                <input type="checkbox" name="courses" value="${c.course_code}"
+                       class="form-check-input mt-1 course-checkbox flex-shrink-0" ${checked}>
+                <div>
+                  <div class="fw-semibold">${c.course_code}</div>
+                  <div class="text-muted small">${c.course_name}</div>
+                  ${deptBadge}
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>`;
+    }
+
+    function renderCourses(deptCode) {
+      const deptCourses  = allCourses.filter(c => c.dept_code === deptCode);
+      const otherCourses = allCourses.filter(c => c.dept_code !== deptCode);
+      const yearLevels   = [1, 2, 3, 4];
+      let html = '';
+
+      if (deptCourses.length > 0) {
+        html += '<h6 class="text-primary fw-bold mb-1">Your Department</h6>';
+        yearLevels.forEach(year => {
+          const yc = deptCourses.filter(c => c.year_level === year);
+          if (yc.length > 0) {
+            html += `<p class="text-muted small mt-3 mb-1">Year ${year}</p>`;
+            html += '<div class="row g-2">';
+            yc.forEach(c => { html += buildCard(c, true); });
+            html += '</div>';
+          }
+        });
+      }
+
+      if (otherCourses.length > 0) {
+        html += `<h6 class="fw-bold mb-1 ${deptCourses.length > 0 ? 'mt-4' : ''}">Other Courses</h6>`;
+        yearLevels.forEach(year => {
+          const yc = otherCourses.filter(c => c.year_level === year);
+          if (yc.length > 0) {
+            html += `<p class="text-muted small mt-3 mb-1">Year ${year}</p>`;
+            html += '<div class="row g-2">';
+            yc.forEach(c => { html += buildCard(c, false); });
+            html += '</div>';
+          }
+        });
+      }
+
+      if (allCourses.length === 0) {
+        html = '<p class="text-muted mb-0">No courses available.</p>';
+      }
+
+      const wrapper = document.getElementById('courses-wrapper');
+      wrapper.innerHTML = html;
+
+      wrapper.querySelectorAll('.course-checkbox').forEach(cb => {
+        cb.addEventListener('change', function () {
+          if (this.checked) checkedCourses.add(this.value);
+          else checkedCourses.delete(this.value);
+          updateCount();
+        });
+      });
+
+      updateCount();
+
+      // Re-apply active search filter after re-render
+      const q = document.getElementById('course-search').value.toLowerCase().trim();
+      if (q) applySearch(q);
+    }
+
+    function applySearch(q) {
+      document.querySelectorAll('.course-item').forEach(item => {
+        const code = item.dataset.courseCode || '';
+        const name = item.dataset.courseName || '';
+        item.style.display = (code.includes(q) || name.includes(q)) ? '' : 'none';
+      });
+    }
+
+    // Initial render using the currently selected department's dept
+    const departmentSelect = document.getElementById('department_code');
+
+    function deptForSelected() {
+      const opt = departmentSelect.options[departmentSelect.selectedIndex];
+      return opt ? opt.dataset.dept : null;
+    }
+
+    renderCourses(deptForSelected());
+
+    departmentSelect.addEventListener('change', function () {
+      renderCourses(deptForSelected());
+    });
+
+    document.getElementById('course-search').addEventListener('input', function () {
+      const q = this.value.toLowerCase().trim();
+      if (q) applySearch(q);
+      else document.querySelectorAll('.course-item').forEach(item => { item.style.display = ''; });
+    });
+  </script>
+</body>
+</html>

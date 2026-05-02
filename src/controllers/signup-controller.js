@@ -48,7 +48,8 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?)
       `)
       stmt.run(number, fullName, email, 'EIE', 'EIE', password) // EIE are just place holders
-      return res.redirect('/login?success=Account+created!+Please+log+in.')
+      return res.redirect('/lecturer/courses?success=Please+choose+your+department+and+courses.')
+      // return res.redirect('/login?success=Account+created!+Please+log+in.')
     } else {
       const stmt = db.prepare(`
         INSERT INTO students (student_number, name, email, password, degree_code)
