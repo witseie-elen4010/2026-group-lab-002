@@ -19,12 +19,15 @@ const registerUser = (req, res) => {
       return res.status(400).send('Passwords do not match')
     }
 
-    let role = ''
-    // Determine role based on number
-    if (number && number.toUpperCase().startsWith('A')) {
-      role = 'lecturer'
-    } else {
-      role = 'student'
+    const role = (number && number.toUpperCase().startsWith('A')) ? 'lecturer' : 'student'
+
+    const emailLower = (email || '').toLowerCase()
+    const validEmail = role === 'lecturer'
+      ? /^[^@]+@wits\.ac\.za$/.test(emailLower)
+      : /^[^@]+@students\.wits\.ac\.za$/.test(emailLower)
+
+    if (!validEmail) {
+      return res.render('sign-up', { message: null, error: 'Please use your Wits email address.' })
     }
 
     // Database Insertion
