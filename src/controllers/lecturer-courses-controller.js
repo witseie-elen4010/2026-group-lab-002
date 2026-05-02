@@ -1,6 +1,6 @@
 const db = require('../../database/db')
 
-const showlecturerCourses = (req, res) => {
+const showLecturerCourses = (req, res) => {
   const staffNumber = req.session && req.session.userId ? req.session.userId : 'A000356'
 
   try {
@@ -61,7 +61,7 @@ const showlecturerCourses = (req, res) => {
   }
 }
 
-const updatelecturerCourses = (req, res) => {
+const updateLecturerCourses = (req, res) => {
   const staffNumber = req.session && req.session.userId ? req.session.userId : 'A000356'
   const { department_code, courses } = req.body
 
@@ -110,4 +110,4 @@ const updatelecturerCourses = (req, res) => {
   return res.redirect('/lecturer/dashboard?success=true')
 }
 
-module.exports = { showlecturerCourses, updatelecturerCourses }
+module.exports = { showLecturerCourses, updateLecturerCourses }
