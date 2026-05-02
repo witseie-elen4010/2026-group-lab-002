@@ -288,6 +288,11 @@ INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, p
   ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', 'pass'),
   ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', 'pass');
 
+-- Staff data
+INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
+  ('A000356', 'John Doe', 'john.doe@wits.ac.za', 'Electrical Engineering', 'EIE', '$2b$10$dummyhashedpassword'),
+  ('A000357', 'Jane Smith', 'jane.smith@wits.ac.za', 'Mechanical Engineering', 'MIA', '$2b$10$dummyhashedpassword');
+
 INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
   ('A000356', 'ELEN4010'),
   ('A000356', 'ELEN3009'),

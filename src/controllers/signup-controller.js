@@ -11,8 +11,7 @@ const registerUser = (req, res) => {
       number,
       email,
       password,
-      confirmPassword,
-      specificDetail // Matches input name='specificDetail'
+      confirmPassword
     } = req.body
 
     if (password !== confirmPassword) {
@@ -30,21 +29,35 @@ const registerUser = (req, res) => {
       return res.render('sign-up', { message: null, error: 'Please use your Wits email address.' })
     }
 
+    const user = req.session && req.session.userId
+      ? {
+          id: req.session.userId,
+          name: req.session.userName,
+          role: req.session.userRole
+        }
+      : {
+          id: number,
+          name: fullName,
+          role: (number && number.toUpperCase().startsWith('A')) ? 'lecturer' : 'student'
+        }
+
     // Database Insertion
     if (role === 'lecturer') {
       const stmt = db.prepare(`
-        INSERT INTO staff (staff_number, name, email, department, password)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO staff (staff_number, name, email, department, dept_code, password)
+        VALUES (?, ?, ?, ?, ?, ?)
       `)
-      stmt.run(number, fullName, email, specificDetail, password)
-      return res.redirect('/login?success=Account+created!+Please+log+in.')
+      stmt.run(number, fullName, email, 'EIE', 'EIE', password) // EIE are just place holders
+      return res.redirect('/lecturer/courses?success=Please+choose+your+department+and+courses.')
+      // return res.redirect('/login?success=Account+created!+Please+log+in.')
     } else {
       const stmt = db.prepare(`
-        INSERT INTO students (student_number, name, email, degree_code, password)
+        INSERT INTO students (student_number, name, email, password, degree_code)
         VALUES (?, ?, ?, ?, ?)
       `)
-      stmt.run(number, fullName, email, 'BSCENGINFO', password)
-      return res.redirect('/login?success=Account+created!+Please+log+in.')
+      stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO') // degree code is just a placeholder
+      return res.redirect('/student/courses?success=Please+choose+your+degree+and+courses.')
+      // return res.redirect('/login?success=Account+created!+Please+log+in.')
     }
   } catch (error) {
     console.error('Signup error:', error)
