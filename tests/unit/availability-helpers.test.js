@@ -17,19 +17,19 @@ describe('generateConstId()', () => {
 describe('validateSlotFields()', () => {
   test('returns true when all fields are present', () => {
     expect(validateSlotFields({
-      consultation_date: '2026-05-01',
-      consultation_time: '09:00',
-      consultation_end_time: '10:00',
+      day_of_week: 'Mon',
+      start_time: '09:00',
+      end_time: '10:00',
       venue: 'Room 1',
       max_number_of_students: '5'
     })).toBe(true);
   });
 
-  test('returns false when consultation_date is missing', () => {
+  test('returns false when day_of_week is missing', () => {
     expect(validateSlotFields({
-      consultation_date: '',
-      consultation_time: '09:00',
-      consultation_end_time: '10:00',
+      day_of_week: '',
+      start_time: '09:00',
+      end_time: '10:00',
       venue: 'Room 1',
       max_number_of_students: '5'
     })).toBe(false);
@@ -37,10 +37,20 @@ describe('validateSlotFields()', () => {
 
   test('returns false when venue is missing', () => {
     expect(validateSlotFields({
-      consultation_date: '2026-05-01',
-      consultation_time: '09:00',
-      consultation_end_time: '10:00',
+      day_of_week: 'Mon',
+      start_time: '09:00',
+      end_time: '10:00',
       venue: '',
+      max_number_of_students: '5'
+    })).toBe(false);
+  });
+
+  test('returns false when start_time is missing', () => {
+    expect(validateSlotFields({
+      day_of_week: 'Mon',
+      start_time: '',
+      end_time: '10:00',
+      venue: 'Room 1',
       max_number_of_students: '5'
     })).toBe(false);
   });
@@ -80,7 +90,7 @@ describe('computeDuration()', () => {
 
 describe('isOverlapping()', () => {
   const existingSlots = [
-    { consultation_time: '09:00', duration_min: 60 },
+    { start_time: '09:00', end_time: '10:00' },
   ];
 
   test('returns false when new slot does not overlap', () => {

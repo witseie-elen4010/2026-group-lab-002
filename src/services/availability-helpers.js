@@ -3,8 +3,8 @@ const generateConstId = (date, count) => {
   return `${date}-${sequence}`;
 };
 
-const validateSlotFields = ({ consultation_date, consultation_time, consultation_end_time, venue, max_number_of_students }) => {
-  return !!(consultation_date && consultation_time && consultation_end_time && venue && max_number_of_students);
+const validateSlotFields = ({ day_of_week, start_time, end_time, venue, max_number_of_students }) => {
+  return !!(day_of_week && start_time && end_time && venue && max_number_of_students);
 };
 
 const toMinutes = (timeStr) => {
@@ -26,8 +26,8 @@ const isOverlapping = (existingSlots, startTime, endTime) => {
   const newStart = toMinutes(startTime);
   const newEnd = toMinutes(endTime);
   return existingSlots.some(slot => {
-    const existStart = toMinutes(slot.consultation_time);
-    const existEnd = existStart + (slot.duration_min || 0);
+    const existStart = toMinutes(slot.start_time);
+    const existEnd = toMinutes(slot.end_time);
     return newStart < existEnd && newEnd > existStart;
   });
 };
