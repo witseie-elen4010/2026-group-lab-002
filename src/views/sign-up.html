@@ -50,6 +50,7 @@
         <div class="mb-3">
             <label for="email" class="form-label fw-semibold">University Email</label>
             <input type="email" class="form-control" id="email" name="email" required>
+            <div class="form-text" id="emailHint">Enter your Wits email address.</div>
         </div>
 
         <div class="mb-3">
@@ -92,6 +93,21 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
+    const numberInput = document.getElementById('number');
+    const emailInput  = document.getElementById('email');
+    const emailHint   = document.getElementById('emailHint');
+
+    numberInput.addEventListener('input', () => {
+      const isLecturer = numberInput.value.trim().toUpperCase().startsWith('A');
+      if (isLecturer) {
+        emailInput.pattern = '^[^@]+@wits\\.ac\\.za$';
+        emailHint.textContent = 'Lecturers: use your @wits.ac.za email';
+      } else {
+        emailInput.pattern = '^[^@]+@students\\.wits\\.ac\\.za$';
+        emailHint.textContent = 'Students: use your @students.wits.ac.za email';
+      }
+    });
+
     const courseInput = document.getElementById("coursesInput");
     const addCourseBtn = document.getElementById("addBtn");
     const courseList = document.getElementById("list");
