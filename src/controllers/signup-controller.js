@@ -1,7 +1,7 @@
 const db = require('../../database/db')
 
 const showSignupPage = (req, res) => {
-  res.render('sign-up', { message: null, error: null })
+  res.render('sign-up', { message: null, error: null, redirectTo: null })
 }
 
 const registerUser = (req, res) => {
@@ -48,7 +48,14 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?)
       `)
       stmt.run(number, fullName, email, 'EIE', 'EIE', password) // EIE are just place holders
-      return res.redirect('/lecturer/courses?success=Please+choose+your+department+and+courses.')
+
+      return res.render('sign-up', {
+        message: 'Account created! Redirecting you to select your courses...',
+        error: null,
+        redirectTo: '/lecturer/courses'
+      })
+
+      // return res.redirect('/lecturer/courses?success=Please+choose+your+department+and+courses.')
       // return res.redirect('/login?success=Account+created!+Please+log+in.')
     } else {
       const stmt = db.prepare(`
@@ -56,14 +63,22 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?)
       `)
       stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO') // degree code is just a placeholder
-      return res.redirect('/student/courses?success=Please+choose+your+degree+and+courses.')
+
+      return res.render('sign-up', {
+        message: 'Account created! Redirecting you to select your courses...',
+        error: null,
+        redirectTo: '/student/courses'
+      })
+
+      // return res.redirect('/student/courses?success=Please+choose+your+degree+and+courses.')
       // return res.redirect('/login?success=Account+created!+Please+log+in.')
     }
   } catch (error) {
     console.error('Signup error:', error)
     return res.render('sign-up', {
       message: null,
-      error: 'An error occurred during registration. Please contact admin for help sunet110803@gmail.com.'
+      error: 'An error occurred during registration. Please contact admin for help sunet110803@gmail.com.',
+      redirectTo: null
     })
   }
 }
