@@ -29,7 +29,8 @@ const login = (req, res) => {
     return res.redirect('/student/dashboard?welcome=1');
   }
 
-  const admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber);
+  let admin = null;
+  try { admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber); } catch (_) {}
   if (admin && admin.password === password) {
     req.session.userId   = admin.admin_id;
     req.session.userName = admin.name;
