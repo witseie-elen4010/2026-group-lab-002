@@ -1,0 +1,85 @@
+# ADR-006: End-to-End Testing Framework Selection
+
+**Date:** 2026-05-07  
+**Status:** Accepted
+
+## Context
+
+Issue #22 requires selecting an E2E testing framework, wiring it into CI, and writing 
+a smoke test as a foundation for real E2E coverage in Sprint 4. The rubric requires 
+automated E2E tests by the end of the final sprint.
+
+## Why E2E Testing is Necessary
+
+Our existing test suite uses two layers:
+
+**Unit tests** (Jest) test individual functions in isolation — for example, 
+`isOverlapping()` in `availability-helpers.js` or `parseAttendees()` in 
+`dashboard-helpers.js`. No HTTP, no database, no browser.
+
+**Integration tests** (Jest + Supertest) test HTTP routes by importing `app.js` 
+directly into the Node process and sending fake in-memory requests. For example:
+
+```javascript
+const res = await request(app).get('/');
+expect(res.text).toContain('KnockKnock.prof');
+```
+
+This checks that the server returns the correct HTML string. However, no browser 
+is involved. No JavaScript executes. No CSS loads. The test would pass even if:
+
+- A CDN link for Bootstrap was broken, causing the entire UI to collapse
+- A client-side JavaScript error prevented the login button from working
+- An EJS template rendered the correct text but the wrong conditional branch,
+  showing a logged-in user's dashboard link to an unauthenticated visitor
+- A form's action attribute pointed to the wrong route
+
+**E2E tests** (Playwright) launch a real Chromium browser, navigate to a live 
+running instance of the app, execute all client-side JavaScript, and interact with 
+the page as a real user would. This is the only layer that can verify the full 
+stack — server, template rendering, client-side logic, and browser behaviour — 
+working together correctly.
+
+For KnockKnock.prof specifically, critical user flows that only E2E can reliably 
+verify include:
+
+- A student logging in and seeing their dashboard (session cookie set, redirect 
+  followed, dashboard rendered with correct data)
+- A lecturer submitting the availability form and seeing the new slot appear in 
+  the table without a page reload
+- The booking flow from the student dashboard through to confirmation
+
+These flows cross the boundary between server and browser. No unit or integration 
+test can cover that boundary.
+
+## Decision
+
+We chose **Playwright** over Cypress as our E2E framework.
+
+## Reasons
+
+- Runs headlessly on Ubuntu (GitHub Actions) without an `xvfb` wrapper
+- The `webServer` config in `playwright.config.js` handles app startup and 
+  teardown automatically, removing manual server management from CI
+- Faster CI install on Linux compared to Cypress
+- Compatible with Express 5 and our Render-hosted deployment
+- First-class Node.js API aligns with our existing Jest and Supertest setup
+- Official support for Chromium, Firefox, and WebKit from a single install
+
+## Alternatives Rejected
+
+**Cypress:** Larger CI binary, requires more configuration for server lifecycle 
+management, and has known friction with Express 5 under certain session 
+configurations. Electron-based architecture adds overhead not justified at our 
+project scale.
+
+## Consequences
+
+- `@playwright/test` added as a dev dependency
+- `playwright.config.js` added at the project root
+- `tests/e2e/` directory created for E2E specs
+- CI gains a dedicated `e2e` job that installs Chromium and runs specs on every PR
+- `npm run setup` must execute before E2E in CI to initialise the SQLite database,
+  since the app crashes on startup without `database.db` present
+- Sprint 4 E2E stories (Issue #23) will build on this foundation to cover the 
+  login flow, availability submission, and booking flow
