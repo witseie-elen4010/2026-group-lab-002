@@ -83,7 +83,6 @@ describe('email domain validation', () => {
     expect(res.render).toHaveBeenCalledWith('sign-up', {
       message: null,
       error: 'Please use your Wits email address.'
-      //redirectTo: null
     })
 
     expect(db.prepare).not.toHaveBeenCalled()

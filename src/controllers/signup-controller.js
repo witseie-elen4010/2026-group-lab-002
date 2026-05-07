@@ -55,8 +55,6 @@ const registerUser = (req, res) => {
         redirectTo: '/lecturer/courses'
       })
 
-      // return res.redirect('/lecturer/courses?success=Please+choose+your+department+and+courses.')
-      // return res.redirect('/login?success=Account+created!+Please+log+in.')
     } else {
       const stmt = db.prepare(`
         INSERT INTO students (student_number, name, email, password, degree_code)
@@ -70,8 +68,6 @@ const registerUser = (req, res) => {
         redirectTo: '/student/courses'
       })
 
-      // return res.redirect('/student/courses?success=Please+choose+your+degree+and+courses.')
-      // return res.redirect('/login?success=Account+created!+Please+log+in.')
     }
   } catch (error) {
     console.error('Signup error:', error)
