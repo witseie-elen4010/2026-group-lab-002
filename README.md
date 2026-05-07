@@ -24,6 +24,22 @@ Run the test suite:
 ```bash
 npm test
 ```
+## Running E2E Tests
+
+First make sure the database is set up:
+
+```bash
+npm run setup
+```
+
+Then run the Playwright smoke test:
+
+```bash
+npm run test:e2e
+```
+
+E2E tests launch a real Chromium browser against a local instance of the app.
+They run automatically in CI on every pull request via GitHub Actions.
 
 ## Local database setup
 
