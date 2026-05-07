@@ -3,7 +3,9 @@ const db = require('../../database/db');
 const showLogin = (req, res) => {
   if (req.session && req.session.userId) {
     const role = req.session.userRole;
-    return res.redirect(role === 'student' ? '/student/dashboard' : '/lecturer/dashboard');
+    if (role === 'student') return res.redirect('/student/dashboard');
+    if (role === 'admin')   return res.redirect('/admin/dashboard');
+    return res.redirect('/lecturer/dashboard');
   }
   return res.render('login', { error: null, success: req.query.success || null });
 };
@@ -25,6 +27,15 @@ const login = (req, res) => {
     req.session.userName = student.name;
     req.session.userRole = 'student';
     return res.redirect('/student/dashboard?welcome=1');
+  }
+
+  let admin = null;
+  try { admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber); } catch (_) {}
+  if (admin && admin.password === password) {
+    req.session.userId   = admin.admin_id;
+    req.session.userName = admin.name;
+    req.session.userRole = 'admin';
+    return res.redirect('/admin/dashboard');
   }
 
   return res.render('login', { error: 'Invalid username or password.', success: null });

@@ -303,6 +303,10 @@ INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
 INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES
   (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', 'pass', 'BSCENGINFO');
 
+-- ─── Admin ────────────────────────────────────────────────────────────────────
+INSERT OR IGNORE INTO admins (admin_id, name, email, password) VALUES
+  ('ADMIN001', 'System Admin', 'admin@wits.ac.za', 'admin');
+
 INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_of_week, start_time, end_time, max_booking_min, max_number_of_students, venue) VALUES
   ('1', 'A000356', 'Mon', '10:00', '11:00', 60, 5, 'Room 101'),
   ('2', 'A000357', 'Tue', '11:00', '13:00', 120, 10, 'Room 102'),

@@ -62,6 +62,15 @@ describe('showLogin', () => {
 
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard');
   });
+
+  test('redirects logged-in admin to admin dashboard', () => {
+    const req = mockReq({ session: { userId: 'ADMIN001', userRole: 'admin' } });
+    const res = mockRes();
+
+    showLogin(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard');
+  });
 });
 
 describe('login', () => {
@@ -98,8 +107,27 @@ describe('login', () => {
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard?welcome=1');
   });
 
-  test('renders error when neither staff nor student matches', () => {
+  test('sets admin session and redirects to admin dashboard on valid admin credentials', () => {
+    const fakeAdmin = { admin_id: 'ADMIN001', name: 'System Admin', password: 'admin' };
     db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeAdmin) });
+
+    const req = mockReq({ body: { staffStudentNumber: 'ADMIN001', password: 'admin' } });
+    const res = mockRes();
+
+    login(req, res);
+
+    expect(req.session.userId).toBe('ADMIN001');
+    expect(req.session.userName).toBe('System Admin');
+    expect(req.session.userRole).toBe('admin');
+    expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard');
+  });
+
+  test('renders error when no staff, student, or admin matches', () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) });
 
@@ -117,6 +145,7 @@ describe('login', () => {
   test('renders error when staff is found but password does not match', () => {
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) });
 
     const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'wrongpass' } });

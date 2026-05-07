@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS staff;
 DROP TABLE IF EXISTS degrees;
 DROP TABLE IF EXISTS departments;
 DROP TABLE IF EXISTS lecturer_availability;
+DROP TABLE IF EXISTS admins;
 
 PRAGMA foreign_keys = ON;
 
@@ -115,4 +116,11 @@ CREATE TABLE lecturer_availability (
   CHECK (end_time > start_time),
 
   FOREIGN KEY (staff_number) REFERENCES staff(staff_number) ON DELETE CASCADE
+);
+
+CREATE TABLE admins (
+  admin_id  TEXT PRIMARY KEY,
+  name      TEXT NOT NULL,
+  email     TEXT UNIQUE NOT NULL,
+  password  TEXT NOT NULL
 );

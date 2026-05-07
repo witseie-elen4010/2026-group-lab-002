@@ -8,6 +8,7 @@ const signupRoutes = require('./src/routes/signup-routes')
 const availabilityRoutes = require('./src/routes/availability-routes')
 const studentCoursesRoutes = require('./src/routes/student-courses-routes')
 const lecturerCoursesRoutes = require('./src/routes/lecturer-courses-routes')
+const adminRoutes = require('./src/routes/admin-routes')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -38,6 +39,7 @@ app.use('/', signupRoutes)
 app.use('/', availabilityRoutes)
 app.use('/', studentCoursesRoutes)
 app.use('/', lecturerCoursesRoutes)
+app.use('/', adminRoutes)
 
 app.get('/', (req, res) => {
   const user = req.session && req.session.userId
