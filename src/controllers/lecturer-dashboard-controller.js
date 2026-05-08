@@ -8,6 +8,10 @@ const showLecturerDashboard = (req, res) => {
   };
 
   try {
+    // Show welcome message only on first login or after a successful login
+    const showWelcome       = req.session.showWelcome || false;
+    req.session.showWelcome = false;
+
     const today = new Date().toISOString().split('T')[0];
 
     const upcomingRows = db.prepare(`
@@ -45,13 +49,21 @@ const showLecturerDashboard = (req, res) => {
 
     const calendar = buildCalendar(user.id);
 
+    const greetings = {
+      lecturer: `Welcome back, Prof. ${user.name}! Ready for your consultations?`,
+      student:  `Welcome back, ${user.name}! Check your upcoming consultations below.`,
+      admin:    `Welcome back, ${user.name}.`,
+    };
+
     return res.render('lecturer-dashboard', {
       user,
       upcomingConsultations: upcomingRows,
       stats,
       calendar,
-      success: req.query.welcome === '1' ? `Welcome back, ${user.name}!` : (req.query.success || null),
-      error:   null,
+      success: showWelcome
+        ? greetings[user.role]
+        : (req.query.success || null),
+      error: null,
     });
 
   } catch (err) {
