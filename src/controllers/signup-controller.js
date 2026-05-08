@@ -29,18 +29,6 @@ const registerUser = (req, res) => {
       return res.render('sign-up', { message: null, error: 'Please use your Wits email address.' })
     }
 
-    // const user = req.session && req.session.userId
-    //   ? {
-    //       id: req.session.userId,
-    //       name: req.session.userName,
-    //       role: req.session.userRole
-    //     }
-    //   : {
-    //       id: number,
-    //       name: fullName,
-    //       role: (number && number.toUpperCase().startsWith('A')) ? 'lecturer' : 'student'
-    //     }
-
     req.session.userId = number
     req.session.userName = fullName
     req.session.userRole = role
@@ -82,7 +70,7 @@ const registerUser = (req, res) => {
   }
 }
 
-// Explicitly export these functions
+// Export these functions
 module.exports = {
   showSignupPage,
   registerUser
