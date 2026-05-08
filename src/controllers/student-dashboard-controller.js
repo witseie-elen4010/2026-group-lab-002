@@ -96,12 +96,7 @@ const showStudentDashboard = (req, res) => {
 
         const upcomingConsultations = upcomingRows;
         const pastConsultations = pastRows;
-
-        const greetings = {
-          lecturer: `Welcome back, Prof. ${user.name}! Ready for your consultations?`,
-          student:  `Welcome back, ${user.name}! Check your upcoming consultations below.`,
-          admin:    `Welcome back, ${user.name}.`,
-          };
+        const welcomeMessage = `Welcome back, ${user.name}! Check your upcoming consultations below.`;
 
         return res.render('student-dashboard', {
             user,
@@ -109,9 +104,7 @@ const showStudentDashboard = (req, res) => {
             enrolledCourses,
             upcomingConsultations,
             pastConsultations,
-            success: showWelcome
-        ? greetings[user.role]
-        : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
+            success: showWelcome ? welcomeMessage : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
       error: null,
     });
 

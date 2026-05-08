@@ -48,21 +48,14 @@ const showLecturerDashboard = (req, res) => {
     };
 
     const calendar = buildCalendar(user.id);
-
-    const greetings = {
-      lecturer: `Welcome back, Prof. ${user.name}! Ready for your consultations?`,
-      student:  `Welcome back, ${user.name}! Check your upcoming consultations below.`,
-      admin:    `Welcome back, ${user.name}.`,
-    };
+    const welcomeMessage = `Welcome back, Prof. ${user.name}! Ready for your consultations?`;
 
     return res.render('lecturer-dashboard', {
       user,
       upcomingConsultations: upcomingRows,
       stats,
       calendar,
-      success: showWelcome
-        ? greetings[user.role]
-        : (req.query.success || null),
+      success: showWelcome ? welcomeMessage : (req.query.success || null),
       error: null,
     });
 
