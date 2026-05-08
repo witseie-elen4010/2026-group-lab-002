@@ -5,9 +5,17 @@
   "main": "app.js",
   "scripts": {
     "setup": "node database/setup.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "test:e2e": "playwright test"
+    },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/tests/e2e/"
+    ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/jest": "^30.0.0",
     "jest": "^30.3.0",
     "supertest": "^7.2.2"

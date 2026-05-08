@@ -57,6 +57,7 @@ describe('showLecturerDashboard()', () => {
   });
 
   test('renders error view with empty data when the DB throws', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     db.prepare.mockReturnValue({
       all: jest.fn().mockImplementation(() => { throw new Error('DB failure'); })
     });

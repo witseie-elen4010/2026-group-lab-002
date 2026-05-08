@@ -199,6 +199,15 @@ from the Playwright team's public guidance):
 5. **Mock external services**, not the app itself. We want to test *our*
    code, not RapidAPI's.
 
+## 7. Update from ADR-009
+
+Framework: **Playwright**  
+Location: `tests/e2e/`  
+Run locally: `npm run test:e2e`  
+Run in CI: automatic on every PR via the `e2e` job in `.github/workflows/ci.yml`
+
+E2E tests launch the full app (`node app.js`) against a local SQLite database. Run `npm run setup` first if you haven't already.
+
 
 ### Browser coverage
 All E2E tests run against Chromium only. We explicitly chose not to run
