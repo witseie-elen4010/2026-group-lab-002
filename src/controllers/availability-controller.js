@@ -26,6 +26,13 @@ const saveAvailability = (req, res) => {
     });
   }
 
+  if (Number(max_number_of_students) < 1 || Number(max_number_of_students) > 10) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'Max students must be between 1 and 10.', success: null
+    });
+  }
+
   if (!isBusinessHours(start_time, end_time)) {
     return res.render('availability', {
       user, availability: getAvailability(user.id),
