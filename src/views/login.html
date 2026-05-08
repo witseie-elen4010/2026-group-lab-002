@@ -13,6 +13,24 @@
     .auth-wrapper { min-height: calc(100vh - 75px); display: flex; align-items: center; justify-content: center; }
     .auth-card { width: 100%; max-width: 450px; }
   </style>
+  <style>
+  @keyframes knock {
+    0%   { transform: translateX(0); }
+    15%  { transform: translateX(-6px) rotate(-2deg); }
+    30%  { transform: translateX(6px)  rotate(2deg); }
+    45%  { transform: translateX(-5px) rotate(-1deg); }
+    60%  { transform: translateX(5px)  rotate(1deg); }
+    75%  { transform: translateX(-3px); }
+    90%  { transform: translateX(3px); }
+    100% { transform: translateX(0); }
+  }
+
+  .btn-knocking {
+    animation: knock 0.6s ease;
+    background-color: #0a58ca !important;
+    border-color: #0a58ca !important;
+  }
+</style>
 </head>
 <body>
 
@@ -40,17 +58,54 @@
         <div class="alert alert-danger"><%= error %></div>
       <% } %>
 
-      <form action="/login" method="POST">
-        <div class="mb-3">
-          <label for="staffStudentNumber" class="form-label fw-semibold">Student / Staff Number</label>
-          <input type="text" class="form-control" id="staffStudentNumber" name="staffStudentNumber" placeholder="e.g. 1234567 or A000356" required>
-        </div>
-        <div class="mb-4">
-          <label for="password" class="form-label fw-semibold">Password</label>
-          <input type="password" class="form-control" id="password" name="password" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">Log In</button>
-      </form>
+      <form action="/login" method="POST" id="login-form">
+  <div class="mb-3">
+    <label for="staffStudentNumber" class="form-label fw-semibold">
+      Student / Staff Number
+    </label>
+    <input
+      type="text"
+      class="form-control"
+      id="staffStudentNumber"
+      name="staffStudentNumber"
+      placeholder="e.g. 1234567 or A000356"
+      required
+    >
+  </div>
+  <div class="mb-4">
+    <label for="password" class="form-label fw-semibold">Password</label>
+    <input
+      type="password"
+      class="form-control"
+      id="password"
+      name="password"
+      required
+    >
+  </div>
+
+  <button type="submit" class="btn btn-primary w-100 py-2 mb-3" id="login-btn">
+    Log In
+  </button>
+</form>
+
+<script>
+  const form   = document.getElementById('login-form');
+  const btn    = document.getElementById('login-btn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Step 1: knock animation
+    btn.classList.add('btn-knocking');
+    btn.textContent = 'Knock knock...';
+    btn.disabled = true;
+
+    // Step 2: wait for animation to finish, then submit
+    setTimeout(function () {
+      form.submit();
+    }, 650);
+  });
+</script>
 
       <div class="text-center small">
         <span class="text-muted">Don't have an account?</span>
