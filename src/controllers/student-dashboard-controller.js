@@ -13,6 +13,9 @@ const showStudentDashboard = (req, res) => {
     };
 
     try {
+
+        const showWelcome       = req.session.showWelcome || false;
+        req.session.showWelcome = false;
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
         const degreeRow = db.prepare(`
@@ -93,6 +96,7 @@ const showStudentDashboard = (req, res) => {
 
         const upcomingConsultations = upcomingRows;
         const pastConsultations = pastRows;
+        const welcomeMessage = `Welcome back, ${user.name}! Check your upcoming consultations below.`;
 
         return res.render('student-dashboard', {
             user,
@@ -100,10 +104,9 @@ const showStudentDashboard = (req, res) => {
             enrolledCourses,
             upcomingConsultations,
             pastConsultations,
-            success: req.query.welcome === '1' ? `Welcome back, ${user.name}!` :
-                     req.query.success === 'true' ? 'Courses updated successfully.' : null,
-            error: null,
-        });
+            success: showWelcome ? welcomeMessage : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
+      error: null,
+    });
 
     } catch (err) {
         console.error('Student dashboard error:', err);

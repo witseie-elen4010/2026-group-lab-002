@@ -18,6 +18,7 @@ const login = (req, res) => {
     req.session.userId   = staff.staff_number;
     req.session.userName = staff.name;
     req.session.userRole = 'lecturer';
+    req.session.showWelcome = true;
     return res.redirect('/lecturer/dashboard?welcome=1');
   }
 
@@ -26,6 +27,7 @@ const login = (req, res) => {
     req.session.userId   = student.student_number;
     req.session.userName = student.name;
     req.session.userRole = 'student';
+    req.session.showWelcome = true;
     return res.redirect('/student/dashboard?welcome=1');
   }
 
