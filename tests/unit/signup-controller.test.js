@@ -30,17 +30,22 @@ describe('email domain validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+    req.session = {}
 
     const res = mockRes()
     registerUser(req, res)
 
+    expect(req.session.userId).toBe(1234567)
+    expect(req.session.userName).toBe('Test Student')
+    expect(req.session.userRole).toBe('student')
+    expect(req.session.showWelcome).toBe(true)
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
-      expect.objectContaining({
+      {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
         redirectTo: '/student/courses'
-      })
+      }
     )
   })
 
@@ -54,10 +59,15 @@ describe('email domain validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+    req.session = {}
 
     const res = mockRes()
     registerUser(req, res)
 
+    expect(req.session.userId).toBe('A000999')
+    expect(req.session.userName).toBe('Test Lecturer')
+    expect(req.session.userRole).toBe('lecturer')
+    expect(req.session.showWelcome).toBe(true)
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
       expect.objectContaining({

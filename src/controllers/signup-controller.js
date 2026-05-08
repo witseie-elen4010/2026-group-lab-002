@@ -29,11 +29,6 @@ const registerUser = (req, res) => {
       return res.render('sign-up', { message: null, error: 'Please use your Wits email address.' })
     }
 
-    req.session.userId = number
-    req.session.userName = fullName
-    req.session.userRole = role
-
-    req.session.showWelcome = true
     // Database Insertion
     if (role === 'lecturer') {
       const stmt = db.prepare(`
@@ -41,6 +36,11 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?)
       `)
       stmt.run(number, fullName, email, 'EIE', 'EIE', password) // EIE are just place holders
+
+      req.session.userId = number
+      req.session.userName = fullName
+      req.session.userRole = 'lecturer'
+      req.session.showWelcome = true
 
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
@@ -53,6 +53,11 @@ const registerUser = (req, res) => {
         VALUES (?, ?, ?, ?, ?)
       `)
       stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO') // degree code is just a placeholder
+
+      req.session.userId = parseInt(number)
+      req.session.userName = fullName
+      req.session.userRole = 'student'
+      req.session.showWelcome = true
 
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',

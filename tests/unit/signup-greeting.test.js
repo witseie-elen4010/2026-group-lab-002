@@ -31,6 +31,7 @@ describe('Sign Up greeting validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+    req.session = {}
 
     const res = mockRes()
 
@@ -56,6 +57,7 @@ describe('Sign Up greeting validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+    req.session = {}
 
     const res = mockRes()
 
