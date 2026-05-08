@@ -17,9 +17,9 @@ const showAvailability = (req, res) => {
 
 const saveAvailability = (req, res) => {
   const user = { id: req.session.userId, name: req.session.userName, role: req.session.userRole };
-  const { day_of_week, start_time, end_time, venue, max_number_of_students } = req.body;
+  const { day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min } = req.body;
 
-  if (!validateSlotFields({ day_of_week, start_time, end_time, venue, max_number_of_students })) {
+  if (!validateSlotFields({ day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min })) {
     return res.render('availability', {
       user, availability: getAvailability(user.id),
       error: 'All fields are required.', success: null
@@ -47,8 +47,8 @@ const saveAvailability = (req, res) => {
   }
 
   db.prepare(
-    'INSERT INTO lecturer_availability (staff_number, day_of_week, start_time, end_time, venue, max_number_of_students) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(user.id, day_of_week, start_time, end_time, venue, Number(max_number_of_students));
+    'INSERT INTO lecturer_availability (staff_number, day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(user.id, day_of_week, start_time, end_time, venue, Number(max_number_of_students), Number(max_booking_min));
 
   return res.render('availability', {
     user, availability: getAvailability(user.id),

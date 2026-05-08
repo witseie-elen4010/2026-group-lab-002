@@ -55,7 +55,7 @@ describe('showAvailability', () => {
 describe('saveAvailability', () => {
   const validBody = {
     day_of_week: 'Mon', start_time: '09:00', end_time: '10:00',
-    venue: 'Room 1', max_number_of_students: '1'
+    venue: 'Room 1', max_number_of_students: '1', max_booking_min: '60'
   };
 
   test('saves slot and renders success when all fields are valid and no overlap', () => {

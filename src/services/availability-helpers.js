@@ -3,8 +3,8 @@ const generateConstId = (date, count) => {
   return `${date}-${sequence}`;
 };
 
-const validateSlotFields = ({ day_of_week, start_time, end_time, venue, max_number_of_students }) => {
-  return !!(day_of_week && start_time && end_time && venue && max_number_of_students);
+const validateSlotFields = ({ day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min }) => {
+  return !!(day_of_week && start_time && end_time && venue && max_number_of_students && max_booking_min);
 };
 
 const toMinutes = (timeStr) => {
