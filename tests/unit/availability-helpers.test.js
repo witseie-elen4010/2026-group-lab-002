@@ -21,7 +21,8 @@ describe('validateSlotFields()', () => {
       start_time: '09:00',
       end_time: '10:00',
       venue: 'Room 1',
-      max_number_of_students: '5'
+      max_number_of_students: '5',
+      max_booking_min: '60'
     })).toBe(true);
   });
 
