@@ -1,7 +1,9 @@
 /* eslint-env jest */
 const { registerUser } = require('../../src/controllers/signup-controller')
 
-jest.mock('../../database/db', () => ({ prepare: jest.fn() }))
+jest.mock('../../database/db', () => ({
+  prepare: jest.fn()
+}))
 
 const db = require('../../database/db')
 
@@ -21,7 +23,16 @@ beforeEach(() => {
 
 describe('email domain validation', () => {
   test('accepts student email ending in @students.wits.ac.za', () => {
-    db.prepare.mockReturnValue({ run: jest.fn() })
+    db.prepare
+      .mockReturnValueOnce({
+        get: jest.fn().mockReturnValue(undefined)
+      })
+      .mockReturnValueOnce({
+        get: jest.fn().mockReturnValue(undefined)
+      })
+      .mockReturnValueOnce({
+        run: jest.fn()
+      })
 
     const req = mockReq({
       fullName: 'Test Student',
@@ -30,27 +41,42 @@ describe('email domain validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+
     req.session = {}
 
     const res = mockRes()
+
     registerUser(req, res)
 
     expect(req.session.userId).toBe(1234567)
     expect(req.session.userName).toBe('Test Student')
     expect(req.session.userRole).toBe('student')
     expect(req.session.showWelcome).toBe(true)
+
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
       {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
-        redirectTo: '/student/courses'
+        redirectTo: '/student/courses',
+        fullName: '',
+        number: '',
+        email: ''
       }
     )
   })
 
   test('accepts lecturer email ending in @wits.ac.za', () => {
-    db.prepare.mockReturnValue({ run: jest.fn() })
+    db.prepare
+      .mockReturnValueOnce({
+        get: jest.fn().mockReturnValue(undefined)
+      })
+      .mockReturnValueOnce({
+        get: jest.fn().mockReturnValue(undefined)
+      })
+      .mockReturnValueOnce({
+        run: jest.fn()
+      })
 
     const req = mockReq({
       fullName: 'Test Lecturer',
@@ -59,22 +85,28 @@ describe('email domain validation', () => {
       password: 'pass',
       confirmPassword: 'pass'
     })
+
     req.session = {}
 
     const res = mockRes()
+
     registerUser(req, res)
 
     expect(req.session.userId).toBe('A000999')
     expect(req.session.userName).toBe('Test Lecturer')
     expect(req.session.userRole).toBe('lecturer')
     expect(req.session.showWelcome).toBe(true)
+
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
-      expect.objectContaining({
+      {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
-        redirectTo: '/lecturer/courses'
-      })
+        redirectTo: '/lecturer/courses',
+        fullName: '',
+        number: '',
+        email: ''
+      }
     )
   })
 
@@ -87,13 +119,23 @@ describe('email domain validation', () => {
       confirmPassword: 'pass'
     })
 
+    req.session = {}
+
     const res = mockRes()
+
     registerUser(req, res)
 
-    expect(res.render).toHaveBeenCalledWith('sign-up', {
-      message: null,
-      error: 'Please use your Wits email address.'
-    })
+    expect(res.render).toHaveBeenCalledWith(
+      'sign-up',
+      {
+        message: null,
+        error: 'Registration error: Use Wits email address ending in @students.wits.ac.za.',
+        redirectTo: null,
+        fullName: 'Test Student',
+        number: '1234567',
+        email: 'student@gmail.com'
+      }
+    )
 
     expect(db.prepare).not.toHaveBeenCalled()
   })
@@ -107,13 +149,23 @@ describe('email domain validation', () => {
       confirmPassword: 'pass'
     })
 
+    req.session = {}
+
     const res = mockRes()
+
     registerUser(req, res)
 
-    expect(res.render).toHaveBeenCalledWith('sign-up', {
-      message: null,
-      error: 'Please use your Wits email address.'
-    })
+    expect(res.render).toHaveBeenCalledWith(
+      'sign-up',
+      {
+        message: null,
+        error: 'Registration error: Use Wits email address ending in @wits.ac.za.',
+        redirectTo: null,
+        fullName: 'Test Lecturer',
+        number: 'A000999',
+        email: 'lecturer@gmail.com'
+      }
+    )
 
     expect(db.prepare).not.toHaveBeenCalled()
   })
@@ -127,12 +179,54 @@ describe('email domain validation', () => {
       confirmPassword: 'pass'
     })
 
+    req.session = {}
+
     const res = mockRes()
+
     registerUser(req, res)
 
-    expect(res.render).toHaveBeenCalledWith('sign-up', {
-      message: null,
-      error: 'Please use your Wits email address.'
+    expect(res.render).toHaveBeenCalledWith(
+      'sign-up',
+      {
+        message: null,
+        error: 'Registration error: Wrong email type: students must use @students.wits.ac.za, not a staff email.',
+        redirectTo: null,
+        fullName: 'Test Student',
+        number: '1234567',
+        email: 'student@wits.ac.za'
+      }
+    )
+
+    expect(db.prepare).not.toHaveBeenCalled()
+  })
+
+  test('rejects lecturer email using @students.wits.ac.za instead of @wits.ac.za', () => {
+    const req = mockReq({
+      fullName: 'Test Lecturer',
+      number: 'A000999',
+      email: 'lecturer@students.wits.ac.za',
+      password: 'pass',
+      confirmPassword: 'pass'
     })
+
+    req.session = {}
+
+    const res = mockRes()
+
+    registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'sign-up',
+      {
+        message: null,
+        error: 'Registration error: Wrong email type: lecturers must use @wits.ac.za, not a student email.',
+        redirectTo: null,
+        fullName: 'Test Lecturer',
+        number: 'A000999',
+        email: 'lecturer@students.wits.ac.za'
+      }
+    )
+
+    expect(db.prepare).not.toHaveBeenCalled()
   })
 })
