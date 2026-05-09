@@ -4,6 +4,8 @@
   "description": "Group consultation scheduling app for Wits students and lecturers",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "build": "npm install && npm rebuild sqlite3 better-sqlite3 && npm run setup",
     "setup": "node database/setup.js",
     "test": "jest --coverage",
     "test:e2e": "playwright test"
