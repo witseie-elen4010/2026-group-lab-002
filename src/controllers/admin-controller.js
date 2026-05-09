@@ -1,5 +1,5 @@
 const db = require('../../database/db');
-const { buildSearchQuery } = require('../services/admin-helpers');
+const { FK_DISPLAY, getInputType, friendlyError, buildSearchQuery } = require('../services/admin-helpers');
 
 const PAGE_SIZE = 20;
 
@@ -9,13 +9,40 @@ const getAllTables = () =>
 const getColumns = (tableName) =>
   db.prepare(`PRAGMA table_info("${tableName}")`).all();
 
+const getForeignKeys = (tableName) =>
+  db.prepare(`PRAGMA foreign_key_list("${tableName}")`).all();
+
+const getForeignKeyOptions = (fkList) => {
+  const options = {};
+  fkList.forEach(fk => {
+    if (!options[fk.from]) {
+      const display = FK_DISPLAY[fk.table];
+      if (display) {
+        const [valCol, labelCol] = display;
+        const rows = db.prepare(`SELECT "${valCol}" as val, "${labelCol}" as label FROM "${fk.table}" ORDER BY 2`).all();
+        options[fk.from] = rows.map(r => ({ value: r.val, label: `${r.val} — ${r.label}` }));
+      } else {
+        const rows = db.prepare(`SELECT "${fk.to}" as val FROM "${fk.table}" ORDER BY 1`).all();
+        options[fk.from] = rows.map(r => ({ value: r.val, label: String(r.val) }));
+      }
+    }
+  });
+  return options;
+};
+
+const getInputTypes = (columns) => {
+  const types = {};
+  columns.forEach(col => { types[col.name] = getInputType(col.name); });
+  return types;
+};
+
 const showAdminDashboard = (req, res) => {
   const user = { id: req.session.userId, name: req.session.userName };
   const tables = getAllTables();
   res.render('admin-dashboard', {
     user, tables,
     activeTable: null, columns: [], rows: [], page: 1, totalPages: 1, totalRows: 0, search: '',
-    error: null, success: null,
+    fkOptions: {}, inputTypes: {}, error: null, success: null,
   });
 };
 
@@ -30,6 +57,8 @@ const showTable = (req, res) => {
   const offset = (page - 1) * PAGE_SIZE;
   const search = (req.query.search || '').trim();
   const columns = getColumns(tableName);
+  const fkOptions = getForeignKeyOptions(getForeignKeys(tableName));
+  const inputTypes = getInputTypes(columns);
 
   let totalRows, rows;
   if (search) {
@@ -45,7 +74,7 @@ const showTable = (req, res) => {
 
   res.render('admin-dashboard', {
     user, tables,
-    activeTable: tableName, columns, rows, page, totalPages, totalRows, search,
+    activeTable: tableName, columns, rows, page, totalPages, totalRows, search, fkOptions, inputTypes,
     error: req.query.error || null,
     success: req.query.success || null,
   });
@@ -66,13 +95,15 @@ const createRecord = (req, res) => {
     db.prepare(`INSERT INTO "${tableName}" (${fieldList}) VALUES (${placeholders})`).run(...values);
     res.redirect(`/admin/table/${tableName}?success=Record+added`);
   } catch (err) {
+    const fkOptions = getForeignKeyOptions(getForeignKeys(tableName));
+    const inputTypes = getInputTypes(columns);
     const totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count;
     const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
     const rows = db.prepare(`SELECT rowid, * FROM "${tableName}" LIMIT ?`).all(PAGE_SIZE);
     res.render('admin-dashboard', {
       user: { id: req.session.userId, name: req.session.userName },
       tables, activeTable: tableName, columns, rows, page: 1, totalPages, totalRows, search: '',
-      error: err.message, success: null,
+      fkOptions, inputTypes, error: friendlyError(err.message), success: null,
     });
   }
 };
@@ -97,7 +128,7 @@ const updateRecord = (req, res) => {
     db.prepare(`UPDATE "${tableName}" SET ${setClauses} WHERE rowid = ?`).run(...values);
     res.redirect(`/admin/table/${tableName}?success=Record+updated`);
   } catch (err) {
-    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(err.message)}`);
+    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
   }
 };
 
@@ -111,7 +142,7 @@ const deleteRecord = (req, res) => {
     db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId);
     res.redirect(`/admin/table/${tableName}?success=Record+deleted`);
   } catch (err) {
-    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(err.message)}`);
+    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
   }
 };
 

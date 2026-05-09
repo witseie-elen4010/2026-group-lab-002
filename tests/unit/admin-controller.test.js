@@ -30,6 +30,7 @@ const COLUMNS = [
   { cid: 1, name: 'name',     type: 'TEXT', notnull: 1, dflt_value: null, pk: 0 },
 ];
 const ROWS = [{ rowid: 1, admin_id: 'ADMIN001', name: 'System Admin' }];
+const NO_FK = [];
 
 beforeEach(() => db.prepare.mockReset());
 
@@ -54,10 +55,11 @@ describe('showAdminDashboard', () => {
 describe('showTable', () => {
   test('renders table data for a valid table name', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(NO_FK) })    // getForeignKeys
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) }) // COUNT
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });    // SELECT rows
 
     const req = mockReq({ params: { tableName: 'admins' }, query: {} });
     const res = mockRes();
@@ -76,10 +78,11 @@ describe('showTable', () => {
 
   test('filters rows using SQL LIKE when a search term is provided', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(NO_FK) })    // getForeignKeys
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) }) // COUNT with LIKE
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });    // SELECT with LIKE
 
     const req = mockReq({ params: { tableName: 'admins' }, query: { search: 'Admin' } });
     const res = mockRes();
@@ -109,9 +112,9 @@ describe('showTable', () => {
 describe('createRecord', () => {
   test('redirects to the table view on successful insert', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
-      .mockReturnValueOnce({ run: jest.fn() });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
+      .mockReturnValueOnce({ run: jest.fn() });                          // INSERT
 
     const req = mockReq({
       params: { tableName: 'admins' },
@@ -124,13 +127,14 @@ describe('createRecord', () => {
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?success=Record+added');
   });
 
-  test('re-renders with error message when the insert fails', () => {
+  test('re-renders with friendly error message when the insert fails', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
       .mockReturnValueOnce({ run: jest.fn().mockImplementation(() => { throw new Error('UNIQUE constraint failed'); }) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(NO_FK) })    // getForeignKeys (error path)
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) }) // COUNT
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });    // SELECT rows
 
     const req = mockReq({
       params: { tableName: 'admins' },
@@ -141,7 +145,7 @@ describe('createRecord', () => {
     createRecord(req, res);
 
     expect(res.render).toHaveBeenCalledWith('admin-dashboard', expect.objectContaining({
-      error: 'UNIQUE constraint failed',
+      error: 'A record with this value already exists.',
       activeTable: 'admins',
     }));
   });
@@ -150,9 +154,9 @@ describe('createRecord', () => {
 describe('updateRecord', () => {
   test('redirects to the table view on successful update', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
-      .mockReturnValueOnce({ run: jest.fn() });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
+      .mockReturnValueOnce({ run: jest.fn() });                          // UPDATE
 
     const req = mockReq({
       params: { tableName: 'admins', rowId: '1' },
@@ -165,10 +169,10 @@ describe('updateRecord', () => {
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?success=Record+updated');
   });
 
-  test('redirects with error when the update fails', () => {
+  test('redirects with friendly error when the update fails', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })  // getColumns
       .mockReturnValueOnce({ run: jest.fn().mockImplementation(() => { throw new Error('NOT NULL constraint failed'); }) });
 
     const req = mockReq({
@@ -179,15 +183,17 @@ describe('updateRecord', () => {
 
     updateRecord(req, res);
 
-    expect(res.redirect).toHaveBeenCalledWith(expect.stringContaining('/admin/table/admins?error='));
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/admin/table/admins?error=' + encodeURIComponent('A required field was left empty.')
+    );
   });
 });
 
 describe('deleteRecord', () => {
   test('redirects to the table view on successful delete', () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
-      .mockReturnValueOnce({ run: jest.fn() });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })   // getAllTables
+      .mockReturnValueOnce({ run: jest.fn() });                          // DELETE
 
     const req = mockReq({ params: { tableName: 'courses', rowId: '1' } });
     const res = mockRes();
@@ -208,7 +214,7 @@ describe('deleteRecord', () => {
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?error=Admin+accounts+cannot+be+deleted');
   });
 
-  test('redirects with error when a foreign key constraint prevents deletion', () => {
+  test('redirects with friendly error when a foreign key constraint prevents deletion', () => {
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([{ name: 'departments' }]) })
       .mockReturnValueOnce({ run: jest.fn().mockImplementation(() => { throw new Error('FOREIGN KEY constraint failed'); }) });
@@ -218,6 +224,8 @@ describe('deleteRecord', () => {
 
     deleteRecord(req, res);
 
-    expect(res.redirect).toHaveBeenCalledWith(expect.stringContaining('/admin/table/departments?error='));
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/admin/table/departments?error=' + encodeURIComponent('This value references a record that does not exist, or is still referenced by another record.')
+    );
   });
 });
