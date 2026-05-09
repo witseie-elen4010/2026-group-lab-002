@@ -1,4 +1,5 @@
 const db = require('../../database/db');
+const { buildSearchQuery } = require('../services/admin-helpers');
 
 const PAGE_SIZE = 20;
 
@@ -13,7 +14,7 @@ const showAdminDashboard = (req, res) => {
   const tables = getAllTables();
   res.render('admin-dashboard', {
     user, tables,
-    activeTable: null, columns: [], rows: [], page: 1, totalPages: 1,
+    activeTable: null, columns: [], rows: [], page: 1, totalPages: 1, totalRows: 0, search: '',
     error: null, success: null,
   });
 };
@@ -27,14 +28,24 @@ const showTable = (req, res) => {
 
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const offset = (page - 1) * PAGE_SIZE;
-  const totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count;
-  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
-  const rows = db.prepare(`SELECT rowid, * FROM "${tableName}" LIMIT ? OFFSET ?`).all(PAGE_SIZE, offset);
+  const search = (req.query.search || '').trim();
   const columns = getColumns(tableName);
+
+  let totalRows, rows;
+  if (search) {
+    const { whereClauses, params } = buildSearchQuery(columns, search);
+    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}" WHERE ${whereClauses}`).get(...params).count;
+    rows = db.prepare(`SELECT rowid, * FROM "${tableName}" WHERE ${whereClauses} LIMIT ? OFFSET ?`).all(...params, PAGE_SIZE, offset);
+  } else {
+    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count;
+    rows = db.prepare(`SELECT rowid, * FROM "${tableName}" LIMIT ? OFFSET ?`).all(PAGE_SIZE, offset);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
 
   res.render('admin-dashboard', {
     user, tables,
-    activeTable: tableName, columns, rows, page, totalPages,
+    activeTable: tableName, columns, rows, page, totalPages, totalRows, search,
     error: req.query.error || null,
     success: req.query.success || null,
   });
@@ -60,7 +71,7 @@ const createRecord = (req, res) => {
     const rows = db.prepare(`SELECT rowid, * FROM "${tableName}" LIMIT ?`).all(PAGE_SIZE);
     res.render('admin-dashboard', {
       user: { id: req.session.userId, name: req.session.userName },
-      tables, activeTable: tableName, columns, rows, page: 1, totalPages,
+      tables, activeTable: tableName, columns, rows, page: 1, totalPages, totalRows, search: '',
       error: err.message, success: null,
     });
   }

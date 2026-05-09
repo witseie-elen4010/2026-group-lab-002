@@ -55,9 +55,9 @@ describe('showTable', () => {
   test('renders table data for a valid table name', () => {
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) })
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) });
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });
 
     const req = mockReq({ params: { tableName: 'admins' }, query: {} });
     const res = mockRes();
@@ -70,6 +70,26 @@ describe('showTable', () => {
       rows: ROWS,
       page: 1,
       totalPages: 1,
+      search: '',
+    }));
+  });
+
+  test('filters rows using SQL LIKE when a search term is provided', () => {
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ count: 1 }) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(ROWS) });
+
+    const req = mockReq({ params: { tableName: 'admins' }, query: { search: 'Admin' } });
+    const res = mockRes();
+
+    showTable(req, res);
+
+    expect(db.prepare).toHaveBeenCalledWith(expect.stringContaining('LIKE'));
+    expect(res.render).toHaveBeenCalledWith('admin-dashboard', expect.objectContaining({
+      search: 'Admin',
+      activeTable: 'admins',
     }));
   });
 
@@ -169,12 +189,23 @@ describe('deleteRecord', () => {
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
       .mockReturnValueOnce({ run: jest.fn() });
 
+    const req = mockReq({ params: { tableName: 'courses', rowId: '1' } });
+    const res = mockRes();
+
+    deleteRecord(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/courses?success=Record+deleted');
+  });
+
+  test('blocks deletion of admin accounts', () => {
+    db.prepare.mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) });
+
     const req = mockReq({ params: { tableName: 'admins', rowId: '1' } });
     const res = mockRes();
 
     deleteRecord(req, res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?success=Record+deleted');
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?error=Admin+accounts+cannot+be+deleted');
   });
 
   test('redirects with error when a foreign key constraint prevents deletion', () => {
