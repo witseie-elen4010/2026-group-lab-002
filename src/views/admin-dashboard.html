@@ -152,9 +152,27 @@ function formatCol(name) {
                         <small class="text-muted fw-normal">(<%= col.type %>)</small>
                         <% if (col.notnull && col.pk === 0) { %><span class="text-danger">*</span><% } %>
                       </label>
-                      <input type="text" class="form-control" name="<%= col.name %>"
-                        <% if (col.pk && col.type.toUpperCase() === 'INTEGER') { %>placeholder="Auto-assigned if blank"<% } %>
-                        <% if (col.notnull && col.pk === 0) { %>required<% } %>>
+                      <% if (fkOptions[col.name]) { %>
+                        <select class="form-select" name="<%= col.name %>" <% if (col.notnull && col.pk === 0) { %>required<% } %>>
+                          <option value="">-- Select --</option>
+                          <% fkOptions[col.name].forEach(function(opt) { %>
+                            <option value="<%= opt.value %>"><%= opt.label %></option>
+                          <% }); %>
+                        </select>
+                      <% } else if (inputTypes[col.name] && inputTypes[col.name].type === 'select') { %>
+                        <select class="form-select" name="<%= col.name %>" <% if (col.notnull && col.pk === 0) { %>required<% } %>>
+                          <option value="">-- Select --</option>
+                          <% inputTypes[col.name].options.forEach(function(opt) { %>
+                            <option value="<%= opt %>"><%= opt %></option>
+                          <% }); %>
+                        </select>
+                      <% } else { %>
+                        <input
+                          type="<%= (inputTypes[col.name] && inputTypes[col.name].type) || 'text' %>"
+                          class="form-control" name="<%= col.name %>"
+                          <% if (col.pk && col.type.toUpperCase() === 'INTEGER') { %>placeholder="Auto-assigned if blank"<% } %>
+                          <% if (col.notnull && col.pk === 0) { %>required<% } %>>
+                      <% } %>
                     </div>
                   <% }); %>
                 </div>
@@ -226,6 +244,8 @@ function formatCol(name) {
   <script>
     const columns = <%- JSON.stringify(columns) %>;
     const activeTable = <%- JSON.stringify(activeTable) %>;
+    const fkOptions = <%- JSON.stringify(fkOptions) %>;
+    const inputTypes = <%- JSON.stringify(inputTypes) %>;
 
     function formatCol(name) {
       const map = { id: 'ID', of: 'of' };
@@ -234,35 +254,71 @@ function formatCol(name) {
         .join(' ');
     }
 
+    function buildField(col, currentValue) {
+      const isReadOnly = col.pk > 0;
+      const div = document.createElement('div');
+      div.className = 'mb-3';
+
+      const label = document.createElement('label');
+      label.className = 'form-label fw-semibold';
+      label.textContent = formatCol(col.name) + ' (' + col.type + ')';
+      if (isReadOnly) {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-secondary ms-1 fw-normal';
+        badge.textContent = 'PK';
+        label.appendChild(badge);
+      }
+      div.appendChild(label);
+
+      if (!isReadOnly && fkOptions[col.name]) {
+        const select = document.createElement('select');
+        select.className = 'form-select';
+        select.name = col.name;
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = '-- Select --';
+        select.appendChild(blank);
+        fkOptions[col.name].forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt.value;
+          o.textContent = opt.label;
+          if (String(opt.value) === String(currentValue)) o.selected = true;
+          select.appendChild(o);
+        });
+        div.appendChild(select);
+      } else if (!isReadOnly && inputTypes[col.name] && inputTypes[col.name].type === 'select') {
+        const select = document.createElement('select');
+        select.className = 'form-select';
+        select.name = col.name;
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = '-- Select --';
+        select.appendChild(blank);
+        inputTypes[col.name].options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt;
+          o.textContent = opt;
+          if (opt === currentValue) o.selected = true;
+          select.appendChild(o);
+        });
+        div.appendChild(select);
+      } else {
+        const input = document.createElement('input');
+        input.type = (!isReadOnly && inputTypes[col.name]) ? inputTypes[col.name].type : 'text';
+        input.className = 'form-control';
+        input.name = col.name;
+        input.value = currentValue != null ? currentValue : '';
+        if (isReadOnly) input.readOnly = true;
+        div.appendChild(input);
+      }
+
+      return div;
+    }
+
     function openEdit(row, rowid) {
       const body = document.getElementById('editModalBody');
       body.innerHTML = '';
-      columns.forEach(col => {
-        const isReadOnly = col.pk > 0;
-        const div = document.createElement('div');
-        div.className = 'mb-3';
-
-        const label = document.createElement('label');
-        label.className = 'form-label fw-semibold';
-        label.textContent = formatCol(col.name) + ' (' + col.type + ')';
-        if (isReadOnly) {
-          const badge = document.createElement('span');
-          badge.className = 'badge bg-secondary ms-1 fw-normal';
-          badge.textContent = 'PK';
-          label.appendChild(badge);
-        }
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'form-control';
-        input.name = col.name;
-        input.value = row[col.name] != null ? row[col.name] : '';
-        if (isReadOnly) input.readOnly = true;
-
-        div.appendChild(label);
-        div.appendChild(input);
-        body.appendChild(div);
-      });
+      columns.forEach(col => body.appendChild(buildField(col, row[col.name])));
       document.getElementById('editForm').action = '/admin/table/' + activeTable + '/' + rowid + '/update';
       new bootstrap.Modal(document.getElementById('editModal')).show();
     }
