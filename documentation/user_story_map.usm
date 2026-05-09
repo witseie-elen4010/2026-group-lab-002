@@ -19,6 +19,7 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
             Cancel availability (3 pts)
             Set max consultations duration per day (2 pts)
             Lecturer can add courses they teach and the department they are in (5 pts): |{"font_size":10}
+            Display assigned courses on lecturer dashboard (3 pts)
                 Cancel consultations (3 pts)
                     Flag a student if they ding door dash (2 pts)
     Book and manage consultations

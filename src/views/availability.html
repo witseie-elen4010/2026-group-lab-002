@@ -70,6 +70,13 @@
             </div>
 
             <div class="mb-3">
+              <label for="max_booking_min" class="form-label fw-semibold">Max Consultation Duration (minutes)</label>
+              <input type="number" class="form-control" id="max_booking_min" name="max_booking_min"
+                min="15" max="480" value="60" required>
+              <div class="form-text">How long each individual consultation can last within this window.</div>
+            </div>
+
+            <div class="mb-3">
               <label for="venue" class="form-label fw-semibold">Venue</label>
               <input type="text" class="form-control" id="venue" name="venue"
                 placeholder="e.g. Room 101 or https://meet.link" required>
@@ -101,7 +108,8 @@
                     <th scope="col">Start</th>
                     <th scope="col">End</th>
                     <th scope="col">Venue</th>
-                    <th scope="col">Max</th>
+                    <th scope="col">Max Students</th>
+                    <th scope="col">Consult (min)</th>
                     <th scope="col"></th>
                   </tr>
                 </thead>
@@ -113,6 +121,7 @@
                       <td class="text-nowrap"><%= slot.end_time %></td>
                       <td><%= slot.venue %></td>
                       <td><%= slot.max_number_of_students %></td>
+                      <td><%= slot.max_booking_min %></td>
                       <td>
                         <form action="/lecturer/availability/<%= slot.availability_id %>/delete" method="POST" class="d-inline">
                           <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>

@@ -17,4 +17,20 @@ describe('GET /lecturer/dashboard', () => {
     expect(res.text).toContain('Lecturer Dashboard');
     expect(res.text).toContain('Upcoming Consultations');
   });
+
+  test('renders My Courses section when authenticated as a lecturer', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    const res = await agent.get('/lecturer/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('My Courses');
+  });
+
+  test('renders seeded course code ELEN4010 on the dashboard for lecturer A000356', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    const res = await agent.get('/lecturer/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('ELEN4010');
+  });
 });

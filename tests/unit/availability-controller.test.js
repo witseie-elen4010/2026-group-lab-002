@@ -55,7 +55,7 @@ describe('showAvailability', () => {
 describe('saveAvailability', () => {
   const validBody = {
     day_of_week: 'Mon', start_time: '09:00', end_time: '10:00',
-    venue: 'Room 1', max_number_of_students: '1'
+    venue: 'Room 1', max_number_of_students: '1', max_booking_min: '60'
   };
 
   test('saves slot and renders success when all fields are valid and no overlap', () => {
@@ -83,7 +83,7 @@ describe('saveAvailability', () => {
 
     saveAvailability(mockReq({ body: validBody }), mockRes());
 
-    expect(runFn).toHaveBeenCalledWith('A000356', 'Mon', '09:00', '10:00', 'Room 1', 1);
+    expect(runFn).toHaveBeenCalledWith('A000356', 'Mon', '09:00', '10:00', 'Room 1', 1, 60);
   });
 
   test('renders error when required fields are missing', () => {
@@ -109,6 +109,18 @@ describe('saveAvailability', () => {
     expect(res.render).toHaveBeenCalledWith('availability', expect.objectContaining({
       error: expect.stringContaining('08:00 and 18:00'),
       success: null
+    }));
+  });
+
+  test('renders error when max_number_of_students exceeds 10', () => {
+    db.prepare.mockReturnValue({ all: jest.fn().mockReturnValue([]) });
+
+    const req = mockReq({ body: { ...validBody, max_number_of_students: '11' } });
+    const res = mockRes();
+    saveAvailability(req, res);
+
+    expect(res.render).toHaveBeenCalledWith('availability', expect.objectContaining({
+      error: 'Max students must be between 1 and 10.'
     }));
   });
 

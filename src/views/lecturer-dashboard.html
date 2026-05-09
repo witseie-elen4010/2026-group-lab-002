@@ -26,6 +26,8 @@
     .calendar-table .today { background-color: dodgerblue; color: white; font-weight: bold; }
     .calendar-table .has-consultation { background-color: #d1e7dd; font-weight: 600; }
     .calendar-table .empty { background-color: transparent; border: none; }
+    .course-card { border-radius: 12px; }
+    .course-card.border-default { border: 1px solid #dee2e6 !important; }
   </style>
 </head>
 <body>
@@ -71,6 +73,40 @@
             </div>
           </div>
           <a href="/lecturer/availability" class="btn btn-primary btn-sm mt-2">Set Availability</a>
+        </div>
+
+        <div class="card p-4 mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">My Courses</h4>
+            <a href="/lecturer/courses" class="btn btn-sm btn-outline-primary">Edit</a>
+          </div>
+          <% if (assignedCourses.length === 0) { %>
+            <p class="text-muted mb-2">You haven't added any courses yet. Students won't be able to book consultations with you until you add at least one course.</p>
+            <a href="/lecturer/courses" class="btn btn-primary btn-sm">Add Courses</a>
+          <% } else { %>
+            <%
+              const yearLevels = [1, 2, 3, 4];
+            %>
+            <% yearLevels.forEach(year => { %>
+              <% const yearCourses = assignedCourses.filter(c => c.year_level === year); %>
+              <% if (yearCourses.length > 0) { %>
+                <p class="text-muted small mb-2 mt-3">Year <%= year %></p>
+                <div class="row g-2">
+                  <% yearCourses.forEach(c => { %>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="card course-card border-default p-3 h-100">
+                        <div class="fw-semibold"><%= c.course_code %></div>
+                        <div class="text-muted small"><%= c.course_name %></div>
+                        <div class="mt-1">
+                          <span class="badge bg-secondary bg-opacity-10 text-secondary small"><%= c.dept_code %></span>
+                        </div>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              <% } %>
+            <% }); %>
+          <% } %>
         </div>
 
         <div class="card p-4 mt-4">

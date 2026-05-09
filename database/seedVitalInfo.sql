@@ -310,5 +310,5 @@ INSERT OR IGNORE INTO admins (admin_id, name, email, password) VALUES
 INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_of_week, start_time, end_time, max_booking_min, max_number_of_students, venue) VALUES
   ('1', 'A000356', 'Mon', '10:00', '11:00', 60, 5, 'Room 101'),
   ('2', 'A000357', 'Tue', '11:00', '13:00', 120, 10, 'Room 102'),
-  ('3', 'A000356', 'Wed', '10:00', '14:00', 180, 11, 'Room 103'),
+  ('3', 'A000356', 'Wed', '10:00', '14:00', 180, 10, 'Room 103'),
   ('4', 'A000357', 'Thu', '11:00', '14:00', 120, 6, 'Room 104');
