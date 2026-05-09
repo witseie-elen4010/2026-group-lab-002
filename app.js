@@ -2,19 +2,6 @@ const express = require('express')
 const session = require('express-session')
 const path = require('path')
 
-const { Sequelize } = require('sequelize')
-
-const db = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database/database.db',
-  logging: false
-})
-
-const SequelizeStore = require('connect-session-sequelize')(session.Store)
-
-const sessionStore = new SequelizeStore({
-  db
-})
 
 const authRoutes = require('./src/routes/auth-routes')
 const dashboardRoutes = require('./src/routes/dashboard-routes')
@@ -39,7 +26,6 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use(session({
   secret: 'knockknock-secret-change-before-deploy',
-  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -50,7 +36,7 @@ app.use(session({
   }
 }))
 
-sessionStore.sync()
+
 
 app.use('/', authRoutes)
 app.use('/', dashboardRoutes)
