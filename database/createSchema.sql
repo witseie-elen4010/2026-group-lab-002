@@ -78,13 +78,16 @@ CREATE TABLE consultations (
   consultation_time        TEXT NOT NULL CHECK (consultation_time GLOB '[0-9][0-9]:[0-9][0-9]'),
   lecturer_id              TEXT,
   organiser                INTEGER,
+  availability_id          INTEGER,
   duration_min             INTEGER NOT NULL DEFAULT 60 CHECK (duration_min > 0 AND duration_min <= 480),
   max_number_of_students   INTEGER NOT NULL DEFAULT 1 CHECK (max_number_of_students > 0),
   venue                    TEXT NOT NULL CHECK(length(venue) >= 3),
   status                   TEXT NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Booked', 'Ongoing', 'Missed', 'Cancelled', 'Rescheduled', 'RescheduledToNow')),
+  allow_join               INTEGER NOT NULL DEFAULT 1 CHECK (allow_join IN (0, 1)),
 
-  FOREIGN KEY (lecturer_id) REFERENCES staff(staff_number) ON DELETE SET NULL,
-  FOREIGN KEY (organiser)   REFERENCES students(student_number) ON DELETE SET NULL
+  FOREIGN KEY (lecturer_id)     REFERENCES staff(staff_number) ON DELETE SET NULL,
+  FOREIGN KEY (organiser)       REFERENCES students(student_number) ON DELETE SET NULL,
+  FOREIGN KEY (availability_id) REFERENCES lecturer_availability(availability_id) ON DELETE SET NULL
 );
 
 CREATE TABLE consultation_attendees (
