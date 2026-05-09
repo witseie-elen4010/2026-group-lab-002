@@ -64,3 +64,30 @@ A migration script was explicitly not written because the project rebuilds the d
 - The `computeBookableChunks` and `canBookInRange` helpers are pure functions in `src/services/booking-helpers.js` — all overlap and capacity logic belongs there, not in controllers.
 - Cancel and Leave flows are out of scope for this PR. The detail page renders the buttons but routes them to placeholder handlers that return an "not yet implemented" message. These are tracked as follow-up stories.
 - The lecturer dashboard is untouched. All calendar and booking UI is on the student dashboard only.
+
+## Post-implementation fixes
+
+Two issues were identified and resolved after the initial 10 commits:
+
+**Course-detail schedule buttons linked to a placeholder date.**
+The `date=PICK` literal was never replaced during the initial build. The
+course-detail controller now computes `nextDateByDow` — for each recurring
+`day_of_week` in the availability grid, it finds the next real calendar
+occurrence starting from tomorrow, skipping weekends. This ensures Schedule
+buttons always link to a future bookable date rather than a date that may
+have already passed.
+
+**E2E test rows accumulated in the database.**
+The Playwright booking-flow spec had no teardown. Each run left a
+"E2E Test Booking {timestamp}" row in `consultations`. The spec was updated
+to run `purgeE2ERows()` in `beforeAll` and `afterEach`, keying on the
+`consultation_title LIKE 'E2E Test Booking %'` pattern. Three stale rows
+were manually cleared from the development database.
+
+**UI polish.**
+The colour palette in `booking-helpers.js` was extended from 8 to 12 colours
+to support students enrolled in more courses before colour collisions occur.
+Course cards on the student dashboard now have a hover state making them
+visually interactive. Calendar week labels changed from hardcoded
+"This week" / "Next week" to actual date ranges (e.g. "11 May – 15 May") so
+they are unambiguous regardless of the day of the week.
