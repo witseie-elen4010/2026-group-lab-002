@@ -30,6 +30,7 @@ describe('showLecturerDashboard()', () => {
     ];
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
 
     const res = mockRes();
@@ -46,6 +47,7 @@ describe('showLecturerDashboard()', () => {
     ];
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
 
     const res = mockRes();
@@ -69,6 +71,64 @@ describe('showLecturerDashboard()', () => {
       upcomingConsultations: [],
       stats: { daysAvailable: 0, hoursAvailable: 0, totalSlots: 0 },
       error: 'Could not load dashboard data. Please try again.',
+    }));
+  });
+
+  test('passes assignedCourses to the view when the lecturer has courses', () => {
+    const courses = [
+      { course_code: 'ELEN4010', course_name: 'Software Dev', year_level: 4, dept_code: 'ELEN' },
+      { course_code: 'ELEN3009', course_name: 'Signals', year_level: 3, dept_code: 'ELEN' },
+    ];
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(courses) });
+
+    const res = mockRes();
+    showLecturerDashboard(mockReq(), res);
+
+    expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
+      assignedCourses: courses,
+    }));
+  });
+
+  test('passes assignedCourses as empty array when the lecturer has no courses', () => {
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
+
+    const res = mockRes();
+    showLecturerDashboard(mockReq(), res);
+
+    expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
+      assignedCourses: [],
+    }));
+  });
+
+  test('calls the assigned-courses query with the correct staff_number from the session', () => {
+    const coursesQuery = jest.fn().mockReturnValue([]);
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ all: coursesQuery });
+
+    showLecturerDashboard(mockReq(), mockRes());
+
+    expect(coursesQuery).toHaveBeenCalledWith('A000356');
+  });
+
+  test('includes assignedCourses as empty array in the error render when the DB throws', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    db.prepare.mockReturnValue({
+      all: jest.fn().mockImplementation(() => { throw new Error('DB failure'); })
+    });
+
+    const res = mockRes();
+    showLecturerDashboard(mockReq(), res);
+
+    expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
+      assignedCourses: [],
     }));
   });
 });
