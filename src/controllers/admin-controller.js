@@ -94,6 +94,7 @@ const deleteRecord = (req, res) => {
   const tables = getAllTables();
   const { tableName, rowId } = req.params;
   if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+  if (tableName === 'admins') return res.redirect('/admin/table/admins?error=Admin+accounts+cannot+be+deleted');
 
   try {
     db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId);

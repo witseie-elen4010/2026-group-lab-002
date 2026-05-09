@@ -90,8 +90,10 @@ function formatCol(name) {
                       <button class="btn btn-outline-primary btn-sm me-1 edit-btn"
                         data-row="<%= JSON.stringify(row) %>"
                         data-rowid="<%= row.rowid %>">Edit</button>
+                      <% if (activeTable !== 'admins') { %>
                       <button class="btn btn-outline-danger btn-sm delete-btn"
                         data-rowid="<%= row.rowid %>">Delete</button>
+                      <% } %>
                     </td>
                   </tr>
                 <% }); %>
