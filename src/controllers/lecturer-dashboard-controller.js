@@ -65,7 +65,7 @@ const showLecturerDashboard = (req, res) => {
       stats,
       calendar,
       assignedCourses,
-      success: showWelcome ? welcomeMessage : (req.query.success || null),
+      success: showWelcome ? welcomeMessage : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
       error: null,
     });
 
