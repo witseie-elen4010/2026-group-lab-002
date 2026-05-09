@@ -7,7 +7,7 @@
     "setup": "node database/setup.js",
     "test": "jest --coverage",
     "test:e2e": "playwright test"
-    },
+  },
   "jest": {
     "testPathIgnorePatterns": [
       "/node_modules/",
@@ -23,8 +23,11 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
+    "connect-session-sequelize": "^8.0.6",
     "ejs": "^5.0.2",
     "express": "^5.2.1",
-    "express-session": "^1.19.0"
+    "express-session": "^1.19.0",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1"
   }
 }
