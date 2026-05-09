@@ -18,6 +18,10 @@ const PALETTE = [
   '#20c997',
   '#0dcaf0',
   '#d63384',
+  '#ff5722',
+  '#607d8b',
+  '#795548',
+  '#6610f2',
 ];
 
 const computeBookableChunks = (window, bookingsOnDay) => {

@@ -1,4 +1,16 @@
 const { test, expect } = require('@playwright/test');
+const db = require('../../database/db');
+
+const purgeE2ERows = () => {
+  const rows = db.prepare("SELECT const_id FROM consultations WHERE consultation_title LIKE 'E2E Test Booking %'").all();
+  for (const row of rows) {
+    db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(row.const_id);
+    db.prepare('DELETE FROM consultations WHERE const_id = ?').run(row.const_id);
+  }
+};
+
+test.beforeAll(purgeE2ERows);
+test.afterEach(purgeE2ERows);
 
 test('student can book a consultation via the 10-day calendar', async ({ page }) => {
   await page.goto('/login');

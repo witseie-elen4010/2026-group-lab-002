@@ -22,8 +22,7 @@ describe('GET /student/dashboard', () => {
     const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Find a Consultation');
-    expect(res.text).toContain('This week');
-    expect(res.text).toContain('Next week');
+    expect(res.text).toMatch(/\d+ \w+ – \d+ \w+/);
   });
 
   test('calendar shows lecturer names from enrolled courses', async () => {
