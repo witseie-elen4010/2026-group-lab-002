@@ -29,18 +29,6 @@ const registerUser = (req, res) => {
       return res.render('sign-up', { message: null, error: 'Please use your Wits email address.' })
     }
 
-    const user = req.session && req.session.userId
-      ? {
-          id: req.session.userId,
-          name: req.session.userName,
-          role: req.session.userRole
-        }
-      : {
-          id: number,
-          name: fullName,
-          role: (number && number.toUpperCase().startsWith('A')) ? 'lecturer' : 'student'
-        }
-
     // Database Insertion
     if (role === 'lecturer') {
       const stmt = db.prepare(`
@@ -49,12 +37,16 @@ const registerUser = (req, res) => {
       `)
       stmt.run(number, fullName, email, 'EIE', 'EIE', password) // EIE are just place holders
 
+      req.session.userId = number
+      req.session.userName = fullName
+      req.session.userRole = 'lecturer'
+      req.session.showWelcome = true
+
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
         redirectTo: '/lecturer/courses'
       })
-
     } else {
       const stmt = db.prepare(`
         INSERT INTO students (student_number, name, email, password, degree_code)
@@ -62,12 +54,16 @@ const registerUser = (req, res) => {
       `)
       stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO') // degree code is just a placeholder
 
+      req.session.userId = parseInt(number)
+      req.session.userName = fullName
+      req.session.userRole = 'student'
+      req.session.showWelcome = true
+
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
         redirectTo: '/student/courses'
       })
-
     }
   } catch (error) {
     console.error('Signup error:', error)
@@ -79,7 +75,7 @@ const registerUser = (req, res) => {
   }
 }
 
-// Explicitly export these functions
+// Export these functions
 module.exports = {
   showSignupPage,
   registerUser
