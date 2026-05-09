@@ -70,9 +70,8 @@
                       <div class="fw-semibold"><%= slot.start_time %>–<%= slot.end_time %></div>
                       <div class="text-muted"><%= slot.lecturer_name %></div>
                       <div class="text-muted"><%= slot.venue %></div>
-                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=PICK"
-                         class="btn btn-primary btn-sm mt-1 w-100"
-                         title="Pick a date on the dashboard to book this slot">Schedule</a>
+                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= nextDateByDow[slot.day_of_week] %>"
+                         class="btn btn-primary btn-sm mt-1 w-100">Schedule</a>
                     </div>
                   <% }) %>
                 <% } %>

@@ -1,6 +1,7 @@
 const db = require('../../database/db');
+const { getNextNWeekdays } = require('../services/booking-helpers');
 
-const DAYS_ORDER = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
+const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const showCourseDetail = (req, res) => {
   const studentNumber = req.session && req.session.userId ? req.session.userId : 1234567;
@@ -71,12 +72,29 @@ const showCourseDetail = (req, res) => {
     ? { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
     : { id: 1234567, name: 'Test Student', role: 'student' };
 
+  // Compute the next future occurrence of each weekday (starting from tomorrow
+  // so we never point at a slot that may have already passed today).
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const tomorrow = new Date(`${today}T12:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  const upcomingDays = getNextNWeekdays(tomorrow, 10);
+  const nextDateByDow = {};
+  for (const d of upcomingDays) {
+    const dow = DOW_NAMES[d.getUTCDay()];
+    if (!nextDateByDow[dow]) {
+      nextDateByDow[dow] = d.toISOString().split('T')[0];
+    }
+  }
+
   return res.render('course-detail', {
     user,
     course,
     lecturers,
     byDay,
     WEEKDAYS,
+    nextDateByDow,
     courseCode,
     error: req.query.error || null,
   });
