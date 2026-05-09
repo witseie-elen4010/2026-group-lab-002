@@ -69,6 +69,18 @@ function formatCol(name) {
           <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Record</button>
         </div>
 
+        <form class="d-flex gap-2 mb-2" method="GET" action="/admin/table/<%= activeTable %>">
+          <input type="text" class="form-control form-control-sm" name="search"
+            value="<%= search %>" placeholder="Search all columns...">
+          <button type="submit" class="btn btn-primary btn-sm px-3">Search</button>
+          <% if (search) { %>
+            <a href="/admin/table/<%= activeTable %>" class="btn btn-outline-secondary btn-sm">Clear</a>
+          <% } %>
+        </form>
+        <% if (search) { %>
+          <p class="text-muted small mb-2"><%= totalRows %> result<%= totalRows !== 1 ? 's' : '' %> for "<%= search %>"</p>
+        <% } %>
+
         <div class="bg-white rounded-3 shadow-sm mb-3">
           <div class="table-responsive">
             <table class="table table-hover table-sm mb-0">
@@ -90,14 +102,16 @@ function formatCol(name) {
                       <button class="btn btn-outline-primary btn-sm me-1 edit-btn"
                         data-row="<%= JSON.stringify(row) %>"
                         data-rowid="<%= row.rowid %>">Edit</button>
+                      <% if (activeTable !== 'admins') { %>
                       <button class="btn btn-outline-danger btn-sm delete-btn"
                         data-rowid="<%= row.rowid %>">Delete</button>
+                      <% } %>
                     </td>
                   </tr>
                 <% }); %>
                 <% if (rows.length === 0) { %>
                   <tr>
-                    <td colspan="<%= columns.length + 1 %>" class="text-center text-muted py-4">No records in this table</td>
+                    <td colspan="<%= columns.length + 1 %>" class="text-center text-muted py-4"><%= search ? 'No records match your search.' : 'No records in this table.' %></td>
                   </tr>
                 <% } %>
               </tbody>
@@ -109,13 +123,13 @@ function formatCol(name) {
           <nav>
             <ul class="pagination pagination-sm">
               <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= page - 1 %>">Previous</a>
+                <a class="page-link" href="?page=<%= page - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %>">Previous</a>
               </li>
               <li class="page-item disabled">
                 <span class="page-link"><%= page %> / <%= totalPages %></span>
               </li>
               <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= page + 1 %>">Next</a>
+                <a class="page-link" href="?page=<%= page + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %>">Next</a>
               </li>
             </ul>
           </nav>
