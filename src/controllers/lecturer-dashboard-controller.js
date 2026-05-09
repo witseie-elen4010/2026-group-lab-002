@@ -48,6 +48,15 @@ const showLecturerDashboard = (req, res) => {
     };
 
     const calendar = buildCalendar(user.id);
+
+    const assignedCourses = db.prepare(`
+      SELECT c.course_code, c.course_name, c.year_level, c.dept_code
+      FROM staff_courses sc
+      JOIN courses c ON sc.course_code = c.course_code
+      WHERE sc.staff_number = ?
+      ORDER BY c.year_level, c.course_code
+    `).all(user.id) || [];
+
     const welcomeMessage = `Welcome back, Prof. ${user.name}! Ready for your consultations?`;
 
     return res.render('lecturer-dashboard', {
@@ -55,6 +64,7 @@ const showLecturerDashboard = (req, res) => {
       upcomingConsultations: upcomingRows,
       stats,
       calendar,
+      assignedCourses,
       success: showWelcome ? welcomeMessage : (req.query.success || null),
       error: null,
     });
@@ -66,6 +76,7 @@ const showLecturerDashboard = (req, res) => {
       upcomingConsultations: [],
       stats:    { daysAvailable: 0, hoursAvailable: 0, totalSlots: 0 },
       calendar: buildCalendar(null),
+      assignedCourses: [],
       error:   'Could not load dashboard data. Please try again.',
       success:  null,
     });
