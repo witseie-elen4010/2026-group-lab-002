@@ -51,7 +51,7 @@ const showLecturerDashboard = async (req, res) => {
 
     const calendar = buildCalendar(user.id);
 
-    const publicHolidays = await getSAPublicHolidays(calendar.year);
+    const publicHolidays = await getSAPublicHolidays(calendar.year).catch(() => []);
     const holidayDateSet = new Set(publicHolidays.map(h => h.date));
     const monthPad = String(now.getMonth() + 1).padStart(2, '0');
     const publicHolidayDayMap = {};

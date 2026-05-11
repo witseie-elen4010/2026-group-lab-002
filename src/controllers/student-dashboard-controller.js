@@ -92,7 +92,7 @@ const showStudentDashboard = async (req, res) => {
     const calendarDays = calendarDayObjs.map(d => d.toISOString().split('T')[0]);
     const lastDay = calendarDays[calendarDays.length - 1];
 
-    const publicHolidays = await getSAPublicHolidays(now.getFullYear());
+    const publicHolidays = await getSAPublicHolidays(now.getFullYear()).catch(() => []);
     const holidayDateSet = new Set(publicHolidays.map(h => h.date));
     const noHolidaysInWindow = calendarDays.every(d => !holidayDateSet.has(d));
 
