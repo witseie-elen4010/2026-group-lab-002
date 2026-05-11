@@ -132,6 +132,10 @@
           </select>
         </div>
 
+        <% if (noHolidaysInWindow) { %>
+          <p class="text-muted mb-2" style="font-size:0.75rem;">🚪 No public holidays in the next 10 days — all doors are fully operational.</p>
+        <% } %>
+
         <!-- Course colour legend -->
         <% if (Object.keys(colourMap).length > 0) { %>
         <div class="d-flex flex-wrap gap-2 mb-3">
@@ -140,6 +144,11 @@
           <% }) %>
         </div>
         <% } %>
+
+        <%
+          const holidayMap = {};
+          (publicHolidays || []).forEach(h => { holidayMap[h.date] = h.localName; });
+        %>
 
         <!-- Week 1 -->
         <%
@@ -157,44 +166,55 @@
               const d2 = new Date(dateStr + 'T12:00:00Z');
               const dayLabel = d2.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
             %>
-            <div class="day-col card p-2 <%= isToday ? 'today-cell' : '' %>" data-day-col>
+            <%
+              const holidayName = holidayMap[dateStr];
+              const isHoliday = !!holidayName;
+            %>
+            <div class="day-col card p-2 <%= isToday ? 'today-cell' : '' %>"
+                 <% if (isHoliday) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
+                 data-day-col>
               <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
                 <%= dayLabel %>
                 <% if (isToday) { %><span class="badge bg-primary ms-1" style="font-size:0.65rem;">Today</span><% } %>
               </div>
-              <% if (slots.length === 0 && joinable.length === 0) { %>
-                <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+              <% if (isHoliday) { %>
+                <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName %></div>
+                <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
+              <% } else { %>
+                <% if (slots.length === 0 && joinable.length === 0) { %>
+                  <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+                <% } %>
+                <% slots.forEach(slot => { %>
+                  <%
+                    const isPast = dateStr < today || (isToday && slot.end_time <= currentTimeStr);
+                    const isStartPast = isToday && slot.start_time <= currentTimeStr;
+                  %>
+                  <div class="avail-slot <%= isPast ? 'past-slot' : '' %>"
+                       style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
+                       data-staff="<%= slot.staff_number %>">
+                    <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
+                    <div><%= slot.start_time %>–<%= slot.end_time %></div>
+                    <div class="text-muted"><%= slot.lecturer_name %></div>
+                    <% if (!isPast) { %>
+                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
+                         class="btn btn-primary btn-xs mt-1 d-block text-center"
+                         data-testid="schedule-btn">Schedule</a>
+                    <% } else { %>
+                      <span class="text-muted" style="font-size:0.7rem;">Past</span>
+                    <% } %>
+                  </div>
+                <% }) %>
+                <% joinable.forEach(con => { %>
+                  <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
+                    <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
+                    <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
+                    <div class="text-muted"><%= con.lecturer_name %></div>
+                    <div class="text-muted"><%= con.attendeeCount %>/<%= con.max_number_of_students %> joined</div>
+                    <a href="/consultations/<%= con.const_id %>/join"
+                       class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                  </div>
+                <% }) %>
               <% } %>
-              <% slots.forEach(slot => { %>
-                <%
-                  const isPast = dateStr < today || (isToday && slot.end_time <= currentTimeStr);
-                  const isStartPast = isToday && slot.start_time <= currentTimeStr;
-                %>
-                <div class="avail-slot <%= isPast ? 'past-slot' : '' %>"
-                     style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                     data-staff="<%= slot.staff_number %>">
-                  <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
-                  <div><%= slot.start_time %>–<%= slot.end_time %></div>
-                  <div class="text-muted"><%= slot.lecturer_name %></div>
-                  <% if (!isPast) { %>
-                    <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
-                       class="btn btn-primary btn-xs mt-1 d-block text-center"
-                       data-testid="schedule-btn">Schedule</a>
-                  <% } else { %>
-                    <span class="text-muted" style="font-size:0.7rem;">Past</span>
-                  <% } %>
-                </div>
-              <% }) %>
-              <% joinable.forEach(con => { %>
-                <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
-                  <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
-                  <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
-                  <div class="text-muted"><%= con.lecturer_name %></div>
-                  <div class="text-muted"><%= con.attendeeCount %>/<%= con.max_number_of_students %> joined</div>
-                  <a href="/consultations/<%= con.const_id %>/join"
-                     class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
-                </div>
-              <% }) %>
             </div>
           <% }) %>
         </div>
@@ -210,39 +230,50 @@
               const d3 = new Date(dateStr + 'T12:00:00Z');
               const dayLabel2 = d3.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
             %>
-            <div class="day-col card p-2 <%= isToday2 ? 'today-cell' : '' %>" data-day-col>
+            <%
+              const holidayName2 = holidayMap[dateStr];
+              const isHoliday2 = !!holidayName2;
+            %>
+            <div class="day-col card p-2 <%= isToday2 ? 'today-cell' : '' %>"
+                 <% if (isHoliday2) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
+                 data-day-col>
               <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
                 <%= dayLabel2 %>
               </div>
-              <% if (slots2.length === 0 && joinable2.length === 0) { %>
-                <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+              <% if (isHoliday2) { %>
+                <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName2 %></div>
+                <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
+              <% } else { %>
+                <% if (slots2.length === 0 && joinable2.length === 0) { %>
+                  <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+                <% } %>
+                <% slots2.forEach(slot => { %>
+                  <%
+                    const isPast2 = dateStr < today;
+                  %>
+                  <div class="avail-slot <%= isPast2 ? 'past-slot' : '' %>"
+                       style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
+                       data-staff="<%= slot.staff_number %>">
+                    <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
+                    <div><%= slot.start_time %>–<%= slot.end_time %></div>
+                    <div class="text-muted"><%= slot.lecturer_name %></div>
+                    <% if (!isPast2) { %>
+                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
+                         class="btn btn-primary btn-xs mt-1 d-block text-center"
+                         data-testid="schedule-btn">Schedule</a>
+                    <% } %>
+                  </div>
+                <% }) %>
+                <% joinable2.forEach(con => { %>
+                  <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
+                    <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
+                    <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
+                    <div class="text-muted"><%= con.lecturer_name %></div>
+                    <a href="/consultations/<%= con.const_id %>/join"
+                       class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                  </div>
+                <% }) %>
               <% } %>
-              <% slots2.forEach(slot => { %>
-                <%
-                  const isPast2 = dateStr < today;
-                %>
-                <div class="avail-slot <%= isPast2 ? 'past-slot' : '' %>"
-                     style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                     data-staff="<%= slot.staff_number %>">
-                  <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
-                  <div><%= slot.start_time %>–<%= slot.end_time %></div>
-                  <div class="text-muted"><%= slot.lecturer_name %></div>
-                  <% if (!isPast2) { %>
-                    <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
-                       class="btn btn-primary btn-xs mt-1 d-block text-center"
-                       data-testid="schedule-btn">Schedule</a>
-                  <% } %>
-                </div>
-              <% }) %>
-              <% joinable2.forEach(con => { %>
-                <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
-                  <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
-                  <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
-                  <div class="text-muted"><%= con.lecturer_name %></div>
-                  <a href="/consultations/<%= con.const_id %>/join"
-                     class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
-                </div>
-              <% }) %>
             </div>
           <% }) %>
         </div>

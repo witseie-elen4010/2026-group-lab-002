@@ -1,6 +1,7 @@
 const db = require('../../database/db');
+const { getSAPublicHolidays } = require('../services/public-holidays-service');
 
-const showLecturerDashboard = (req, res) => {
+const showLecturerDashboard = async (req, res) => {
   const user = {
     id:   req.session.userId,
     name: req.session.userName,
@@ -12,7 +13,8 @@ const showLecturerDashboard = (req, res) => {
     const showWelcome       = req.session.showWelcome || false;
     req.session.showWelcome = false;
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
 
     const upcomingRows = db.prepare(`
       SELECT
@@ -49,6 +51,19 @@ const showLecturerDashboard = (req, res) => {
 
     const calendar = buildCalendar(user.id);
 
+    const publicHolidays = await getSAPublicHolidays(calendar.year);
+    const holidayDateSet = new Set(publicHolidays.map(h => h.date));
+    const monthPad = String(now.getMonth() + 1).padStart(2, '0');
+    const publicHolidayDayMap = {};
+    for (let d = 1; d <= calendar.daysInMonth; d++) {
+      const dateStr = `${calendar.year}-${monthPad}-${String(d).padStart(2, '0')}`;
+      if (holidayDateSet.has(dateStr)) {
+        const h = publicHolidays.find(ph => ph.date === dateStr);
+        publicHolidayDayMap[d] = h ? h.localName : 'Public holiday';
+      }
+    }
+    const noHolidaysInWindow = Object.keys(publicHolidayDayMap).length === 0;
+
     const assignedCourses = db.prepare(`
       SELECT c.course_code, c.course_name, c.year_level, c.dept_code
       FROM staff_courses sc
@@ -67,6 +82,8 @@ const showLecturerDashboard = (req, res) => {
       assignedCourses,
       success: showWelcome ? welcomeMessage : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
       error: null,
+      publicHolidayDayMap,
+      noHolidaysInWindow,
     });
 
   } catch (err) {
@@ -79,6 +96,8 @@ const showLecturerDashboard = (req, res) => {
       assignedCourses: [],
       error:   'Could not load dashboard data. Please try again.',
       success:  null,
+      publicHolidayDayMap: {},
+      noHolidaysInWindow: false,
     });
   }
 };

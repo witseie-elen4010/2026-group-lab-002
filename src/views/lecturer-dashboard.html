@@ -26,6 +26,7 @@
     .calendar-table .today { background-color: dodgerblue; color: white; font-weight: bold; }
     .calendar-table .has-consultation { background-color: #d1e7dd; font-weight: 600; }
     .calendar-table .empty { background-color: transparent; border: none; }
+    .calendar-table .holiday { background-color: #fff3cd; border: 1px solid #ffc107; color: #856404; font-weight: 600; }
     .course-card { border-radius: 12px; }
     .course-card.border-default { border: 1px solid #dee2e6 !important; }
   </style>
@@ -187,18 +188,20 @@
                     const day = cells[row * 7 + col];
                     const isToday    = day === calendar.today;
                     const hasConsult = day && calendar.consultationDays.includes(day);
+                    const holidayLabel = day ? (publicHolidayDayMap || {})[day] : null;
                     let cls = '';
-                    if (!day)         cls = 'empty';
-                    else if (isToday) cls = 'today';
+                    if (!day)           cls = 'empty';
+                    else if (isToday)   cls = 'today';
+                    else if (holidayLabel) cls = 'holiday';
                     else if (hasConsult) cls = 'has-consultation';
                   %>
-                    <td class="<%= cls %>"><%= day || '' %></td>
+                    <td class="<%= cls %>" <% if (holidayLabel) { %>title="<%= holidayLabel %>"<% } %>><%= day || '' %></td>
                   <% } %>
                 </tr>
               <% } %>
             </tbody>
           </table>
-          <div class="d-flex gap-3 mt-2 small text-muted">
+          <div class="d-flex gap-3 mt-2 small text-muted flex-wrap">
             <span>
               <span style="display:inline-block;width:14px;height:14px;background:dodgerblue;border-radius:3px;vertical-align:middle"></span>
               Today
@@ -207,7 +210,14 @@
               <span style="display:inline-block;width:14px;height:14px;background:#d1e7dd;border-radius:3px;vertical-align:middle"></span>
               Has consultation
             </span>
+            <span>
+              <span style="display:inline-block;width:14px;height:14px;background:#fff3cd;border:1px solid #ffc107;border-radius:3px;vertical-align:middle"></span>
+              Public holiday
+            </span>
           </div>
+          <% if (noHolidaysInWindow) { %>
+            <p class="text-muted mt-2 mb-0" style="font-size:0.75rem;">🚪 No public holidays this month — knock away.</p>
+          <% } %>
         </div>
       </div>
 
