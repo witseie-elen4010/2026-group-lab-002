@@ -9,6 +9,10 @@ jest.mock('../../src/services/public-holidays-service', () => ({
   getSAPublicHolidays: jest.fn().mockResolvedValue([]),
 }));
 
+jest.mock('../../src/services/weather-service', () => ({
+  getWitsWeather: jest.fn().mockResolvedValue({}),
+}));
+
 const db = require('../../database/db');
 
 const mockReq = (overrides = {}) => ({

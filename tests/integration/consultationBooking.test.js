@@ -3,6 +3,12 @@ const request = require('supertest');
 const db = require('../../database/db');
 const app = require('../../app');
 
+jest.mock('../../src/services/weather-service', () => ({
+  getWitsWeather: jest.fn().mockResolvedValue({}),
+}));
+
+const { getWitsWeather } = require('../../src/services/weather-service');
+
 const getNextWeekday = (dowTarget) => {
   const DOW = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
   const target = DOW[dowTarget];
@@ -130,5 +136,34 @@ describe('POST /consultations/new', () => {
     const second = await agent.post('/consultations/new').type('form').send(secondBody);
     expect(second.status).toBe(302);
     expect(second.headers.location).toContain('error');
+  });
+});
+
+describe('weather on booking page', () => {
+  beforeEach(() => {
+    getWitsWeather.mockReset();
+    getWitsWeather.mockResolvedValue({});
+  });
+
+  test('booking page renders with status 200 when weather service throws', async () => {
+    getWitsWeather.mockRejectedValueOnce(new Error('Weather service unavailable'));
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    const date = getNextWeekday('Mon');
+    const res = await agent.get(`/consultations/new?staffNumber=A000356&availabilityId=1&date=${date}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Book a Consultation');
+  });
+
+  test('booking page contains rain banner when condition is rainy', async () => {
+    const date = getNextWeekday('Mon');
+    getWitsWeather.mockResolvedValueOnce({
+      [date]: { condition: 'rainy', icon: '🌧️', maxTemp: 18, message: 'Rain expected' },
+    });
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    const res = await agent.get(`/consultations/new?staffNumber=A000356&availabilityId=1&date=${date}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Rain is expected');
   });
 });
