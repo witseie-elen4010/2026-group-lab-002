@@ -1,5 +1,5 @@
 const db = require('../../database/db');
-const { getNextNWeekdays, colourForCourse } = require('../services/booking-helpers');
+const { getNextNWeekdays, PALETTE } = require('../services/booking-helpers');
 
 const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -105,8 +105,11 @@ const showStudentDashboard = (req, res) => {
     `).all(user.id);
 
     const colourMap = {};
+    let colourIdx = 0;
     for (const c of enrolledCourses) {
-      colourMap[c.course_code] = colourForCourse(c.course_code);
+      if (!(c.course_code in colourMap)) {
+        colourMap[c.course_code] = PALETTE[colourIdx++ % PALETTE.length];
+      }
     }
 
     const availabilityByDay = {};

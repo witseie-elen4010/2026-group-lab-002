@@ -116,4 +116,4 @@ const validateBookingRequest = ({ date, start_time, duration_min, window, bookin
   return { valid: true };
 };
 
-module.exports = { computeBookableChunks, canBookInRange, colourForCourse, getNextNWeekdays, validateBookingRequest };
+module.exports = { computeBookableChunks, canBookInRange, colourForCourse, getNextNWeekdays, validateBookingRequest, PALETTE };

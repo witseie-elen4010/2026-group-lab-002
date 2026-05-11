@@ -10,7 +10,9 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
                 Add login greeting message (1 pts)
                 Add sign up greeting message (1 pts)
                 Create Admin login (2 pts)
-                    Session security      (3 pts)
+                    Session security (3 pts)
+                    Password hashing with bcrypt (3 pts)
+                    Input validation and output encoding (3 pts)
     Manage lecturer availability
         Set max students per consultation (1 pts)
         Set consultation duration (1 pts)
@@ -20,10 +22,12 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
             Set max consultations duration per day (2 pts)
             Lecturer can add courses they teach and the department they are in (5 pts): |{"font_size":10}
             Display assigned courses on lecturer dashboard (3 pts)
+                Availability validation edge cases (3 pts)
                 Cancel consultations (3 pts)
                     Flag a student if they ding door dash (2 pts)
     Book and manage consultations
-        Lecturer can view booked and available consulatations (3 pts)
+        Lecturer can view booked and available consultations (3 pts)
+        Update lecturer dashboard to show booked consultations (5 pts)
             N/A
                 Student Creates a Consultation Booking (5 pts)
                 Student joins a consultation (3 pts)
@@ -45,17 +49,31 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
             Update lecturer dashboard read normalised staff consultation tables (5 pts): |{"font_size":10}
             Student can change enrolled course/degree on dashboard (5 pts): |{"font_size":10}
             Polish homepage with styling, navigation, and user feedback messages (2 pts): |{"font_size":10}
+            Homepage functionality for logged-in users (3 pts): |{"font_size":10}
                 Students view available consultations (5 pts)
                 Students view booked consultations (5 pts)
                 Cancellations sync across dashboards (3 pts)
-                Monthly calendar view (5 pts)
+                10-day consultation discovery calendar (10 pts)
+                Weather and public holidays API (5 pts)
                     Filter by department and lecturer (3 pts)
     Audit activity
         N/A
             N/A
-                System logs all actions (2 pts)
-                Activity log viewable by admin on website (3 pts)
+                N/A
+                    System logs all actions (2 pts)
+                    Activity log viewable by admin on website (5 pts)
                     Filter log by user, date, action (2 pts)
+    Admin management
+        N/A
+            N/A
+                Admin accesses the admin dashboard (2 pts)
+                Admin manages system records (5 pts)
+                Admin manages consultation records (3 pts)
+                Admin manages lecturer availability (2 pts)
+                Admin manages user accounts (2 pts)
+                Admin searches system records (1 pts)
+                Admin undo and audit trail (5 pts)
+                    Add field for student and staff tables (3 pts)
     Database foundation
         Create Student Table (2 pts)
         Create Staff Table (2 pts)
@@ -66,12 +84,10 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
             Populate department table (2 pts)
             Populate degree table (2 pts)
                 Create activity log table (2 pts)
-                Add field for student and staff tables (3 pts)
                     Optimise database queries (3 pts)
-
     Testing
         CI testing (1 pts)
         Automated testing on push and pull (3 pts)
             N/A
-                N/A
-                    E2E (5pts)
+                E2E framework setup (5 pts)
+                    E2E critical workflow coverage (5 pts)
