@@ -176,6 +176,7 @@
               <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
                 <%= dayLabel %>
                 <% if (isToday) { %><span class="badge bg-primary ms-1" style="font-size:0.65rem;">Today</span><% } %>
+                <% const wx = weatherByDay && weatherByDay[dateStr]; if (wx) { %><span data-bs-toggle="tooltip" title="<%= wx.message %> · <%= wx.maxTemp %>°C" style="cursor:default;"><%= wx.icon %></span><% } %>
               </div>
               <% if (isHoliday) { %>
                 <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName %></div>
@@ -239,6 +240,7 @@
                  data-day-col>
               <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
                 <%= dayLabel2 %>
+                <% const wx2 = weatherByDay && weatherByDay[dateStr]; if (wx2) { %><span data-bs-toggle="tooltip" title="<%= wx2.message %> · <%= wx2.maxTemp %>°C" style="cursor:default;"><%= wx2.icon %></span><% } %>
               </div>
               <% if (isHoliday2) { %>
                 <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName2 %></div>
@@ -403,6 +405,8 @@
         el.style.display = (!staffNumber || el.dataset.staff === staffNumber) ? '' : 'none';
       });
     }
+
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
   </script>
 </body>
 </html>

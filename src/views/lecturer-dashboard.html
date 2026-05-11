@@ -175,7 +175,7 @@
             </thead>
             <tbody>
               <%
-                
+                const _mp = String(new Date().getMonth() + 1).padStart(2, '0');
                 const cells = [];
                 for (let i = 0; i < calendar.firstDayOfWeek; i++) cells.push(null);
                 for (let d = 1; d <= calendar.daysInMonth; d++) cells.push(d);
@@ -189,13 +189,19 @@
                     const isToday    = day === calendar.today;
                     const hasConsult = day && calendar.consultationDays.includes(day);
                     const holidayLabel = day ? (publicHolidayDayMap || {})[day] : null;
+                    const _wxDate = day ? `${calendar.year}-${_mp}-${String(day).padStart(2, '0')}` : null;
+                    const _wx = _wxDate ? (weatherByDay || {})[_wxDate] : null;
                     let cls = '';
                     if (!day)           cls = 'empty';
                     else if (isToday)   cls = 'today';
                     else if (holidayLabel) cls = 'holiday';
                     else if (hasConsult) cls = 'has-consultation';
                   %>
-                    <td class="<%= cls %>" <% if (holidayLabel) { %>title="<%= holidayLabel %>"<% } %>><%= day || '' %></td>
+                    <td class="<%= cls %>"
+                        <% if (holidayLabel) { %>data-bs-toggle="tooltip" title="<%= holidayLabel %>"<% } %>>
+                      <%= day || '' %>
+                      <% if (_wx) { %><br><span data-bs-toggle="tooltip" title="<%= _wx.message %> · <%= _wx.maxTemp %>°C" style="font-size:0.7rem;cursor:default;"><%= _wx.icon %></span><% } %>
+                    </td>
                   <% } %>
                 </tr>
               <% } %>
@@ -225,5 +231,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+  </script>
 </body>
 </html>

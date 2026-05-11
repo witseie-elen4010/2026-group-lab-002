@@ -1,5 +1,6 @@
 const db = require('../../database/db');
 const { getSAPublicHolidays } = require('../services/public-holidays-service');
+const { getWitsWeather } = require('../services/weather-service');
 
 const showLecturerDashboard = async (req, res) => {
   const user = {
@@ -51,7 +52,10 @@ const showLecturerDashboard = async (req, res) => {
 
     const calendar = buildCalendar(user.id);
 
-    const publicHolidays = await getSAPublicHolidays(calendar.year).catch(() => []);
+    const [publicHolidays, weatherByDay] = await Promise.all([
+      getSAPublicHolidays(calendar.year).catch(() => []),
+      getWitsWeather().catch(() => ({})),
+    ]);
     const holidayDateSet = new Set(publicHolidays.map(h => h.date));
     const monthPad = String(now.getMonth() + 1).padStart(2, '0');
     const publicHolidayDayMap = {};
@@ -84,6 +88,7 @@ const showLecturerDashboard = async (req, res) => {
       error: null,
       publicHolidayDayMap,
       noHolidaysInWindow,
+      weatherByDay,
     });
 
   } catch (err) {
@@ -98,6 +103,7 @@ const showLecturerDashboard = async (req, res) => {
       success:  null,
       publicHolidayDayMap: {},
       noHolidaysInWindow: false,
+      weatherByDay: {},
     });
   }
 };

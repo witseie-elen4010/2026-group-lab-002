@@ -39,6 +39,7 @@
     <p class="text-muted">
       <strong><%= lecturer.name %></strong> &middot; <%= date %> &middot;
       Window: <%= window.start_time %>–<%= window.end_time %> &middot; <%= window.venue %>
+      <% if (weatherForDate) { %>&middot; <%= weatherForDate.icon %> <%= weatherForDate.maxTemp %>°C<% } %>
     </p>
 
     <% if (typeof error !== 'undefined' && error) { %>
@@ -102,6 +103,16 @@
                  oninput="updateDuration(this.value)">
           <div class="text-muted small mt-1">End time: <strong id="end-time-preview">—</strong></div>
         </div>
+
+        <% if (weatherForDate && (weatherForDate.condition === 'rainy' || weatherForDate.condition === 'storm')) { %>
+          <div class="alert alert-info p-2 mb-3" style="font-size:0.875rem;">
+            🌧️ Rain is expected on this date. If you'd prefer an online session, mention it in the description to request a Teams link.
+          </div>
+        <% } else if (weatherForDate && (weatherForDate.condition === 'cold' || weatherForDate.maxTemp <= 14)) { %>
+          <div class="alert alert-warning p-2 mb-3" style="font-size:0.875rem;">
+            🧥 It'll be chilly on this date. Bundle up — or suggest an online session in the description.
+          </div>
+        <% } %>
 
         <div class="mb-3">
           <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>

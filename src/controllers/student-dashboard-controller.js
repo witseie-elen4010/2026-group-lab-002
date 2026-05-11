@@ -1,6 +1,7 @@
 const db = require('../../database/db');
 const { getNextNWeekdays, PALETTE } = require('../services/booking-helpers');
 const { getSAPublicHolidays } = require('../services/public-holidays-service');
+const { getWitsWeather } = require('../services/weather-service');
 
 const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -92,7 +93,10 @@ const showStudentDashboard = async (req, res) => {
     const calendarDays = calendarDayObjs.map(d => d.toISOString().split('T')[0]);
     const lastDay = calendarDays[calendarDays.length - 1];
 
-    const publicHolidays = await getSAPublicHolidays(now.getFullYear()).catch(() => []);
+    const [publicHolidays, weatherByDay] = await Promise.all([
+      getSAPublicHolidays(now.getFullYear()).catch(() => []),
+      getWitsWeather().catch(() => ({})),
+    ]);
     const holidayDateSet = new Set(publicHolidays.map(h => h.date));
     const noHolidaysInWindow = calendarDays.every(d => !holidayDateSet.has(d));
 
@@ -181,6 +185,7 @@ const showStudentDashboard = async (req, res) => {
       error: req.query.error || null,
       publicHolidays,
       noHolidaysInWindow,
+      weatherByDay,
     });
 
   } catch (err) {
@@ -201,6 +206,7 @@ const showStudentDashboard = async (req, res) => {
       success: null,
       publicHolidays: [],
       noHolidaysInWindow: false,
+      weatherByDay: {},
     });
   }
 };
