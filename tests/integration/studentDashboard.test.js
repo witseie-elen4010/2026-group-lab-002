@@ -2,7 +2,33 @@
 const request = require('supertest');
 const app = require('../../app');
 
+jest.mock('../../src/services/public-holidays-service', () => ({
+  getSAPublicHolidays: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock('../../src/services/weather-service', () => ({
+  getWitsWeather: jest.fn().mockResolvedValue({}),
+}));
+
+const { getSAPublicHolidays } = require('../../src/services/public-holidays-service');
+const { getWitsWeather } = require('../../src/services/weather-service');
+
+function getFirstCalendarWeekday() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const d = new Date(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T12:00:00Z`);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return d.toISOString().split('T')[0];
+}
+
 describe('GET /student/dashboard', () => {
+  beforeEach(() => {
+    getSAPublicHolidays.mockReset();
+    getSAPublicHolidays.mockResolvedValue([]);
+  });
+
   test('responds with 200 and renders the student dashboard page', async () => {
     const res = await request(app).get('/student/dashboard');
     expect(res.status).toBe(200);
@@ -47,5 +73,50 @@ describe('GET /student/dashboard', () => {
     const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('ELEN4010');
+  });
+
+  test('renders Find a Consultation normally when the holidays API is unreachable', async () => {
+    getSAPublicHolidays.mockRejectedValueOnce(new Error('Network error'));
+    const res = await request(app).get('/student/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Find a Consultation');
+  });
+
+  test('shows Public holiday label when a holiday falls within the 10-day window', async () => {
+    const firstWeekday = getFirstCalendarWeekday();
+    getSAPublicHolidays.mockResolvedValueOnce([{ date: firstWeekday, localName: 'Test Holiday' }]);
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    const res = await agent.get('/student/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Public holiday');
+  });
+});
+
+describe('public holidays and weather integration', () => {
+  beforeEach(() => {
+    getSAPublicHolidays.mockReset();
+    getSAPublicHolidays.mockResolvedValue([]);
+    getWitsWeather.mockReset();
+    getWitsWeather.mockResolvedValue({});
+  });
+
+  test('dashboard renders with status 200 and contains Find a Consultation when both services throw', async () => {
+    getSAPublicHolidays.mockRejectedValueOnce(new Error('Holidays API unavailable'));
+    getWitsWeather.mockRejectedValueOnce(new Error('Weather API unavailable'));
+    const res = await request(app).get('/student/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Find a Consultation');
+  });
+
+  test('dashboard contains Public holiday when a holiday falls on the first of the next 10 weekdays', async () => {
+    const firstWeekday = getFirstCalendarWeekday();
+    getSAPublicHolidays.mockResolvedValueOnce([{ date: firstWeekday, localName: 'Test Holiday' }]);
+    getWitsWeather.mockResolvedValueOnce({});
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    const res = await agent.get('/student/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Public holiday');
   });
 });

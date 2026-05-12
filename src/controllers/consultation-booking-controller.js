@@ -1,6 +1,7 @@
 const db = require('../../database/db');
 const { computeBookableChunks, validateBookingRequest, getNextNWeekdays } = require('../services/booking-helpers');
 const { generateConstId } = require('../services/availability-helpers');
+const { getWitsWeather } = require('../services/weather-service');
 
 const getStudentUser = (req) => req.session && req.session.userId
   ? { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
@@ -18,7 +19,7 @@ const getCurrentTime = () => {
   return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 };
 
-const showBookingPage = (req, res) => {
+const showBookingPage = async (req, res) => {
   const user = getStudentUser(req);
   const { staffNumber, availabilityId, date } = req.query;
 
@@ -88,6 +89,9 @@ const showBookingPage = (req, res) => {
     LIMIT 1
   `).get(staffNumber, user.id);
 
+  const weatherByDay = await getWitsWeather().catch(() => ({}));
+  const weatherForDate = weatherByDay[date] || null;
+
   return res.render('consultation-new', {
     user,
     window,
@@ -98,6 +102,7 @@ const showBookingPage = (req, res) => {
     date,
     staffNumber,
     availabilityId,
+    weatherForDate,
     error: req.query.error || null,
     success: null,
   });

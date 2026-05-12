@@ -26,6 +26,7 @@
     .calendar-table .today { background-color: dodgerblue; color: white; font-weight: bold; }
     .calendar-table .has-consultation { background-color: #d1e7dd; font-weight: 600; }
     .calendar-table .empty { background-color: transparent; border: none; }
+    .calendar-table .holiday { background-color: #fff3cd; border: 1px solid #ffc107; color: #856404; font-weight: 600; }
     .course-card { border-radius: 12px; }
     .course-card.border-default { border: 1px solid #dee2e6 !important; }
   </style>
@@ -174,7 +175,7 @@
             </thead>
             <tbody>
               <%
-                
+                const _mp = String(new Date().getMonth() + 1).padStart(2, '0');
                 const cells = [];
                 for (let i = 0; i < calendar.firstDayOfWeek; i++) cells.push(null);
                 for (let d = 1; d <= calendar.daysInMonth; d++) cells.push(d);
@@ -187,18 +188,26 @@
                     const day = cells[row * 7 + col];
                     const isToday    = day === calendar.today;
                     const hasConsult = day && calendar.consultationDays.includes(day);
+                    const holidayLabel = day ? (publicHolidayDayMap || {})[day] : null;
+                    const _wxDate = day ? `${calendar.year}-${_mp}-${String(day).padStart(2, '0')}` : null;
+                    const _wx = _wxDate ? (weatherByDay || {})[_wxDate] : null;
                     let cls = '';
-                    if (!day)         cls = 'empty';
-                    else if (isToday) cls = 'today';
+                    if (!day)           cls = 'empty';
+                    else if (isToday)   cls = 'today';
+                    else if (holidayLabel) cls = 'holiday';
                     else if (hasConsult) cls = 'has-consultation';
                   %>
-                    <td class="<%= cls %>"><%= day || '' %></td>
+                    <td class="<%= cls %>"
+                        <% if (holidayLabel) { %>data-bs-toggle="tooltip" title="<%= holidayLabel %>"<% } %>>
+                      <%= day || '' %>
+                      <% if (_wx) { %><br><span data-bs-toggle="tooltip" title="<%= _wx.message %> · <%= _wx.maxTemp %>°C" style="font-size:0.7rem;cursor:default;"><%= _wx.icon %></span><% } %>
+                    </td>
                   <% } %>
                 </tr>
               <% } %>
             </tbody>
           </table>
-          <div class="d-flex gap-3 mt-2 small text-muted">
+          <div class="d-flex gap-3 mt-2 small text-muted flex-wrap">
             <span>
               <span style="display:inline-block;width:14px;height:14px;background:dodgerblue;border-radius:3px;vertical-align:middle"></span>
               Today
@@ -207,7 +216,14 @@
               <span style="display:inline-block;width:14px;height:14px;background:#d1e7dd;border-radius:3px;vertical-align:middle"></span>
               Has consultation
             </span>
+            <span>
+              <span style="display:inline-block;width:14px;height:14px;background:#fff3cd;border:1px solid #ffc107;border-radius:3px;vertical-align:middle"></span>
+              Public holiday
+            </span>
           </div>
+          <% if (noHolidaysInWindow) { %>
+            <p class="text-muted mt-2 mb-0" style="font-size:0.75rem;">🚪 No public holidays this month — knock away.</p>
+          <% } %>
         </div>
       </div>
 
@@ -215,5 +231,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+  </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
 const db = require('../../database/db');
 const { getNextNWeekdays, PALETTE } = require('../services/booking-helpers');
+const { getSAPublicHolidays } = require('../services/public-holidays-service');
+const { getWitsWeather } = require('../services/weather-service');
 
 const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const showStudentDashboard = (req, res) => {
+const showStudentDashboard = async (req, res) => {
   const user = req.session && req.session.userId ? {
     id: req.session.userId,
     name: req.session.userName,
@@ -91,6 +93,13 @@ const showStudentDashboard = (req, res) => {
     const calendarDays = calendarDayObjs.map(d => d.toISOString().split('T')[0]);
     const lastDay = calendarDays[calendarDays.length - 1];
 
+    const [publicHolidays, weatherByDay] = await Promise.all([
+      getSAPublicHolidays(now.getFullYear()).catch(() => []),
+      getWitsWeather().catch(() => ({})),
+    ]);
+    const holidayDateSet = new Set(publicHolidays.map(h => h.date));
+    const noHolidaysInWindow = calendarDays.every(d => !holidayDateSet.has(d));
+
     const availabilityRows = db.prepare(`
       SELECT DISTINCT
         s.staff_number, s.name AS lecturer_name,
@@ -174,6 +183,9 @@ const showStudentDashboard = (req, res) => {
       currentTimeStr,
       success,
       error: req.query.error || null,
+      publicHolidays,
+      noHolidaysInWindow,
+      weatherByDay,
     });
 
   } catch (err) {
@@ -192,6 +204,9 @@ const showStudentDashboard = (req, res) => {
       currentTimeStr: '00:00',
       error: 'Could not load dashboard data. Please try again.',
       success: null,
+      publicHolidays: [],
+      noHolidaysInWindow: false,
+      weatherByDay: {},
     });
   }
 };

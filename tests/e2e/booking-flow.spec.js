@@ -44,3 +44,23 @@ test('student can book a consultation via the 10-day calendar', async ({ page })
 
   await expect(page.locator(`text=${uniqueTitle}`)).toBeVisible();
 });
+
+test('booking page body does not contain "undefined" or "null" strings', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="password"]', 'pass');
+  await page.click('button[type="submit"]');
+
+  await page.waitForURL('**/student/dashboard**');
+
+  const scheduleBtn = page.locator('[data-testid="schedule-btn"]').first();
+  await expect(scheduleBtn).toBeVisible();
+  await scheduleBtn.click();
+
+  await page.waitForURL('**/consultations/new**');
+  await expect(page.locator('text=Book a Consultation')).toBeVisible();
+
+  const bodyText = await page.locator('body').innerText();
+  expect(bodyText).not.toContain('undefined');
+  expect(bodyText).not.toContain('null');
+});
