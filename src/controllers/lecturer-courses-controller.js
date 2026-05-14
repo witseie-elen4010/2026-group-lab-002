@@ -1,4 +1,6 @@
 const db = require('../../database/db')
+const { logActivity } = require('../services/logging-service')
+const ActionTypes = require('../services/action-types')
 
 const showLecturerCourses = (req, res) => {
   const staffNumber = req.session && req.session.userId ? req.session.userId : 'A000356'
@@ -61,7 +63,7 @@ const showLecturerCourses = (req, res) => {
   }
 }
 
-const updateLecturerCourses = (req, res) => {
+const updateLecturerCourses = async (req, res) => {
   const staffNumber = req.session && req.session.userId ? req.session.userId : 'A000356'
   const { department_code, courses } = req.body
 
@@ -106,7 +108,7 @@ const updateLecturerCourses = (req, res) => {
   })
 
   updateAll()
-
+  await logActivity(req.session.userId, ActionTypes.PROFILE_COURSES_UPDATED, [{ table: 'staff_courses', id: staffNumber }])
   return res.redirect('/lecturer/dashboard?success=true')
 }
 
