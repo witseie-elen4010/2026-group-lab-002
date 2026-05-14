@@ -56,13 +56,55 @@
 
       <!-- Left: cards -->
       <div class="col-lg-5 d-flex flex-column gap-3">
-        <% if (user) { %>
-          <% const dashLink = user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard'; %>
+        <% if (user && user.role === 'student') { %>
+
+          <!-- Student quick-stats -->
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="card p-3 text-center h-100">
+                <div class="h2 fw-bold text-primary mb-0"><%= stats ? stats.courseCount : 0 %></div>
+                <div class="text-muted small mt-1">Enrolled Courses</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card p-3 text-center h-100">
+                <div class="fw-bold text-primary mb-0 fs-5"><%= (stats && stats.nextDateFormatted) ? stats.nextDateFormatted : 'None booked' %></div>
+                <div class="text-muted small mt-1">Next Consultation</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student actions -->
           <div class="card p-4">
             <h5 class="fw-bold mb-2">Welcome back, <%= user.name %>!</h5>
-            <p class="text-muted mb-3">Head to your dashboard to manage your consultations.</p>
-            <a href="<%= dashLink %>" class="btn btn-primary w-100">Go to Dashboard</a>
+            <p class="text-muted mb-3">Your courses and consultations are ready for you.</p>
+            <div class="d-flex flex-column gap-2">
+              <a href="/student/dashboard" class="btn btn-primary w-100">Go to Dashboard</a>
+              <a href="/consultations/new" class="btn btn-outline-primary w-100">Find a Consultation</a>
+            </div>
           </div>
+
+        <% } else if (user && user.role === 'lecturer') { %>
+
+          <!-- Lecturer quick-stat -->
+          <div class="card p-3 text-center">
+            <div class="text-muted small mb-1">Next Consultation</div>
+            <div class="fw-bold text-primary fs-5"><%= (stats && stats.nextDateFormatted) ? stats.nextDateFormatted : 'None booked' %></div>
+          </div>
+
+          <!-- Lecturer actions -->
+          <div class="card p-4">
+            <h5 class="fw-bold mb-2">Welcome back, <%= user.name %>!</h5>
+            <% if (stats && !stats.hasAvailability) { %>
+              <p class="text-muted mb-3">Set your availability so students can book consultations with you.</p>
+              <a href="/lecturer/availability" class="btn btn-warning w-100 mb-2">Set Availability</a>
+              <a href="/lecturer/dashboard" class="btn btn-outline-primary w-100">Go to Dashboard</a>
+            <% } else { %>
+              <p class="text-muted mb-3">Manage your consultations and availability on your dashboard.</p>
+              <a href="/lecturer/dashboard" class="btn btn-primary w-100">Go to Dashboard</a>
+            <% } %>
+          </div>
+
         <% } else { %>
           <div class="card p-4">
             <h5 class="fw-bold mb-1">New here?</h5>
