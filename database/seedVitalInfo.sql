@@ -340,8 +340,7 @@ VALUES
     (302, 'AVAIL_UPDATE', 'Lecturer Dashboard', 'Lecturer modified existing availability times/limits.'),
 
     -- User Profile Management (400s)
-    (400, 'PROFILE_COURSE_ADD', 'Courses Dashboard', 'User added a new course or degree to their profile.'),
-    (401, 'PROFILE_COURSE_DROP', 'Courses Dashboard', 'User removed a course or degree from their profile.'),
+    (400, 'PROFILE_COURSES_UPDATED', 'Courses Dashboard', 'User added or removed a new course or degree to their profile.'),
 
     -- Admin Actions (500s)
     (500, 'ADMIN_LOGIN', 'Admin Dashboard', 'Administrator logged into the system.'),

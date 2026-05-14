@@ -19,8 +19,7 @@ const ActionTypes = Object.freeze({
   AVAIL_UPDATE: 302,
 
   // User Profile Management
-  PROFILE_COURSE_ADD: 400,
-  PROFILE_COURSE_DROP: 401,
+  PROFILE_COURSES_UPDATED: 400,
 
   // Admin Actions
   ADMIN_LOGIN: 500,
