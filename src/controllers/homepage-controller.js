@@ -4,15 +4,17 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 const formatDate = (dateStr) => {
   if (!dateStr) return null
-  const [, m, d] = dateStr.split('-')
-  return `${parseInt(d, 10)} ${MONTHS[parseInt(m, 10) - 1]}`
+  const parts = dateStr.split('T')[0].split('-')
+  if (parts.length < 3) return null
+  const month = parseInt(parts[1], 10)
+  const day   = parseInt(parts[2], 10)
+  if (isNaN(month) || isNaN(day) || month < 1 || month > 12) return null
+  return `${day} ${MONTHS[month - 1]}`
 }
 
-const todayStr = () => {
-  const now = new Date()
-  const pad = n => String(n).padStart(2, '0')
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
-}
+// SAST = UTC+2; adding 2 hours before splitting ensures the date rolls over at midnight SAST, not midnight UTC
+const todayStr = () =>
+  new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().split('T')[0]
 
 const showHomepage = (req, res) => {
   if (!req.session || !req.session.userId) {
@@ -31,42 +33,46 @@ const showHomepage = (req, res) => {
     let stats = null
 
     if (user.role === 'student') {
-      const row = db.prepare(`
-        SELECT
-          (SELECT COUNT(*) FROM enrollments WHERE student_number = ?) AS courseCount,
-          (SELECT consultation_date FROM consultations c
-           WHERE c.consultation_date >= ?
-             AND c.status IN ('Available', 'Booked', 'Ongoing')
-             AND EXISTS (
-               SELECT 1 FROM consultation_attendees
-               WHERE const_id = c.const_id AND student_number = ?
-             )
-           ORDER BY c.consultation_date ASC, c.consultation_time ASC
-           LIMIT 1) AS nextDate
-      `).get(user.id, today, user.id)
+      const courseRow = db.prepare(
+        `SELECT COUNT(*) AS courseCount FROM enrollments WHERE student_number = ?`
+      ).get(user.id)
+
+      const nextRow = db.prepare(`
+        SELECT c.consultation_date AS nextDate
+        FROM consultations c
+        JOIN consultation_attendees ca ON ca.const_id = c.const_id
+        WHERE ca.student_number = ?
+          AND c.consultation_date >= ?
+          AND c.status IN ('Available', 'Booked', 'Ongoing')
+        ORDER BY c.consultation_date ASC, c.consultation_time ASC
+        LIMIT 1
+      `).get(user.id, today)
 
       stats = {
-        courseCount: row ? row.courseCount : 0,
-        nextDate: row ? row.nextDate : null,
-        nextDateFormatted: formatDate(row ? row.nextDate : null),
+        courseCount:       courseRow ? courseRow.courseCount : 0,
+        nextDate:          nextRow   ? nextRow.nextDate      : null,
+        nextDateFormatted: formatDate(nextRow ? nextRow.nextDate : null),
       }
 
     } else if (user.role === 'lecturer') {
-      const row = db.prepare(`
-        SELECT
-          (SELECT consultation_date FROM consultations c
-           WHERE c.lecturer_id = ?
-             AND c.consultation_date >= ?
-             AND c.status IN ('Available', 'Booked', 'Ongoing')
-           ORDER BY c.consultation_date ASC, c.consultation_time ASC
-           LIMIT 1) AS nextDate,
-          (SELECT COUNT(*) FROM lecturer_availability WHERE staff_number = ?) AS availabilityCount
-      `).get(user.id, today, user.id)
+      const nextRow = db.prepare(`
+        SELECT consultation_date AS nextDate
+        FROM consultations
+        WHERE lecturer_id = ?
+          AND consultation_date >= ?
+          AND status IN ('Available', 'Booked', 'Ongoing')
+        ORDER BY consultation_date ASC, consultation_time ASC
+        LIMIT 1
+      `).get(user.id, today)
+
+      const availRow = db.prepare(
+        `SELECT COUNT(*) AS availabilityCount FROM lecturer_availability WHERE staff_number = ?`
+      ).get(user.id)
 
       stats = {
-        nextDate: row ? row.nextDate : null,
-        nextDateFormatted: formatDate(row ? row.nextDate : null),
-        hasAvailability: row ? row.availabilityCount > 0 : false,
+        nextDate:          nextRow  ? nextRow.nextDate                    : null,
+        nextDateFormatted: formatDate(nextRow ? nextRow.nextDate : null),
+        hasAvailability:   availRow ? availRow.availabilityCount > 0      : false,
       }
     }
 

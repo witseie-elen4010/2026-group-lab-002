@@ -6,7 +6,7 @@ const db = require('../../database/db')
 
 const mockRes = () => ({ render: jest.fn() })
 
-const studentSession = { userId: 9999001, userName: 'Test Student', userRole: 'student' }
+const studentSession  = { userId: 9999001, userName: 'Test Student',  userRole: 'student' }
 const lecturerSession = { userId: 'A999001', userName: 'Test Lecturer', userRole: 'lecturer' }
 
 describe('formatDate()', () => {
@@ -20,6 +20,14 @@ describe('formatDate()', () => {
 
   test('returns null for null input', () => {
     expect(formatDate(null)).toBeNull()
+  })
+
+  test('handles datetime strings by stripping the time part', () => {
+    expect(formatDate('2026-05-15T10:00:00')).toBe('15 May')
+  })
+
+  test('returns null for a malformed date string', () => {
+    expect(formatDate('not-a-date')).toBeNull()
   })
 })
 
@@ -38,9 +46,9 @@ describe('showHomepage() — student', () => {
   const req = (overrides = {}) => ({ session: { ...studentSession }, query: {}, ...overrides })
 
   test('passes courseCount and nextDateFormatted when student has courses and a consultation', () => {
-    db.prepare.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue({ courseCount: 3, nextDate: '2026-05-20' })
-    })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ courseCount: 3 }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ nextDate: '2026-05-20' }) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
@@ -49,9 +57,9 @@ describe('showHomepage() — student', () => {
   })
 
   test('sets nextDate to null and nextDateFormatted to null when no consultations booked', () => {
-    db.prepare.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue({ courseCount: 2, nextDate: null })
-    })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ courseCount: 2 }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
@@ -60,11 +68,24 @@ describe('showHomepage() — student', () => {
   })
 
   test('defaults courseCount to 0 when DB row is missing', () => {
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
       stats: expect.objectContaining({ courseCount: 0 })
+    }))
+  })
+
+  test('stats object contains correct nextDateFormatted for a student with an upcoming consultation', () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ courseCount: 1 }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ nextDate: '2026-06-02' }) })
+    const res = mockRes()
+    showHomepage(req(), res)
+    expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
+      stats: { courseCount: 1, nextDate: '2026-06-02', nextDateFormatted: '2 Jun' }
     }))
   })
 
@@ -73,13 +94,13 @@ describe('showHomepage() — student', () => {
     db.prepare.mockReturnValue({ get: jest.fn().mockImplementation(() => { throw new Error('DB fail') }) })
     const res = mockRes()
     showHomepage(req(), res)
-    expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
-      stats: null
-    }))
+    expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({ stats: null }))
   })
 
   test('passes user object with correct role', () => {
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ courseCount: 0, nextDate: null }) })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ courseCount: 0 }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
@@ -94,9 +115,9 @@ describe('showHomepage() — lecturer', () => {
   const req = (overrides = {}) => ({ session: { ...lecturerSession }, query: {}, ...overrides })
 
   test('passes nextDateFormatted and hasAvailability=true when availability is set', () => {
-    db.prepare.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue({ nextDate: '2026-05-18', availabilityCount: 2 })
-    })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ nextDate: '2026-05-18' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ availabilityCount: 2 }) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
@@ -105,9 +126,9 @@ describe('showHomepage() — lecturer', () => {
   })
 
   test('sets hasAvailability=false when no availability rows exist', () => {
-    db.prepare.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue({ nextDate: null, availabilityCount: 0 })
-    })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ availabilityCount: 0 }) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
@@ -116,9 +137,9 @@ describe('showHomepage() — lecturer', () => {
   })
 
   test('sets nextDate to null when lecturer has no upcoming consultations', () => {
-    db.prepare.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue({ nextDate: null, availabilityCount: 1 })
-    })
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ availabilityCount: 1 }) })
     const res = mockRes()
     showHomepage(req(), res)
     expect(res.render).toHaveBeenCalledWith('homepage', expect.objectContaining({
