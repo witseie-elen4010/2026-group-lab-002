@@ -305,7 +305,8 @@ INSERT OR IGNORE INTO students (student_number, name, email, password, degree_co
 
 INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
   (1234567, 'ELEN4010'),
-  (1234567, 'ELEN3009');
+  (1234567, 'ELEN3009'),
+  (1234567, 'ELEN4009');
 
 -- ─── Admin ────────────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO admins (admin_id, name, email, password) VALUES
