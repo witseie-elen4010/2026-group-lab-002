@@ -5,7 +5,12 @@ jest.mock('../../database/db', () => ({
   prepare: jest.fn()
 }))
 
+jest.mock('../../src/services/logging-service', () => ({
+  logActivity: jest.fn().mockResolvedValue(true)
+}))
+
 const db = require('../../database/db')
+const { logActivity } = require('../../src/services/logging-service')
 
 const mockReq = (body = {}) => ({ body })
 
@@ -19,10 +24,11 @@ const mockRes = () => {
 
 beforeEach(() => {
   db.prepare.mockReset()
+  logActivity.mockClear()
 })
 
 describe('email domain validation', () => {
-  test('accepts student email ending in @students.wits.ac.za', () => {
+  test('accepts student email ending in @students.wits.ac.za', async () => {
     db.prepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -46,7 +52,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res) // Await the controller
 
     expect(req.session.userId).toBe(1234567)
     expect(req.session.userName).toBe('Test Student')
@@ -66,7 +72,7 @@ describe('email domain validation', () => {
     )
   })
 
-  test('accepts lecturer email ending in @wits.ac.za', () => {
+  test('accepts lecturer email ending in @wits.ac.za', async () => {
     db.prepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -90,7 +96,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res) // Await the controller
 
     expect(req.session.userId).toBe('A000999')
     expect(req.session.userName).toBe('Test Lecturer')
@@ -110,7 +116,7 @@ describe('email domain validation', () => {
     )
   })
 
-  test('rejects student email not ending in @students.wits.ac.za', () => {
+  test('rejects student email not ending in @students.wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '1234567',
@@ -123,7 +129,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -140,7 +146,7 @@ describe('email domain validation', () => {
     expect(db.prepare).not.toHaveBeenCalled()
   })
 
-  test('rejects lecturer email not ending in @wits.ac.za', () => {
+  test('rejects lecturer email not ending in @wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A000999',
@@ -153,7 +159,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -170,7 +176,7 @@ describe('email domain validation', () => {
     expect(db.prepare).not.toHaveBeenCalled()
   })
 
-  test('rejects student email using @wits.ac.za instead of @students.wits.ac.za', () => {
+  test('rejects student email using @wits.ac.za instead of @students.wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '1234567',
@@ -183,7 +189,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -200,7 +206,7 @@ describe('email domain validation', () => {
     expect(db.prepare).not.toHaveBeenCalled()
   })
 
-  test('rejects lecturer email using @students.wits.ac.za instead of @wits.ac.za', () => {
+  test('rejects lecturer email using @students.wits.ac.za instead of @wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A000999',
@@ -213,7 +219,7 @@ describe('email domain validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',

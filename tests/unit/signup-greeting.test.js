@@ -1,7 +1,12 @@
+/* eslint-env jest */
 const mockPrepare = jest.fn()
 
 jest.mock('../../database/db', () => ({
   prepare: mockPrepare
+}))
+
+jest.mock('../../src/services/logging-service', () => ({
+  logActivity: jest.fn().mockResolvedValue(true)
 }))
 
 const { registerUser } = require('../../src/controllers/signup-controller')
@@ -21,7 +26,8 @@ beforeEach(() => {
 })
 
 describe('Sign Up greeting validation', () => {
-  test('student signup shows success greeting', () => {
+  // 3. Added async
+  test('student signup shows success greeting', async () => {
     mockPrepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -42,10 +48,9 @@ describe('Sign Up greeting validation', () => {
     })
 
     req.session = {}
-
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(req.session.userId).toBe(2468101)
     expect(req.session.userName).toBe('Test Student')
@@ -65,7 +70,7 @@ describe('Sign Up greeting validation', () => {
     )
   })
 
-  test('lecturer signup shows success greeting', () => {
+  test('lecturer signup shows success greeting', async () => {
     mockPrepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -86,10 +91,10 @@ describe('Sign Up greeting validation', () => {
     })
 
     req.session = {}
-
     const res = mockRes()
 
-    registerUser(req, res)
+    // 4. Added await
+    await registerUser(req, res)
 
     expect(req.session.userId).toBe('A000999')
     expect(req.session.userName).toBe('Test Lecturer')

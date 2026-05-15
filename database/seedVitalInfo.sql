@@ -317,3 +317,34 @@ INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_
   ('2', 'A000357', 'Tue', '11:00', '13:00', 120, 10, 'Room 102'),
   ('3', 'A000356', 'Wed', '10:00', '14:00', 180, 10, 'Room 103'),
   ('4', 'A000357', 'Thu', '11:00', '14:00', 120, 6, 'Room 104');
+
+-- ─── Actions ────────────────────────────────────────────────────────────────────
+INSERT OR IGNORE INTO actions (action_id, action_name, page_context, description)
+VALUES 
+    -- Authentication & Security (10s)
+    (10, 'USER_LOGIN', 'Login Page', 'User successfully logged into the system.'),
+    (11, 'USER_LOGOUT', 'Home/dashboard', 'User logged out of the system.'),
+    (12, 'USER_SIGNUP', 'Signup Page', 'New user registered an account.'),
+    (13, 'USER_PASSWORD_CHANGE', 'Account Settings', 'User successfully changed their password.'),
+    (14, 'AUTH_FAILED_LOGIN', 'Login Page', 'Failed login attempt (incorrect password/username).'),
+
+    -- Consultations (100s)
+    (100, 'CONSULT_CREATE', 'Student Dashboard', 'Student created a new consultation event.'),
+    (101, 'CONSULT_JOIN', 'Student Dashboard', 'Student joined an existing consultation.'),
+    (102, 'CONSULT_LEAVE', 'Student Dashboard', 'Student withdrew from an upcoming consultation.'),
+    (200, 'CONSULT_CANCEL_ORG', 'Student Dashboard', 'Student organiser cancelled the consultation.'),
+    (201, 'CONSULT_CANCEL_LEC', 'Lecturer Dashboard', 'Lecturer cancelled the consultation.'),
+
+    -- Lecturer Availability (300s)
+    (300, 'AVAIL_CREATE', 'Lecturer Dashboard', 'Lecturer created their weekly availability rules.'),
+    (301, 'AVAIL_CANCEL', 'Lecturer Dashboard', 'Lecturer canceled a weekly availability rule.'),
+    (302, 'AVAIL_UPDATE', 'Lecturer Dashboard', 'Lecturer modified existing availability times/limits.'),
+
+    -- User Profile Management (400s)
+    (400, 'PROFILE_COURSES_UPDATED', 'Courses Dashboard', 'User added or removed a new course or degree to their profile.'),
+
+    -- Admin Actions (500s)
+    (500, 'ADMIN_LOGIN', 'Admin Dashboard', 'Administrator logged into the system.'),
+    (501, 'ADMIN_USER_ADD', 'Admin Dashboard', 'Administrator manually created a new user.'),
+    (502, 'ADMIN_USER_EDIT', 'Admin Dashboard', 'Administrator modified a user''s details or permissions.'),
+    (503, 'ADMIN_USER_DELETE', 'Admin Dashboard', 'Administrator deleted or deactivated a user.');

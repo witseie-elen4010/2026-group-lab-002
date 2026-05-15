@@ -15,6 +15,9 @@ DROP TABLE IF EXISTS degrees;
 DROP TABLE IF EXISTS departments;
 DROP TABLE IF EXISTS lecturer_availability;
 DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS affected_records;
+DROP TABLE IF EXISTS activity_log;
+DROP TABLE IF EXISTS actions;
 
 PRAGMA foreign_keys = ON;
 
@@ -127,3 +130,40 @@ CREATE TABLE admins (
   email     TEXT UNIQUE NOT NULL,
   password  TEXT NOT NULL
 );
+
+CREATE TABLE actions (
+    action_id INT PRIMARY KEY,
+    action_name VARCHAR(100) NOT NULL,
+    page_context VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE activity_log (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,   
+    action_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT log_action 
+        FOREIGN KEY (action_id) 
+        REFERENCES actions(action_id)
+);
+
+CREATE TABLE affected_records (
+    log_id INT NOT NULL,
+    table_affected VARCHAR(100) NOT NULL,
+    record_id VARCHAR(50) NOT NULL,   
+
+    PRIMARY KEY (log_id, table_affected, record_id),
+
+    CONSTRAINT affected_log 
+        FOREIGN KEY (log_id) 
+        REFERENCES activity_log(log_id) 
+        ON DELETE CASCADE             
+);
+
+CREATE INDEX idx_polymorphic_lookup 
+    ON affected_records(table_affected, record_id);
+
+CREATE INDEX idx_user_history 
+    ON activity_log(user_id);
