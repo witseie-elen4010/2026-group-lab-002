@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS degrees;
 DROP TABLE IF EXISTS departments;
 DROP TABLE IF EXISTS lecturer_availability;
 DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS admin_audit_log;
 
 PRAGMA foreign_keys = ON;
 
@@ -127,3 +128,20 @@ CREATE TABLE admins (
   email     TEXT UNIQUE NOT NULL,
   password  TEXT NOT NULL
 );
+
+CREATE TABLE admin_audit_log (
+  audit_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  admin_id   TEXT NOT NULL,
+  action     TEXT NOT NULL CHECK (action IN ('INSERT', 'UPDATE', 'DELETE')),
+  table_name TEXT NOT NULL,
+  row_id     TEXT NOT NULL,
+  old_data   TEXT,
+  new_data   TEXT,
+  timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin
+  ON admin_audit_log(admin_id);
+
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_table_row
+  ON admin_audit_log(table_name, row_id);

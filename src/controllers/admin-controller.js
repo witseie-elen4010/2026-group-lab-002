@@ -1,7 +1,9 @@
 const db = require('../../database/db');
 const { FK_DISPLAY, getInputType, friendlyError, buildSearchQuery } = require('../services/admin-helpers');
+const { logAdminAudit } = require('../services/admin-audit-service');
 
 const PAGE_SIZE = 20;
+const READ_ONLY_TABLES = ['admin_audit_log'];
 
 const getAllTables = () =>
   db.prepare(`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`).all().map(r => r.name);
@@ -90,6 +92,8 @@ const createRecord = (req, res) => {
   const tables = getAllTables();
   const { tableName } = req.params;
   if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+  if (READ_ONLY_TABLES.includes(tableName))
+    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`);
 
   const columns = getColumns(tableName);
   const fields = columns.map(c => c.name);
@@ -98,7 +102,14 @@ const createRecord = (req, res) => {
   const fieldList = fields.map(f => `"${f}"`).join(', ');
 
   try {
-    db.prepare(`INSERT INTO "${tableName}" (${fieldList}) VALUES (${placeholders})`).run(...values);
+    const result = db.prepare(`INSERT INTO "${tableName}" (${fieldList}) VALUES (${placeholders})`).run(...values);
+    logAdminAudit({
+      adminId: req.session.userId,
+      action: 'INSERT',
+      tableName,
+      rowId: result.lastInsertRowid,
+      newData: req.body,
+    });
     res.redirect(`/admin/table/${tableName}?success=Record+added`);
   } catch (err) {
     const fkOptions = getForeignKeyOptions(getForeignKeys(tableName));
@@ -118,11 +129,17 @@ const updateRecord = (req, res) => {
   const tables = getAllTables();
   const { tableName, rowId } = req.params;
   if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+  if (READ_ONLY_TABLES.includes(tableName))
+    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`);
 
   const columns = getColumns(tableName);
   const updatable = columns.filter(c => c.pk === 0);
   if (updatable.length === 0)
     return res.redirect(`/admin/table/${tableName}?error=This+table+has+no+editable+columns`);
+
+  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId);
+  if (!existingRecord)
+    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
 
   const setClauses = updatable.map(c => `"${c.name}" = ?`).join(', ');
   const values = [
@@ -131,7 +148,17 @@ const updateRecord = (req, res) => {
   ];
 
   try {
-    db.prepare(`UPDATE "${tableName}" SET ${setClauses} WHERE rowid = ?`).run(...values);
+    const result = db.prepare(`UPDATE "${tableName}" SET ${setClauses} WHERE rowid = ?`).run(...values);
+    if (result.changes === 0)
+      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+    logAdminAudit({
+      adminId: req.session.userId,
+      action: 'UPDATE',
+      tableName,
+      rowId,
+      oldData: existingRecord,
+      newData: req.body,
+    });
     res.redirect(`/admin/table/${tableName}?success=Record+updated`);
   } catch (err) {
     res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
@@ -143,9 +170,24 @@ const deleteRecord = (req, res) => {
   const { tableName, rowId } = req.params;
   if (!tables.includes(tableName)) return res.status(404).send('Table not found');
   if (tableName === 'admins') return res.redirect('/admin/table/admins?error=Admin+accounts+cannot+be+deleted');
+  if (READ_ONLY_TABLES.includes(tableName))
+    return res.redirect(`/admin/table/${tableName}?error=Audit+log+entries+cannot+be+deleted`);
+
+  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId);
+  if (!existingRecord)
+    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
 
   try {
-    db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId);
+    const result = db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId);
+    if (result.changes === 0)
+      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+    logAdminAudit({
+      adminId: req.session.userId,
+      action: 'DELETE',
+      tableName,
+      rowId,
+      oldData: existingRecord,
+    });
     res.redirect(`/admin/table/${tableName}?success=Record+deleted`);
   } catch (err) {
     res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
