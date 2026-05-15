@@ -19,6 +19,7 @@ test('student can book a consultation via the 10-day calendar', async ({ page })
   await page.click('button[type="submit"]');
 
   await page.waitForURL('**/student/dashboard**');
+  await page.goto('/student/dashboard?view=find');
   await expect(page.locator('text=Find a Consultation')).toBeVisible();
 
   const scheduleBtn = page.locator('[data-testid="schedule-btn"]').first();
@@ -52,6 +53,7 @@ test('booking page body does not contain "undefined" or "null" strings', async (
   await page.click('button[type="submit"]');
 
   await page.waitForURL('**/student/dashboard**');
+  await page.goto('/student/dashboard?view=find');
 
   const scheduleBtn = page.locator('[data-testid="schedule-btn"]').first();
   await expect(scheduleBtn).toBeVisible();
