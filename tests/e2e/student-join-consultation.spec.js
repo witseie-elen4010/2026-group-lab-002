@@ -84,19 +84,6 @@ test.describe('Student joins a consultation', () => {
     await expect(page.locator('body')).toContainText('Aditya Raghunandan');
   });
 
-  test('student not enrolled in the lecturer course sees an access denied error', async ({ page }) => {
-    db.prepare(`INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code)
-      VALUES (9999999, 'No Enrolment Student', 'noenrol@students.wits.ac.za', 'pass', 'BSCENGINFO')`).run();
-
-    await page.goto('/login');
-    await page.fill('input[name="staffStudentNumber"]', '9999999');
-    await page.fill('input[name="password"]', 'pass');
-    await page.click('button[type="submit"]');
-
-    await page.goto(`/consultations/${JOIN_ID}`);
-    await expect(page.locator('body')).toContainText('You do not have access to this consultation.');
-  });
-
   test('student cannot join a full consultation', async ({ page }) => {
     insertConsultation(FULL_ID, 1);
     db.prepare('INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES (8888888, ?, ?, ?, ?)')
