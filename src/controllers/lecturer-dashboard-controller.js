@@ -10,11 +10,10 @@ const showLecturerDashboard = async (req, res) => {
   };
 
   try {
-    // Show welcome message only on first login or after a successful login
     const showWelcome       = req.session.showWelcome || false;
     req.session.showWelcome = false;
 
-    const now = new Date();
+    const now   = new Date();
     const today = now.toISOString().split('T')[0];
 
     const upcomingRows = db.prepare(`
@@ -31,23 +30,31 @@ const showLecturerDashboard = async (req, res) => {
         COUNT(ca.student_number) AS attendeeCount,
         GROUP_CONCAT(sa.name, ', ') AS attendee_names
       FROM consultations c
+      LEFT JOIN lecturer_availability la ON c.availability_id = la.availability_id
       LEFT JOIN students org ON org.student_number = c.organiser
       LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id
       LEFT JOIN students sa ON sa.student_number = ca.student_number
-      WHERE c.lecturer_id = ?
+      WHERE (la.staff_number = ? OR (c.availability_id IS NULL AND c.lecturer_id = ?))
         AND c.consultation_date >= ?
-        AND c.status IN ('Available', 'Booked', 'Ongoing')
+        AND c.status NOT IN ('Cancelled')
       GROUP BY c.const_id
       ORDER BY c.consultation_date ASC, c.consultation_time ASC
-    `).all(user.id, today);
+    `).all(user.id, user.id, today);
 
-    const availableSlots = upcomingRows.filter(c => c.status === 'Available');
+    const availabilityRow = db.prepare(`
+      SELECT
+        COUNT(DISTINCT day_of_week) AS daysAvailable,
+        ROUND(SUM(
+          (CAST(SUBSTR(end_time, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(end_time, 4, 2) AS INTEGER)) -
+          (CAST(SUBSTR(start_time, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(start_time, 4, 2) AS INTEGER))
+        ) / 60.0, 1) AS hoursAvailable
+      FROM lecturer_availability
+      WHERE staff_number = ?
+    `).get(user.id);
+
     const stats = {
-      daysAvailable:  new Set(availableSlots.map(c => c.consultation_date)).size,
-      hoursAvailable: Math.round(
-        availableSlots.reduce((sum, c) => sum + (c.duration_min || 0), 0) / 60
-      ),
-      totalSlots: availableSlots.length,
+      daysAvailable:  availabilityRow ? (availabilityRow.daysAvailable  || 0) : 0,
+      hoursAvailable: availabilityRow ? (availabilityRow.hoursAvailable || 0) : 0,
     };
 
     const calendar = buildCalendar(user.id);
@@ -80,12 +87,13 @@ const showLecturerDashboard = async (req, res) => {
 
     return res.render('lecturer-dashboard', {
       user,
+      today,
       upcomingConsultations: upcomingRows,
       stats,
       calendar,
       assignedCourses,
       success: showWelcome ? welcomeMessage : (req.query.success === 'true' ? 'Courses updated successfully.' : null),
-      error: null,
+      error: req.query.error || null,
       publicHolidayDayMap,
       noHolidaysInWindow,
       weatherByDay,
@@ -96,7 +104,7 @@ const showLecturerDashboard = async (req, res) => {
     return res.render('lecturer-dashboard', {
       user,
       upcomingConsultations: [],
-      stats:    { daysAvailable: 0, hoursAvailable: 0, totalSlots: 0 },
+      stats:    { daysAvailable: 0, hoursAvailable: 0 },
       calendar: buildCalendar(null),
       assignedCourses: [],
       error:   'Could not load dashboard data. Please try again.',
@@ -121,16 +129,16 @@ const buildCalendar = (lecturerId) => {
   let consultationDays = [];
 
   if (lecturerId) {
-    const rows = db.prepare(
-      `SELECT consultation_date
-       FROM consultations
-       WHERE lecturer_id = ?
-         AND consultation_date LIKE ?`
-    ).all(lecturerId, `${monthStr}-%`);
+    const rows = db.prepare(`
+      SELECT DISTINCT c.consultation_date
+      FROM consultations c
+      LEFT JOIN lecturer_availability la ON c.availability_id = la.availability_id
+      WHERE (la.staff_number = ? OR (c.availability_id IS NULL AND c.lecturer_id = ?))
+        AND c.consultation_date LIKE ?
+        AND c.status NOT IN ('Cancelled')
+    `).all(lecturerId, lecturerId, `${monthStr}-%`);
 
-    consultationDays = [
-      ...new Set(rows.map(r => parseInt(r.consultation_date.split('-')[2], 10)))
-    ];
+    consultationDays = rows.map(r => parseInt(r.consultation_date.split('-')[2], 10));
   }
 
   return { year, monthName, daysInMonth, firstDayOfWeek, today, consultationDays };
