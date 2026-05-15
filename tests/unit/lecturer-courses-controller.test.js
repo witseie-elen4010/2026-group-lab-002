@@ -1,3 +1,4 @@
+/* eslint-env jest */
 const { showLecturerCourses, updateLecturerCourses } = require('../../src/controllers/lecturer-courses-controller')
 
 jest.mock('../../database/db', () => ({
@@ -5,7 +6,12 @@ jest.mock('../../database/db', () => ({
   transaction: jest.fn()
 }))
 
+jest.mock('../../src/services/logging-service', () => ({
+  logActivity: jest.fn().mockResolvedValue(true)
+}))
+
 const db = require('../../database/db')
+const { logActivity } = require('../../src/services/logging-service')
 
 const mockReq = (overrides = {}) => ({
   session: {},
@@ -25,11 +31,13 @@ const mockRes = () => {
 
 beforeEach(() => {
   jest.resetAllMocks()
-  db.transaction.mockImplementation((fn) => () => fn())
+  logActivity.mockClear()
+
+  db.transaction.mockImplementation((fn) => (...args) => fn(...args))
 })
 
 describe('showLecturerCourses', () => {
-  test('renders the view with correct data when lecturer exists', () => {
+  test('renders the view with correct data when lecturer exists', async () => {
     // Arrange
     const fakeStaff = { dept_code: 'EIE', department_dept_code: 'EIE' }
     const fakeDepartments = [{ department_code: 'EIE', department_name: 'School of Electrical and Information Engineering', dept_code: 'EIE' }]
@@ -46,7 +54,7 @@ describe('showLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    showLecturerCourses(req, res)
+    await showLecturerCourses(req, res)
 
     // Assert
     expect(res.render).toHaveBeenCalledWith('lecturer-courses', {
@@ -61,14 +69,14 @@ describe('showLecturerCourses', () => {
     })
   })
 
-  test('renders an error when lecturer record is not found', () => {
+  test('renders an error when lecturer record is not found', async () => {
     // Arrange
     db.prepare.mockReturnValue({ get: jest.fn().mockReturnValue(null) })
     const req = mockReq({ session: {} })
     const res = mockRes()
 
     // Act
-    showLecturerCourses(req, res)
+    await showLecturerCourses(req, res)
 
     // Assert
     expect(res.render).toHaveBeenCalledWith('lecturer-courses', expect.objectContaining({
@@ -76,7 +84,7 @@ describe('showLecturerCourses', () => {
     }))
   })
 
-  test('passes success message when ?success=true is in query', () => {
+  test('passes success message when ?success=true is in query', async () => {
     // Arrange
     const fakeLecturer = { degree_code: 'BSCENGINFO', dept_code: 'EIE' }
     db.prepare.mockReturnValue({
@@ -87,7 +95,7 @@ describe('showLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    showLecturerCourses(req, res)
+    await showLecturerCourses(req, res)
 
     // Assert
     expect(res.render).toHaveBeenCalledWith('lecturer-courses', expect.objectContaining({
@@ -95,7 +103,7 @@ describe('showLecturerCourses', () => {
     }))
   })
 
-  test('passes onboarding: true to the view when ?onboarding=true is in query', () => {
+  test('passes onboarding: true to the view when ?onboarding=true is in query', async () => {
     // Arrange
     const fakeLecturer = { degree_code: 'BSCENGINFO', dept_code: 'EIE' }
     db.prepare.mockReturnValue({
@@ -106,7 +114,7 @@ describe('showLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    showLecturerCourses(req, res)
+    await showLecturerCourses(req, res)
 
     // Assert
     expect(res.render).toHaveBeenCalledWith('lecturer-courses', expect.objectContaining({
@@ -116,7 +124,7 @@ describe('showLecturerCourses', () => {
 })
 
 describe('updateLecturerCourses', () => {
-  test('redirects to dashboard on valid submission', () => {
+  test('redirects to dashboard on valid submission', async () => {
     // Arrange
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
@@ -131,13 +139,13 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    updateLecturerCourses(req, res)
+    await updateLecturerCourses(req, res)
 
     // Assert
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?success=true')
   })
 
-  test('redirects with error when department_code is invalid', () => {
+  test('redirects with error when department_code is invalid', async () => {
     // Arrange
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
@@ -149,13 +157,13 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    updateLecturerCourses(req, res)
+    await updateLecturerCourses(req, res)
 
     // Assert
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/courses?error=Invalid+department+selected.')
   })
 
-  test('handles zero courses selected (no courses key in body)', () => {
+  test('handles zero courses selected (no courses key in body)', async () => {
     // Arrange
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
@@ -168,13 +176,13 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    updateLecturerCourses(req, res)
+    await updateLecturerCourses(req, res)
 
     // Assert
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?success=true')
   })
 
-  test('handles a single course submitted as a string', () => {
+  test('handles a single course submitted as a string', async () => {
     // Arrange
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
@@ -188,13 +196,13 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    updateLecturerCourses(req, res)
+    await updateLecturerCourses(req, res)
 
     // Assert
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?success=true')
   })
 
-  test('handles multiple courses submitted as an array', () => {
+  test('handles multiple courses submitted as an array', async () => {
     // Arrange
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
@@ -210,7 +218,7 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
 
     // Act
-    updateLecturerCourses(req, res)
+    await updateLecturerCourses(req, res)
 
     // Assert
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?success=true')

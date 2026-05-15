@@ -62,11 +62,11 @@ const saveAvailability = async (req, res) => {
     })
   }
 
-  db.prepare(
+  const lastRecord = db.prepare(
     'INSERT INTO lecturer_availability (staff_number, day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min) VALUES (?, ?, ?, ?, ?, ?, ?)'
   ).run(user.id, day_of_week, start_time, end_time, venue, Number(max_number_of_students), Number(max_booking_min))
 
-  await logActivity(req.session.userId, ActionTypes.AVAIL_CREATE, [{ table: 'lecturer_availability', id: db.prepare('SELECT last_insert_rowid() as id').get().id }])
+  await logActivity(req.session.userId, ActionTypes.AVAIL_CREATE, [{ table: 'lecturer_availability', id: lastRecord.lastInsertRowid }])
   return res.render('availability', {
     user,
     availability: getAvailability(user.id),
