@@ -16,6 +16,9 @@ DROP TABLE IF EXISTS departments;
 DROP TABLE IF EXISTS lecturer_availability;
 DROP TABLE IF EXISTS admins;
 DROP TABLE IF EXISTS admin_audit_log;
+DROP TABLE IF EXISTS affected_records;
+DROP TABLE IF EXISTS activity_log;
+DROP TABLE IF EXISTS actions;
 
 PRAGMA foreign_keys = ON;
 
@@ -105,14 +108,14 @@ CREATE TABLE lecturer_availability (
   availability_id INTEGER PRIMARY KEY,
   staff_number TEXT NOT NULL,
   day_of_week TEXT NOT NULL CHECK (day_of_week IN ('Mon','Tue','Wed','Thu','Fri')),
-  
+
   start_time TEXT NOT NULL CHECK (start_time GLOB '[0-9][0-9]:[0-9][0-9]'),
   end_time   TEXT NOT NULL CHECK (end_time   GLOB '[0-9][0-9]:[0-9][0-9]'),
-  
-  max_booking_min INTEGER NOT NULL DEFAULT 60 
+
+  max_booking_min INTEGER NOT NULL DEFAULT 60
     CHECK (max_booking_min > 0 AND max_booking_min <= 480),
 
-  max_number_of_students INTEGER NOT NULL DEFAULT 1 
+  max_number_of_students INTEGER NOT NULL DEFAULT 1
     CHECK (max_number_of_students > 0),
 
   venue TEXT NOT NULL CHECK(length(venue) >= 3),
@@ -145,3 +148,40 @@ CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin
 
 CREATE INDEX IF NOT EXISTS idx_admin_audit_log_table_row
   ON admin_audit_log(table_name, row_id);
+
+CREATE TABLE actions (
+    action_id INT PRIMARY KEY,
+    action_name VARCHAR(100) NOT NULL,
+    page_context VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE activity_log (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    action_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT log_action
+        FOREIGN KEY (action_id)
+        REFERENCES actions(action_id)
+);
+
+CREATE TABLE affected_records (
+    log_id INT NOT NULL,
+    table_affected VARCHAR(100) NOT NULL,
+    record_id VARCHAR(50) NOT NULL,
+
+    PRIMARY KEY (log_id, table_affected, record_id),
+
+    CONSTRAINT affected_log
+        FOREIGN KEY (log_id)
+        REFERENCES activity_log(log_id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_polymorphic_lookup
+    ON affected_records(table_affected, record_id);
+
+CREATE INDEX idx_user_history
+    ON activity_log(user_id);

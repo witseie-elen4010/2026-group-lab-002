@@ -1,197 +1,225 @@
-const db = require('../../database/db');
-const { FK_DISPLAY, getInputType, friendlyError, buildSearchQuery } = require('../services/admin-helpers');
-const { logAdminAudit } = require('../services/admin-audit-service');
+const db = require('../../database/db')
+const { logActivity } = require('../services/logging-service')
+const ActionTypes = require('../services/action-types')
+const { FK_DISPLAY, getInputType, friendlyError, buildSearchQuery } = require('../services/admin-helpers')
+const { logAdminAudit } = require('../services/admin-audit-service')
 
-const PAGE_SIZE = 20;
-const READ_ONLY_TABLES = ['admin_audit_log'];
+const PAGE_SIZE = 20
+// tables the admin UI can view but not modify
+const READ_ONLY_TABLES = ['admin_audit_log']
 
 const getAllTables = () =>
-  db.prepare(`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`).all().map(r => r.name);
+  db.prepare('SELECT name FROM sqlite_master WHERE type=\'table\' ORDER BY name').all().map(r => r.name)
 
 const getColumns = (tableName) =>
-  db.prepare(`PRAGMA table_info("${tableName}")`).all();
+  db.prepare(`PRAGMA table_info("${tableName}")`).all()
 
 const getForeignKeys = (tableName) =>
-  db.prepare(`PRAGMA foreign_key_list("${tableName}")`).all();
+  db.prepare(`PRAGMA foreign_key_list("${tableName}")`).all()
 
 const getForeignKeyOptions = (fkList) => {
-  const options = {};
+  const options = {}
   fkList.forEach(fk => {
     if (!options[fk.from]) {
-      const display = FK_DISPLAY[fk.table];
+      const display = FK_DISPLAY[fk.table]
       if (display) {
-        const [valCol, labelCol] = display;
-        const rows = db.prepare(`SELECT "${valCol}" as val, "${labelCol}" as label FROM "${fk.table}" ORDER BY 2`).all();
-        options[fk.from] = rows.map(r => ({ value: r.val, label: `${r.val} — ${r.label}` }));
+        const [valCol, labelCol] = display
+        const rows = db.prepare(`SELECT "${valCol}" as val, "${labelCol}" as label FROM "${fk.table}" ORDER BY 2`).all()
+        options[fk.from] = rows.map(r => ({ value: r.val, label: `${r.val} — ${r.label}` }))
       } else {
-        const rows = db.prepare(`SELECT "${fk.to}" as val FROM "${fk.table}" ORDER BY 1`).all();
-        options[fk.from] = rows.map(r => ({ value: r.val, label: String(r.val) }));
+        const rows = db.prepare(`SELECT "${fk.to}" as val FROM "${fk.table}" ORDER BY 1`).all()
+        options[fk.from] = rows.map(r => ({ value: r.val, label: String(r.val) }))
       }
     }
-  });
-  return options;
-};
+  })
+  return options
+}
 
 const getInputTypes = (columns) => {
-  const types = {};
-  columns.forEach(col => { types[col.name] = getInputType(col.name); });
-  return types;
-};
+  const types = {}
+  columns.forEach(col => { types[col.name] = getInputType(col.name) })
+  return types
+}
 
 const showAdminDashboard = (req, res) => {
-  const user = { id: req.session.userId, name: req.session.userName };
-  const tables = getAllTables();
-  const stats = {
-    students:      db.prepare(`SELECT COUNT(*) as n FROM students`).get().n,
-    staff:         db.prepare(`SELECT COUNT(*) as n FROM staff`).get().n,
-    consultations: db.prepare(`SELECT COUNT(*) as n FROM consultations`).get().n,
-    availability:  db.prepare(`SELECT COUNT(*) as n FROM lecturer_availability`).get().n,
-  };
+  const user = { id: req.session.userId, name: req.session.userName }
+  const tables = getAllTables()
   res.render('admin-dashboard', {
-    user, tables, stats,
-    activeTable: null, columns: [], rows: [], page: 1, totalPages: 1, totalRows: 0, search: '',
-    fkOptions: {}, inputTypes: {}, error: null, success: null,
-  });
-};
+    user,
+    tables,
+    activeTable: null,
+    columns: [],
+    rows: [],
+    page: 1,
+    totalPages: 1,
+    totalRows: 0,
+    search: '',
+    fkOptions: {},
+    inputTypes: {},
+    error: null,
+    success: null
+  })
+}
 
 const showTable = (req, res) => {
-  const user = { id: req.session.userId, name: req.session.userName };
-  const tables = getAllTables();
-  const { tableName } = req.params;
+  const user = { id: req.session.userId, name: req.session.userName }
+  const tables = getAllTables()
+  const { tableName } = req.params
 
-  if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+  if (!tables.includes(tableName)) return res.status(404).send('Table not found')
 
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const offset = (page - 1) * PAGE_SIZE;
-  const search = (req.query.search || '').trim();
-  const columns = getColumns(tableName);
-  const fkOptions = getForeignKeyOptions(getForeignKeys(tableName));
-  const inputTypes = getInputTypes(columns);
+  const page = Math.max(1, parseInt(req.query.page) || 1)
+  const offset = (page - 1) * PAGE_SIZE
+  const search = (req.query.search || '').trim()
+  const columns = getColumns(tableName)
+  const fkOptions = getForeignKeyOptions(getForeignKeys(tableName))
+  const inputTypes = getInputTypes(columns)
 
-  let totalRows, rows;
+  let totalRows, rows
   if (search) {
-    const { whereClauses, params } = buildSearchQuery(columns, search);
-    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}" WHERE ${whereClauses}`).get(...params).count;
-    rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" WHERE ${whereClauses} LIMIT ? OFFSET ?`).all(...params, PAGE_SIZE, offset);
+    const { whereClauses, params } = buildSearchQuery(columns, search)
+    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}" WHERE ${whereClauses}`).get(...params).count
+    rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" WHERE ${whereClauses} LIMIT ? OFFSET ?`).all(...params, PAGE_SIZE, offset)
   } else {
-    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count;
-    rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" LIMIT ? OFFSET ?`).all(PAGE_SIZE, offset);
+    totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count
+    rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" LIMIT ? OFFSET ?`).all(PAGE_SIZE, offset)
   }
 
-  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE))
 
   res.render('admin-dashboard', {
-    user, tables, stats: null,
-    activeTable: tableName, columns, rows, page, totalPages, totalRows, search, fkOptions, inputTypes,
+    user,
+    tables,
+    activeTable: tableName,
+    columns,
+    rows,
+    page,
+    totalPages,
+    totalRows,
+    search,
+    fkOptions,
+    inputTypes,
     error: req.query.error || null,
-    success: req.query.success || null,
-  });
-};
+    success: req.query.success || null
+  })
+}
 
-const createRecord = (req, res) => {
-  const tables = getAllTables();
-  const { tableName } = req.params;
-  if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+const createRecord = async (req, res) => {
+  const tables = getAllTables()
+  const { tableName } = req.params
+  if (!tables.includes(tableName)) return res.status(404).send('Table not found')
   if (READ_ONLY_TABLES.includes(tableName))
-    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`);
+    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`)
 
-  const columns = getColumns(tableName);
-  const fields = columns.map(c => c.name);
-  const values = fields.map(f => (req.body[f] !== '' && req.body[f] !== undefined) ? req.body[f] : null);
-  const placeholders = fields.map(() => '?').join(', ');
-  const fieldList = fields.map(f => `"${f}"`).join(', ');
+  const columns = getColumns(tableName)
+  const fields = columns.map(c => c.name)
+  const values = fields.map(f => (req.body[f] !== '' && req.body[f] !== undefined) ? req.body[f] : null)
+  const placeholders = fields.map(() => '?').join(', ')
+  const fieldList = fields.map(f => `"${f}"`).join(', ')
 
   try {
-    const result = db.prepare(`INSERT INTO "${tableName}" (${fieldList}) VALUES (${placeholders})`).run(...values);
+    const result = db.prepare(`INSERT INTO "${tableName}" (${fieldList}) VALUES (${placeholders})`).run(...values)
     logAdminAudit({
       adminId: req.session.userId,
       action: 'INSERT',
       tableName,
       rowId: result.lastInsertRowid,
-      newData: req.body,
-    });
-    res.redirect(`/admin/table/${tableName}?success=Record+added`);
+      newData: req.body
+    })
+    await logActivity(req.session.userId, ActionTypes.ADMIN_USER_ADD, [{ table: tableName, id: result.lastInsertRowid }])
+    res.redirect(`/admin/table/${tableName}?success=Record+added`)
   } catch (err) {
-    const fkOptions = getForeignKeyOptions(getForeignKeys(tableName));
-    const inputTypes = getInputTypes(columns);
-    const totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count;
-    const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
-    const rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" LIMIT ?`).all(PAGE_SIZE);
+    const fkOptions = getForeignKeyOptions(getForeignKeys(tableName))
+    const inputTypes = getInputTypes(columns)
+    const totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}"`).get().count
+    const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE))
+    const rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" LIMIT ?`).all(PAGE_SIZE)
     res.render('admin-dashboard', {
       user: { id: req.session.userId, name: req.session.userName },
-      tables, stats: null, activeTable: tableName, columns, rows, page: 1, totalPages, totalRows, search: '',
-      fkOptions, inputTypes, error: friendlyError(err.message), success: null,
-    });
+      tables,
+      activeTable: tableName,
+      columns,
+      rows,
+      page: 1,
+      totalPages,
+      totalRows,
+      search: '',
+      fkOptions,
+      inputTypes,
+      error: friendlyError(err.message),
+      success: null
+    })
   }
-};
+}
 
-const updateRecord = (req, res) => {
-  const tables = getAllTables();
-  const { tableName, rowId } = req.params;
-  if (!tables.includes(tableName)) return res.status(404).send('Table not found');
+const updateRecord = async (req, res) => {
+  const tables = getAllTables()
+  const { tableName, rowId } = req.params
+  if (!tables.includes(tableName)) return res.status(404).send('Table not found')
   if (READ_ONLY_TABLES.includes(tableName))
-    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`);
+    return res.redirect(`/admin/table/${tableName}?error=This+table+is+read-only`)
 
-  const columns = getColumns(tableName);
-  const updatable = columns.filter(c => c.pk === 0);
-  if (updatable.length === 0)
-    return res.redirect(`/admin/table/${tableName}?error=This+table+has+no+editable+columns`);
+  const columns = getColumns(tableName)
+  const updatable = columns.filter(c => c.pk === 0)
+  if (updatable.length === 0) { return res.redirect(`/admin/table/${tableName}?error=This+table+has+no+editable+columns`) }
 
-  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId);
+  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId)
   if (!existingRecord)
-    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`)
 
-  const setClauses = updatable.map(c => `"${c.name}" = ?`).join(', ');
+  const setClauses = updatable.map(c => `"${c.name}" = ?`).join(', ')
   const values = [
     ...updatable.map(c => (req.body[c.name] !== '' && req.body[c.name] !== undefined) ? req.body[c.name] : null),
-    rowId,
-  ];
+    rowId
+  ]
 
   try {
-    const result = db.prepare(`UPDATE "${tableName}" SET ${setClauses} WHERE rowid = ?`).run(...values);
+    const result = db.prepare(`UPDATE "${tableName}" SET ${setClauses} WHERE rowid = ?`).run(...values)
     if (result.changes === 0)
-      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`)
     logAdminAudit({
       adminId: req.session.userId,
       action: 'UPDATE',
       tableName,
       rowId,
       oldData: existingRecord,
-      newData: req.body,
-    });
-    res.redirect(`/admin/table/${tableName}?success=Record+updated`);
+      newData: req.body
+    })
+    await logActivity(req.session.userId, ActionTypes.ADMIN_USER_EDIT, [{ table: tableName, id: rowId }])
+    res.redirect(`/admin/table/${tableName}?success=Record+updated`)
   } catch (err) {
-    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
+    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`)
   }
-};
+}
 
-const deleteRecord = (req, res) => {
-  const tables = getAllTables();
-  const { tableName, rowId } = req.params;
-  if (!tables.includes(tableName)) return res.status(404).send('Table not found');
-  if (tableName === 'admins') return res.redirect('/admin/table/admins?error=Admin+accounts+cannot+be+deleted');
+const deleteRecord = async (req, res) => {
+  const tables = getAllTables()
+  const { tableName, rowId } = req.params
+  if (!tables.includes(tableName)) return res.status(404).send('Table not found')
+  if (tableName === 'admins') return res.redirect('/admin/table/admins?error=Admin+accounts+cannot+be+deleted')
   if (READ_ONLY_TABLES.includes(tableName))
-    return res.redirect(`/admin/table/${tableName}?error=Audit+log+entries+cannot+be+deleted`);
+    return res.redirect(`/admin/table/${tableName}?error=Audit+log+entries+cannot+be+deleted`)
 
-  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId);
+  const existingRecord = db.prepare(`SELECT *, rowid FROM "${tableName}" WHERE rowid = ?`).get(rowId)
   if (!existingRecord)
-    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+    return res.redirect(`/admin/table/${tableName}?error=Record+not+found`)
 
   try {
-    const result = db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId);
+    const result = db.prepare(`DELETE FROM "${tableName}" WHERE rowid = ?`).run(rowId)
     if (result.changes === 0)
-      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`);
+      return res.redirect(`/admin/table/${tableName}?error=Record+not+found`)
     logAdminAudit({
       adminId: req.session.userId,
       action: 'DELETE',
       tableName,
       rowId,
-      oldData: existingRecord,
-    });
-    res.redirect(`/admin/table/${tableName}?success=Record+deleted`);
+      oldData: existingRecord
+    })
+    await logActivity(req.session.userId, ActionTypes.ADMIN_USER_DELETE, [{ table: tableName, id: rowId }])
+    res.redirect(`/admin/table/${tableName}?success=Record+deleted`)
   } catch (err) {
-    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`);
+    res.redirect(`/admin/table/${tableName}?error=${encodeURIComponent(friendlyError(err.message))}`)
   }
-};
+}
 
-module.exports = { showAdminDashboard, showTable, createRecord, updateRecord, deleteRecord };
+module.exports = { showAdminDashboard, showTable, createRecord, updateRecord, deleteRecord }

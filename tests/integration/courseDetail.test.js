@@ -36,11 +36,11 @@ describe('GET /courses/:courseCode', () => {
     expect(res.headers.location).toContain('error');
   });
 
-  test('renders empty-state message when no lecturers teach the course', async () => {
+  test('renders course detail page for enrolled course with no base-seed lecturers', async () => {
     const agent = request.agent(app);
     await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
-    const res = await agent.get('/courses/ELEN3009');
+    const res = await agent.get('/courses/ELEN4009');
     expect(res.status).toBe(200);
-    expect(res.text).toContain('ELEN3009');
+    expect(res.text).toContain('ELEN4009');
   });
 });

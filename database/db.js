@@ -4,7 +4,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'database.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'database.db');
 
 // 1. Create the connection once and reuse it across the app
 const db = new Database(DB_PATH);
