@@ -4,7 +4,7 @@ const {
   showConsultationDetail,
   joinConsultation,
   cancelConsultation,
-  leaveConsultationTodo,
+  leaveConsultation,
 } = require('../controllers/consultation-detail-controller');
 
 const router = express.Router();
@@ -14,6 +14,6 @@ router.post('/consultations/new', createBooking);
 router.get('/consultations/:constId', showConsultationDetail);
 router.post('/consultations/:constId/join', joinConsultation);
 router.post('/consultations/:constId/cancel', cancelConsultation);
-router.post('/consultations/:constId/leave', leaveConsultationTodo);
+router.post('/consultations/:constId/leave', leaveConsultation);
 
 module.exports = router;
