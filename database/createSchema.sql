@@ -19,6 +19,9 @@ DROP TABLE IF EXISTS admin_audit_log;
 DROP TABLE IF EXISTS affected_records;
 DROP TABLE IF EXISTS activity_log;
 DROP TABLE IF EXISTS actions;
+DROP INDEX IF EXISTS idx_polymorphic_lookup;
+DROP INDEX IF EXISTS idx_user_history;
+DROP INDEX IF EXISTS idx_admin_audit_log_admin;
 
 PRAGMA foreign_keys = ON;
 
