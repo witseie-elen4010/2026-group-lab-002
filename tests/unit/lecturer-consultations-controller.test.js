@@ -5,7 +5,7 @@ jest.mock('../../database/db', () => ({ prepare: jest.fn() }));
 
 const db = require('../../database/db');
 
-const TODAY = new Date().toISOString().split('T')[0];
+const TODAY  = new Date().toISOString().split('T')[0];
 const FUTURE = '2099-12-31';
 const PAST   = '2000-01-01';
 
@@ -26,11 +26,12 @@ const mockRes = () => {
 describe('showLecturerConsultations()', () => {
   beforeEach(() => db.prepare.mockReset());
 
-  test('renders view with upcoming, past and cancelled rows correctly split', () => {
+  test('splits rows into upcoming, past and cancelled correctly', () => {
     const rows = [
       { const_id: 1, consultation_date: FUTURE, status: 'Available' },
       { const_id: 2, consultation_date: PAST,   status: 'Booked' },
       { const_id: 3, consultation_date: FUTURE, status: 'Cancelled' },
+      { const_id: 4, consultation_date: PAST,   status: 'Cancelled' },
     ];
     db.prepare.mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) });
 
@@ -40,7 +41,21 @@ describe('showLecturerConsultations()', () => {
     expect(res.render).toHaveBeenCalledWith('lecturer-consultations', expect.objectContaining({
       upcoming:  [rows[0]],
       past:      [rows[1]],
-      cancelled: [rows[2]],
+      cancelled: [rows[2], rows[3]],
+    }));
+  });
+
+  test('excludes cancelled consultations from the past list', () => {
+    const rows = [
+      { const_id: 1, consultation_date: PAST, status: 'Cancelled' },
+    ];
+    db.prepare.mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) });
+
+    const res = mockRes();
+    showLecturerConsultations(mockReq(), res);
+
+    expect(res.render).toHaveBeenCalledWith('lecturer-consultations', expect.objectContaining({
+      past: [],
     }));
   });
 
@@ -85,15 +100,22 @@ describe('cancelLecturerConsultation()', () => {
   });
 
   test('redirects with error when consultation is already cancelled', () => {
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 1, status: 'Cancelled' }) });
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 1, status: 'Cancelled', consultation_date: FUTURE }) });
     const res = mockRes();
     cancelLecturerConsultation(mockReq({ params: { constId: '1' } }), res);
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/consultations?error=Consultation+is+already+cancelled');
   });
 
+  test('redirects with error when consultation is in the past', () => {
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 1, status: 'Booked', consultation_date: PAST }) });
+    const res = mockRes();
+    cancelLecturerConsultation(mockReq({ params: { constId: '1' } }), res);
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/consultations?error=Cannot+cancel+a+past+consultation');
+  });
+
   test('updates status to Cancelled and redirects with success', () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 1, status: 'Available' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 1, status: 'Available', consultation_date: FUTURE }) })
       .mockReturnValueOnce({ run: jest.fn() });
     const res = mockRes();
     cancelLecturerConsultation(mockReq({ params: { constId: '1' } }), res);
@@ -103,9 +125,17 @@ describe('cancelLecturerConsultation()', () => {
   test('calls UPDATE with the correct constId', () => {
     const runMock = jest.fn();
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 42, status: 'Booked' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ const_id: 42, status: 'Booked', consultation_date: FUTURE }) })
       .mockReturnValueOnce({ run: runMock });
     cancelLecturerConsultation(mockReq({ params: { constId: '42' } }), mockRes());
     expect(runMock).toHaveBeenCalledWith('42');
+  });
+
+  test('redirects with error when DB throws', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockImplementation(() => { throw new Error('DB error'); }) });
+    const res = mockRes();
+    cancelLecturerConsultation(mockReq({ params: { constId: '1' } }), res);
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/consultations?error=Could+not+cancel+consultation.+Please+try+again.');
   });
 });

@@ -25,16 +25,17 @@ const showLecturerConsultations = (req, res) => {
         COUNT(ca.student_number) AS attendeeCount,
         GROUP_CONCAT(sa.name, ', ') AS attendee_names
       FROM consultations c
+      LEFT JOIN lecturer_availability la ON c.availability_id = la.availability_id
       LEFT JOIN students org ON org.student_number = c.organiser
-      LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id
+      LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id AND ca.student_number != c.organiser
       LEFT JOIN students sa ON sa.student_number = ca.student_number
-      WHERE c.lecturer_id = ?
+      WHERE (la.staff_number = ? OR (c.availability_id IS NULL AND c.lecturer_id = ?))
       GROUP BY c.const_id
       ORDER BY c.consultation_date DESC, c.consultation_time DESC
-    `).all(user.id);
+    `).all(user.id, user.id);
 
     const upcoming  = rows.filter(r => r.consultation_date >= today && r.status !== 'Cancelled');
-    const past      = rows.filter(r => r.consultation_date < today);
+    const past      = rows.filter(r => r.consultation_date <  today && r.status !== 'Cancelled');
     const cancelled = rows.filter(r => r.status === 'Cancelled');
 
     return res.render('lecturer-consultations', {
@@ -47,6 +48,7 @@ const showLecturerConsultations = (req, res) => {
     return res.render('lecturer-consultations', {
       user, rows: [], upcoming: [], past: [], cancelled: [], today,
       error: 'Could not load consultations. Please try again.',
+      success: null,
     });
   }
 };
@@ -55,25 +57,35 @@ const cancelLecturerConsultation = (req, res) => {
   const lecturerId = req.session.userId;
   const { constId } = req.params;
 
-  const consultation = db.prepare(`
-    SELECT c.const_id, c.status
-    FROM consultations c
-    LEFT JOIN lecturer_availability la ON c.availability_id = la.availability_id
-    WHERE c.const_id = ?
-      AND (la.staff_number = ? OR (c.availability_id IS NULL AND c.lecturer_id = ?))
-  `).get(constId, lecturerId, lecturerId);
+  try {
+    const consultation = db.prepare(`
+      SELECT c.const_id, c.status, c.consultation_date
+      FROM consultations c
+      LEFT JOIN lecturer_availability la ON c.availability_id = la.availability_id
+      WHERE c.const_id = ?
+        AND (la.staff_number = ? OR (c.availability_id IS NULL AND c.lecturer_id = ?))
+    `).get(constId, lecturerId, lecturerId);
 
-  if (!consultation) {
-    return res.redirect('/lecturer/consultations?error=Consultation+not+found');
+    if (!consultation) {
+      return res.redirect('/lecturer/consultations?error=Consultation+not+found');
+    }
+
+    if (consultation.status === 'Cancelled') {
+      return res.redirect('/lecturer/consultations?error=Consultation+is+already+cancelled');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (consultation.consultation_date < today) {
+      return res.redirect('/lecturer/consultations?error=Cannot+cancel+a+past+consultation');
+    }
+
+    db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
+
+    return res.redirect('/lecturer/consultations?success=Consultation+cancelled+successfully');
+  } catch (err) {
+    console.error('Cancel consultation error:', err);
+    return res.redirect('/lecturer/consultations?error=Could+not+cancel+consultation.+Please+try+again.');
   }
-
-  if (consultation.status === 'Cancelled') {
-    return res.redirect('/lecturer/consultations?error=Consultation+is+already+cancelled');
-  }
-
-  db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
-
-  return res.redirect('/lecturer/consultations?success=Consultation+cancelled+successfully');
 };
 
 module.exports = { showLecturerConsultations, cancelLecturerConsultation };
