@@ -43,6 +43,7 @@ test('student can book a consultation via the 10-day calendar', async ({ page })
   await page.waitForURL('**/student/dashboard**');
   await expect(page.locator('text=Consultation booked')).toBeVisible();
 
+  await page.goto('/student/dashboard?view=upcoming');
   await expect(page.locator(`text=${uniqueTitle}`)).toBeVisible();
 });
 
