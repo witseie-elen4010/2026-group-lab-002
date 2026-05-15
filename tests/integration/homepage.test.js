@@ -1,10 +1,7 @@
 /* eslint-env jest */
-const request  = require('supertest')
-const app      = require('../../app')
-const Database = require('better-sqlite3')
-const path     = require('path')
-
-const db = new Database(path.join(__dirname, '../../database/database.db'))
+const request = require('supertest')
+const app = require('../../app')
+const db = require('../../database/db')
 
 beforeAll(() => {
   db.prepare(`
@@ -24,7 +21,6 @@ afterAll(() => {
   db.prepare(`DELETE FROM lecturer_availability WHERE staff_number = 'HP999001'`).run()
   db.prepare(`DELETE FROM staff    WHERE staff_number   = 'HP999001'`).run()
   db.prepare(`DELETE FROM students WHERE student_number = 8888001`).run()
-  db.close()
 })
 
 describe('Homepage — unauthenticated visitor (AC3)', () => {

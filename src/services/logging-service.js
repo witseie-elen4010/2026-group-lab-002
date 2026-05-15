@@ -7,35 +7,35 @@ const db = require('../../database/db')
  * @param {Array} affectedRecords - Array of objects: [{ table: 'TableName', id: 'RecordId' }]
  */
 async function logActivity (userId, actionId, affectedRecords = []) {
-  const insertLog = db.prepare(`
-        INSERT INTO activityLog (user_id, action_id) 
+  try {
+    const insertLog = db.prepare(`
+        INSERT INTO activity_log (user_id, action_id) 
         VALUES (?, ?)
     `)
 
-  //   console.log('Logging Activity:', { userId, actionId, affectedRecords })
+    //   console.log('Logging Activity:', { userId, actionId, affectedRecords })
 
-  const insertAffected = db.prepare(`
-        INSERT INTO affectedRecords (log_id, table_affected, record_id) 
+    const insertAffected = db.prepare(`
+        INSERT INTO affected_records (log_id, table_affected, record_id) 
         VALUES (?, ?, ?)
     `)
 
-  const executeLogTransaction = db.transaction((uId, aId, records) => {
-    const logResult = insertLog.run(uId, aId)
-    const newLogId = logResult.lastInsertRowid
-    // const logID = db.prepare(`
-    //     SELECT log_id FROM activityLog WHERE user_id = ? AND action_id = ?
-    // `).get(uId, aId)
+    const executeLogTransaction = db.transaction((uId, aId, records) => {
+      const logResult = insertLog.run(uId, aId)
+      const newLogId = logResult.lastInsertRowid
+      // const logID = db.prepare(`
+      //     SELECT log_id FROM activity_log WHERE user_id = ? AND action_id = ?
+      // `).get(uId, aId)
 
-    // console.log('Insert Log SQL:', logID)
+      // console.log('Insert Log SQL:', logID)
 
-    if (records.length > 0) {
-      for (const record of records) {
-        insertAffected.run(newLogId, record.table, record.id)
+      if (records.length > 0) {
+        for (const record of records) {
+          insertAffected.run(newLogId, record.table, record.id)
+        }
       }
-    }
-  })
+    })
 
-  try {
     executeLogTransaction((userId || 'unknown').toString(), actionId, affectedRecords)
     return true
   } catch (error) {

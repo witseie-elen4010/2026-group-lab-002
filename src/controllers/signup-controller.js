@@ -128,7 +128,7 @@ const registerUser = async (req, res) => {
       req.session.userRole = 'student'
       req.session.showWelcome = true
 
-      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'student', id: req.session.userId }])
+      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'students', id: req.session.userId }])
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,

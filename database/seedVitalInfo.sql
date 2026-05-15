@@ -318,7 +318,7 @@ INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_
   ('4', 'A000357', 'Thu', '11:00', '14:00', 120, 6, 'Room 104');
 
 -- ─── Actions ────────────────────────────────────────────────────────────────────
-INSERT INTO actions (action_id, action_name, page_context, description)
+INSERT OR IGNORE INTO actions (action_id, action_name, page_context, description)
 VALUES 
     -- Authentication & Security (10s)
     (10, 'USER_LOGIN', 'Login Page', 'User successfully logged into the system.'),
