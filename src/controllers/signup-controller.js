@@ -1,4 +1,6 @@
 const db = require('../../database/db')
+const { logActivity } = require('../services/logging-service')
+const ActionTypes = require('../services/action-types')
 
 const showSignupPage = (req, res) => {
   res.render('sign-up', {
@@ -11,7 +13,7 @@ const showSignupPage = (req, res) => {
   })
 }
 
-const registerUser = (req, res) => {
+const registerUser = async (req, res) => {
   try {
     const {
       fullName,
@@ -91,6 +93,7 @@ const registerUser = (req, res) => {
       req.session.userRole = 'lecturer'
       req.session.showWelcome = true
 
+      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'staff', id: req.session.userId }])
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,
@@ -125,6 +128,7 @@ const registerUser = (req, res) => {
       req.session.userRole = 'student'
       req.session.showWelcome = true
 
+      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'students', id: req.session.userId }])
       return res.render('sign-up', {
         message: 'Account created! Redirecting you to select your courses...',
         error: null,

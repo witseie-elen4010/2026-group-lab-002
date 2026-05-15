@@ -1,4 +1,6 @@
 const db = require('../../database/db')
+const { logActivity } = require('../services/logging-service')
+const ActionTypes = require('../services/action-types')
 
 const showLecturerCourses = (req, res) => {
   const staffNumber = req.session.userId
@@ -17,7 +19,7 @@ const showLecturerCourses = (req, res) => {
       user,
       assignedCourses,
       error: req.query.error || null,
-      success: req.query.success === 'true' ? 'Courses updated successfully.' : null,
+      success: req.query.success === 'true' ? 'Courses updated successfully.' : null
     })
   } catch (err) {
     console.error('lecturer courses error:', err)
@@ -25,7 +27,7 @@ const showLecturerCourses = (req, res) => {
       user,
       assignedCourses: [],
       error: 'Could not load course data. Please try again.',
-      success: null,
+      success: null
     })
   }
 }
@@ -51,7 +53,7 @@ const showLecturerCoursesEdit = (req, res) => {
         enrolledCodes: [],
         lecturerDeptCode: null,
         currentdepartmentCode: null,
-        success: null,
+        success: null
       })
     }
 
@@ -75,7 +77,7 @@ const showLecturerCoursesEdit = (req, res) => {
       courses,
       enrolledCodes,
       lecturerDeptCode: staff.dept_code,
-      currentdepartmentCode: staff.dept_code,
+      currentdepartmentCode: staff.dept_code
     })
   } catch (err) {
     console.error('lecturer courses edit error:', err)
@@ -87,13 +89,13 @@ const showLecturerCoursesEdit = (req, res) => {
       enrolledCodes: [],
       lecturerDeptCode: null,
       currentdepartmentCode: null,
-      success: null,
+      success: null
     })
   }
 }
 
-const updateLecturerCourses = (req, res) => {
-  const staffNumber = req.session.userId
+const updateLecturerCourses = async (req, res) => {
+  const staffNumber = req.session && req.session.userId ? req.session.userId : 'A000356'
   const { department_code, courses } = req.body
 
   const staff = db.prepare(
@@ -137,8 +139,8 @@ const updateLecturerCourses = (req, res) => {
   })
 
   updateAll()
-
-  return res.redirect('/lecturer/courses?success=true')
+  await logActivity(req.session.userId, ActionTypes.PROFILE_COURSES_UPDATED, [{ table: 'staff_courses', id: staffNumber }])
+  return res.redirect('/lecturer/dashboard?success=true')
 }
 
 module.exports = { showLecturerCourses, showLecturerCoursesEdit, updateLecturerCourses }

@@ -1,12 +1,9 @@
 /* eslint-env jest */
 // supertest lets us make HTTP requests to the Express app in tests
 // without needing to start a real server on a port
-const request  = require('supertest');
-const app      = require('../../app');
-const Database = require('better-sqlite3');
-const path     = require('path');
-
-const db = new Database(path.join(__dirname, '../../database/database.db'));
+const request = require('supertest');
+const app = require('../../app');
+const db = require('../../database/db');
 
 beforeAll(() => {
   db.prepare(`
@@ -27,7 +24,6 @@ beforeAll(() => {
 afterAll(() => {
   db.prepare(`DELETE FROM staff    WHERE staff_number   = 'A999001'`).run();
   db.prepare(`DELETE FROM students WHERE student_number = 9999001`).run();
-  db.close();
 });
 
 describe('Login greeting message (Issue #64)', () => {
