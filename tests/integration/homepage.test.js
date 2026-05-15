@@ -49,21 +49,20 @@ describe('Homepage — logged-in student (AC1)', () => {
     await agent.post('/login').type('form').send({ staffStudentNumber: '8888001', password: 'testpass' })
   })
 
-  test('shows enrolled courses count', async () => {
+  test('shows how-it-works section', async () => {
     const res = await agent.get('/')
     expect(res.status).toBe(200)
-    expect(res.text).toContain('Enrolled Courses')
+    expect(res.text).toContain('How it works')
   })
 
-  test('shows Next Consultation stat (None booked when no consultations)', async () => {
+  test('links Go to Dashboard to the student dashboard', async () => {
     const res = await agent.get('/')
-    expect(res.text).toContain('Next Consultation')
-    expect(res.text).toContain('None booked')
+    expect(res.text).toContain('href="/student/dashboard"')
   })
 
-  test('shows Find a Consultation button', async () => {
+  test('shows hero tagline', async () => {
     const res = await agent.get('/')
-    expect(res.text).toContain('Find a Consultation')
+    expect(res.text).toContain('Your next consultation.')
   })
 
   test('shows Go to Dashboard button', async () => {
@@ -86,20 +85,21 @@ describe('Homepage — logged-in lecturer without availability (AC2)', () => {
     await agent.post('/login').type('form').send({ staffStudentNumber: 'HP999001', password: 'testpass' })
   })
 
-  test('shows Next Consultation stat', async () => {
+  test('shows Go to Dashboard button', async () => {
     const res = await agent.get('/')
     expect(res.status).toBe(200)
-    expect(res.text).toContain('Next Consultation')
+    expect(res.text).toContain('Go to Dashboard')
   })
 
-  test('shows None booked when no consultations', async () => {
+  test('links Go to Dashboard to the lecturer dashboard', async () => {
     const res = await agent.get('/')
-    expect(res.text).toContain('None booked')
+    expect(res.text).toContain('href="/lecturer/dashboard"')
   })
 
-  test('shows Set Availability nudge when no availability is set', async () => {
+  test('does not show Log In or Sign Up', async () => {
     const res = await agent.get('/')
-    expect(res.text).toContain('Set Availability')
+    expect(res.text).not.toContain('Log In')
+    expect(res.text).not.toContain('Sign Up')
   })
 })
 
