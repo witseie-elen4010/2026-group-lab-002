@@ -3,7 +3,7 @@ const { showBookingPage, createBooking } = require('../controllers/consultation-
 const {
   showConsultationDetail,
   joinConsultation,
-  cancelConsultationTodo,
+  cancelConsultation,
   leaveConsultationTodo,
 } = require('../controllers/consultation-detail-controller');
 
@@ -13,7 +13,7 @@ router.get('/consultations/new', showBookingPage);
 router.post('/consultations/new', createBooking);
 router.get('/consultations/:constId', showConsultationDetail);
 router.post('/consultations/:constId/join', joinConsultation);
-router.post('/consultations/:constId/cancel', cancelConsultationTodo);
+router.post('/consultations/:constId/cancel', cancelConsultation);
 router.post('/consultations/:constId/leave', leaveConsultationTodo);
 
 module.exports = router;

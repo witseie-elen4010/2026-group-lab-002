@@ -36,7 +36,13 @@ beforeEach(() => db.prepare.mockReset());
 
 describe('showAdminDashboard', () => {
   test('renders admin dashboard with list of tables and no active table', () => {
-    db.prepare.mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) });
+    const statGet = jest.fn().mockReturnValue({ n: 0 });
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })  // getAllTables
+      .mockReturnValueOnce({ get: statGet })  // students count
+      .mockReturnValueOnce({ get: statGet })  // staff count
+      .mockReturnValueOnce({ get: statGet })  // consultations count
+      .mockReturnValueOnce({ get: statGet }); // availability count
 
     const req = mockReq();
     const res = mockRes();

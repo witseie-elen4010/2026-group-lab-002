@@ -1,238 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <% if (typeof success !== 'undefined' && success) { %>
-<style>
-  @keyframes doorOpen {
-    from { opacity: 0; transform: scale(0.97) translateY(10px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0); }
-  }
-  main { animation: doorOpen 0.5s ease-out; }
-</style>
-<% } %>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lecturer Dashboard</title>
+  <title>Dashboard — KnockKnock.prof</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
   <style>
-    body { background: #f5f7fb; }
-    .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
-    .brand { font-size: 1.5rem; font-weight: 700; }
-    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); border: none; }
-    .stats { display: flex; gap: 16px; margin-bottom: 1rem; }
-    .stat-box { padding: 20px; text-align: center; background: #fff; border: 1px solid #dde5f0; border-radius: 14px; flex: 1; }
-    .calendar-table th, .calendar-table td { height: 55px; width: 55px; text-align: center; vertical-align: middle; }
-    .calendar-table td { background-color: #f8f9fa; }
-    .calendar-table .today { background-color: dodgerblue; color: white; font-weight: bold; }
-    .calendar-table .has-consultation { background-color: #d1e7dd; font-weight: 600; }
-    .calendar-table .empty { background-color: transparent; border: none; }
-    .calendar-table .holiday { background-color: #fff3cd; border: 1px solid #ffc107; color: #856404; font-weight: 600; }
-    .course-card { border-radius: 12px; }
-    .course-card.border-default { border: 1px solid #dee2e6 !important; }
+    /* ── Calendar base ── */
+    .calendar-table th, .calendar-table td {
+      height: 48px; width: 48px;
+      text-align: center; vertical-align: middle;
+      font-size: 0.85rem; position: relative;
+    }
+    .calendar-table td          { background-color: #fbf7ef; }
+    .calendar-table .empty      { background: transparent; border: none; }
+    .calendar-table .holiday    { background: #fff3cd; border: 1px solid #ffc107; color: #856404; font-weight: 600; }
+
+    /* ── Brand ── */
+    .lec-brand-orange { color: #f57c00; }
+
+    /* ── Sidebar ── */
+    .sidebar .table-link          { color: #064735; }
+    .sidebar .table-link:hover    { background: #dff5e3; color: #064735; }
+    .sidebar .table-link.active   {
+      background: #064735;
+      color: #fff;
+      font-weight: 600;
+      border-left: 3px solid #f57c00;
+      padding-left: 11px;
+      position: relative;
+    }
+    .sidebar .table-link.active::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #f57c00;
+    }
+    .lec-logout { color: #f57c00 !important; }
+
+    /* ── Success alert ── */
+    .lec-alert-success {
+      background: linear-gradient(135deg, #dff5e3 0%, #edfaed 100%);
+      border: 1px solid #a8d5b0;
+      color: #064735;
+    }
+
+    /* ── Greeting ── */
+    .lec-name-orange { color: #f57c00; }
+
+    /* ── Stat cards ── */
+    .lec-stat-green  { border-top: 4px solid #064735 !important; }
+    .lec-stat-orange { border-top: 4px solid #f57c00 !important; }
+
+    .lec-stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 0.75rem;
+    }
+    .lec-stat-icon-green  { background: #dff5e3; }
+    .lec-stat-icon-orange { background: #fff0d9; }
+
+    .lec-val-green  { color: #064735 !important; }
+    .lec-val-orange { color: #f57c00 !important; }
+
+    /* ── Card headings ── */
+    .lec-card-heading { color: #064735; }
+
+    /* ── Buttons ── */
+    .lec-btn-green {
+      background: #064735; color: #fff;
+      border: none; border-radius: 0.5rem; font-weight: 500;
+    }
+    .lec-btn-green:hover { background: #0f6b4f; color: #fff; }
+
+    /* ── Calendar styling ── */
+    .calendar-table thead th {
+      background: #dff5e3 !important;
+      color: #064735;
+      font-weight: 700;
+      border-color: #c8e6c9;
+    }
+    .calendar-table .today {
+      background: #064735 !important;
+      color: #fff !important;
+      font-weight: bold;
+    }
+    .calendar-table .has-consultation {
+      background: #fff0d9 !important;
+      color: #a35000;
+    }
+    .calendar-table .has-consultation::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #f57c00;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Topbar -->
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, Prof. <%= user.name %></div>
-    <div class="d-flex align-items-center gap-3">
-      <form action="/logout" method="POST" class="d-inline">
-        <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
-      </form>
-    </div>
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock<span class="lec-brand-orange">.prof</span></div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+    <span class="text-muted small"><%= user.name %> (Lecturer)</span>
   </header>
 
-  <main class="container-fluid p-4">
-    <h2>Lecturer Dashboard</h2>
-    <p>Welcome back! Here's an overview of your consultations and availability.</p>
+  <div class="d-flex" style="min-height: calc(100vh - 62px)">
 
-    
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert alert-danger" role="alert"><%= error %></div>
-    <% } %>
-    <% if (typeof success !== 'undefined' && success) { %>
-      <div class="alert alert-success" role="alert"><%= success %></div>
-    <% } %>
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/lecturer/dashboard"     class="table-link d-flex align-items-center gap-2 mb-1 active"><i class="bi bi-house-door"></i> Dashboard</a>
+      <a href="/lecturer/consultations" class="table-link"><i class="bi bi-calendar-check me-1"></i>Consultations</a>
+      <a href="/lecturer/availability"  class="table-link"><i class="bi bi-clock me-1"></i>Availability</a>
+      <a href="/lecturer/courses"       class="table-link"><i class="bi bi-journal-text me-1"></i>My Courses</a>
+      <a href="/lecturer/settings"      class="table-link"><i class="bi bi-gear me-1"></i>Settings</a>
 
-    <div class="row g-4">
-      <div class="col-lg-6">
+      <hr style="border-color:var(--kk-border);margin:1rem 0 0.5rem;">
+      <form action="/logout" method="POST">
+        <button type="submit" class="table-link lec-logout w-100 text-start border-0 bg-transparent">
+          <i class="bi bi-box-arrow-left me-1"></i> Logout
+        </button>
+      </form>
+    </div>
 
-        <div class="card p-4">
-          <h4>Availability Overview</h4>
-          <div class="stats">
-            <div class="stat-box">
-              <div class="h3 text-primary"><%= stats.daysAvailable %></div>
-              <small>Days Available</small>
-            </div>
-            <div class="stat-box">
-              <div class="h3 text-success"><%= stats.hoursAvailable %></div>
-              <small>Hours Available</small>
-            </div>
-            <div class="stat-box">
-              <div class="h3 text-info"><%= stats.totalSlots %></div>
-              <small>Max Consultations</small>
-            </div>
-          </div>
-          <a href="/lecturer/availability" class="btn btn-primary btn-sm mt-2">Set Availability</a>
+    <!-- Main -->
+    <div class="flex-grow-1 p-4" style="background:#fbf7ef;min-width:0;">
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-
-        <div class="card p-4 mt-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">My Courses</h4>
-            <a href="/lecturer/courses" class="btn btn-sm btn-outline-primary">Edit</a>
-          </div>
-          <% if (assignedCourses.length === 0) { %>
-            <p class="text-muted mb-2">You haven't added any courses yet. Students won't be able to book consultations with you until you add at least one course.</p>
-            <a href="/lecturer/courses" class="btn btn-primary btn-sm">Add Courses</a>
-          <% } else { %>
-            <%
-              const yearLevels = [1, 2, 3, 4];
-            %>
-            <% yearLevels.forEach(year => { %>
-              <% const yearCourses = assignedCourses.filter(c => c.year_level === year); %>
-              <% if (yearCourses.length > 0) { %>
-                <p class="text-muted small mb-2 mt-3">Year <%= year %></p>
-                <div class="row g-2">
-                  <% yearCourses.forEach(c => { %>
-                    <div class="col-md-6 col-lg-4">
-                      <div class="card course-card border-default p-3 h-100">
-                        <div class="fw-semibold"><%= c.course_code %></div>
-                        <div class="text-muted small"><%= c.course_name %></div>
-                        <div class="mt-1">
-                          <span class="badge bg-secondary bg-opacity-10 text-secondary small"><%= c.dept_code %></span>
-                        </div>
-                      </div>
-                    </div>
-                  <% }); %>
-                </div>
-              <% } %>
-            <% }); %>
-          <% } %>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-dismissible fade show lec-alert-success" role="alert">
+          🎉 <%= success %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+      <% } %>
 
-        <div class="card p-4 mt-4">
-          <h4>Upcoming Consultations</h4>
-          <% if (upcomingConsultations.length === 0) { %>
-            <p class="text-muted mb-0">No upcoming consultations.</p>
-          <% } else { %>
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <caption class="visually-hidden">Your upcoming consultations, sorted by soonest first</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Title</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Time</th>
-                    <th scope="col">Duration</th>
-                    <th scope="col">Venue</th>
-                    <th scope="col">Organiser</th>
-                    <th scope="col">Attendees</th>
-                    <th scope="col">Capacity</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% upcomingConsultations.forEach(c => { %>
-                    <tr>
-                      <td><%= c.consultation_title %></td>
-                      <td class="text-nowrap"><%= c.consultation_date %></td>
-                      <td class="text-nowrap"><%= c.consultation_time %></td>
-                      <td><%= c.duration_min %> min</td>
-                      <td><%= c.venue %></td>
-                      <td><%= c.organiser_name || '—' %></td>
-                      <td><%= c.attendee_names || '—' %></td>
-                      <td>
-                        <span class="badge bg-secondary">
-                          <%= c.attendeeCount %>/<%= c.max_number_of_students %>
-                        </span>
-                      </td>
-                      <td>
+      <!-- Greeting -->
+      <div class="mb-4">
+        <h2 class="kk-greeting mb-1">Knock knock, <span class="lec-name-orange"><%= user.name %>.</span></h2>
+        <p class="kk-greeting-sub">Welcome back, here's your consultation overview for today!</p>
+      </div>
+
+      <%
+        const todayConsultations = upcomingConsultations.filter(c => c.consultation_date === today);
+        const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+        const weekEndStr = weekEnd.toISOString().split('T')[0];
+        const weekConsultations = upcomingConsultations.filter(c => c.consultation_date <= weekEndStr);
+        const studentsThisWeek = weekConsultations.reduce((sum, c) => sum + (c.attendeeCount || 0), 0);
+      %>
+
+      <!-- Stats -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="kk-stat lec-stat-green">
+            <div class="lec-stat-icon lec-stat-icon-green">🗓️</div>
+            <div class="kk-stat-value lec-val-green"><%= todayConsultations.length %></div>
+            <div class="kk-stat-label">Today's Consultations</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kk-stat lec-stat-orange">
+            <div class="lec-stat-icon lec-stat-icon-orange">📊</div>
+            <div class="kk-stat-value lec-val-orange"><%= weekConsultations.length %></div>
+            <div class="kk-stat-label">This Week</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kk-stat lec-stat-green">
+            <div class="lec-stat-icon lec-stat-icon-green">🧑‍🤝‍🧑</div>
+            <div class="kk-stat-value lec-val-green"><%= studentsThisWeek %></div>
+            <div class="kk-stat-label">Students This Week</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kk-stat lec-stat-orange">
+            <div class="lec-stat-icon lec-stat-icon-orange">⏰</div>
+            <div class="kk-stat-value lec-val-orange"><%= stats.daysAvailable %></div>
+            <div class="kk-stat-label">Days Available</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+
+          <!-- Today's Consultations -->
+          <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0 fw-bold lec-card-heading">Today's Consultations</h5>
+              <a href="/lecturer/availability" class="btn btn-sm lec-btn-green">
+                <i class="bi bi-pencil me-1"></i>Edit Availability
+              </a>
+            </div>
+
+            <% if (todayConsultations.length === 0) { %>
+              <div class="kk-empty">
+                <i class="bi bi-calendar-x"></i>
+                <p class="mb-0">No consultations scheduled for today.</p>
+              </div>
+            <% } else { %>
+              <% todayConsultations.forEach(c => { %>
+                <div class="card p-3 mb-3" style="border-radius:0.75rem!important;">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="fw-semibold"><%= c.consultation_title %></span>
                         <span class="badge <%=
                           c.status === 'Available' ? 'bg-success' :
-                          c.status === 'Booked'    ? 'bg-primary' : 'bg-warning text-dark'
-                        %>"><%= c.status %></span>
-                      </td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
-          <% } %>
-        </div>
-
-      </div>
-
-      <!-- Calendar  -->
-      <div class="col-lg-6">
-        <div class="card p-4">
-          <h4>Calendar Overview: <%= calendar.monthName %> <%= calendar.year %></h4>
-          <table class="table table-bordered calendar-table">
-            <thead>
-              <tr>
-                <th>Sun</th><th>Mon</th><th>Tue</th>
-                <th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%
-                const _mp = String(new Date().getMonth() + 1).padStart(2, '0');
-                const cells = [];
-                for (let i = 0; i < calendar.firstDayOfWeek; i++) cells.push(null);
-                for (let d = 1; d <= calendar.daysInMonth; d++) cells.push(d);
-                while (cells.length % 7 !== 0) cells.push(null);
-
-                for (let row = 0; row < cells.length / 7; row++) {
-              %>
-                <tr>
-                  <% for (let col = 0; col < 7; col++) {
-                    const day = cells[row * 7 + col];
-                    const isToday    = day === calendar.today;
-                    const hasConsult = day && calendar.consultationDays.includes(day);
-                    const holidayLabel = day ? (publicHolidayDayMap || {})[day] : null;
-                    const _wxDate = day ? `${calendar.year}-${_mp}-${String(day).padStart(2, '0')}` : null;
-                    const _wx = _wxDate ? (weatherByDay || {})[_wxDate] : null;
-                    let cls = '';
-                    if (!day)           cls = 'empty';
-                    else if (isToday)   cls = 'today';
-                    else if (holidayLabel) cls = 'holiday';
-                    else if (hasConsult) cls = 'has-consultation';
-                  %>
-                    <td class="<%= cls %>"
-                        <% if (holidayLabel) { %>data-bs-toggle="tooltip" title="<%= holidayLabel %>"<% } %>>
-                      <%= day || '' %>
-                      <% if (_wx) { %><br><span data-bs-toggle="tooltip" title="<%= _wx.message %> · <%= _wx.maxTemp %>°C" style="font-size:0.7rem;cursor:default;"><%= _wx.icon %></span><% } %>
-                    </td>
-                  <% } %>
-                </tr>
-              <% } %>
-            </tbody>
-          </table>
-          <div class="d-flex gap-3 mt-2 small text-muted flex-wrap">
-            <span>
-              <span style="display:inline-block;width:14px;height:14px;background:dodgerblue;border-radius:3px;vertical-align:middle"></span>
-              Today
-            </span>
-            <span>
-              <span style="display:inline-block;width:14px;height:14px;background:#d1e7dd;border-radius:3px;vertical-align:middle"></span>
-              Has consultation
-            </span>
-            <span>
-              <span style="display:inline-block;width:14px;height:14px;background:#fff3cd;border:1px solid #ffc107;border-radius:3px;vertical-align:middle"></span>
-              Public holiday
-            </span>
+                          c.status === 'Booked'    ? 'bg-primary' :
+                          c.status === 'Cancelled' ? 'bg-secondary' : 'bg-warning text-dark'
+                        %>" style="font-size:0.68rem;"><%= c.status %></span>
+                      </div>
+                      <div class="text-muted small mb-1">
+                        <i class="bi bi-clock me-1"></i><%= c.consultation_time %>
+                        <% if (c.venue) { %>&nbsp;&middot;&nbsp;<i class="bi bi-geo-alt me-1"></i><%= c.venue %><% } %>
+                      </div>
+                      <div class="text-muted small">
+                        <i class="bi bi-person me-1"></i>Organiser: <%= c.organiser_name || '—' %>
+                        &nbsp;&middot;&nbsp;
+                        <i class="bi bi-people me-1"></i><%= c.attendeeCount %>/<%= c.max_number_of_students %> students
+                      </div>
+                      <% if (c.attendee_names) { %>
+                        <div class="text-muted small mt-1">
+                          <i class="bi bi-person-lines-fill me-1"></i><%= c.attendee_names %>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            <% } %>
           </div>
-          <% if (noHolidaysInWindow) { %>
-            <p class="text-muted mt-2 mb-0" style="font-size:0.75rem;">🚪 No public holidays this month — knock away.</p>
-          <% } %>
+
         </div>
+
+        <!-- Calendar -->
+        <div class="col-lg-5">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3 lec-card-heading">Calendar: <%= calendar.monthName %> <%= calendar.year %></h5>
+            <table class="table table-bordered calendar-table mb-2">
+              <thead>
+                <tr>
+                  <th>Su</th><th>Mo</th><th>Tu</th>
+                  <th>We</th><th>Th</th><th>Fr</th><th>Sa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  const _mp = String(new Date().getMonth() + 1).padStart(2, '0');
+                  const cells = [];
+                  for (let i = 0; i < calendar.firstDayOfWeek; i++) cells.push(null);
+                  for (let d = 1; d <= calendar.daysInMonth; d++) cells.push(d);
+                  while (cells.length % 7 !== 0) cells.push(null);
+                  for (let row = 0; row < cells.length / 7; row++) {
+                %>
+                  <tr>
+                    <% for (let col = 0; col < 7; col++) {
+                      const day = cells[row * 7 + col];
+                      const isToday    = day === calendar.today;
+                      const hasConsult = day && calendar.consultationDays.includes(day);
+                      const holidayLabel = day ? (publicHolidayDayMap || {})[day] : null;
+                      const _wxDate = day ? `${calendar.year}-${_mp}-${String(day).padStart(2, '0')}` : null;
+                      const _wx = _wxDate ? (weatherByDay || {})[_wxDate] : null;
+                      let cls = '';
+                      if (!day)          cls = 'empty';
+                      else if (isToday)  cls = 'today';
+                      else if (holidayLabel) cls = 'holiday';
+                      else if (hasConsult)   cls = 'has-consultation';
+                    %>
+                      <td class="<%= cls %>"
+                          <% if (holidayLabel) { %>data-bs-toggle="tooltip" title="<%= holidayLabel %>"<% } %>>
+                        <%= day || '' %>
+                        <% if (_wx) { %><br><span data-bs-toggle="tooltip" title="<%= _wx.message %> · <%= _wx.maxTemp %>°C" style="font-size:0.65rem;cursor:default;"><%= _wx.icon %></span><% } %>
+                      </td>
+                    <% } %>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+            <div class="d-flex gap-3 small text-muted flex-wrap">
+              <span><span style="display:inline-block;width:12px;height:12px;background:#064735;border-radius:2px;vertical-align:middle;"></span> Today</span>
+              <span><span style="display:inline-block;width:12px;height:12px;background:#fff0d9;border:1px solid #f57c00;border-radius:2px;vertical-align:middle;"></span> Has consultation</span>
+              <span><span style="display:inline-block;width:12px;height:12px;background:#fff3cd;border:1px solid #ffc107;border-radius:2px;vertical-align:middle;"></span> Holiday</span>
+            </div>
+          </div>
+        </div>
+
       </div>
-
     </div>
-  </main>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+</script>
 </body>
 </html>

@@ -1,0 +1,325 @@
+
+.kk-door-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.kk-brand-name {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--kk-green);
+  line-height: 1;
+}
+
+.kk-brand-tagline {
+  font-size: 0.85rem;
+  color: var(--kk-green-mid);
+  margin-top: 0.2rem;
+}
+
+.topbar .navbar-brand { text-decoration: none; }
+.topbar .navbar-brand:hover .kk-brand-name    { color: var(--kk-green-mid); }
+.topbar .navbar-brand:hover .kk-brand-tagline { color: var(--kk-muted); }
+
+/* --- Brand Tokens --- */
+:root {
+  --kk-cream:        #fbf7ef;
+  --kk-green:        #064735;
+  --kk-green-mid:    #0f6b4f;
+  --kk-green-light:  #dff5e3;
+  --kk-orange:       #f57c00;
+  --kk-orange-dark:  #e06500;
+  --kk-orange-pale:  #fff0d9;
+  --kk-sage:         #74C69D;
+  --kk-blue:         #A8C5DA;
+  --kk-border:       #E8E0D5;
+  --kk-muted:        #6B7280;
+  --kk-shadow:       0 2px 12px rgba(6, 71, 53, 0.09);
+
+  /* Bootstrap overrides */
+  --bs-primary:            #064735;
+  --bs-primary-rgb:        6, 71, 53;
+  --bs-body-bg:            #FAF7F2;
+  --bs-body-color:         #1B4332;
+  --bs-link-color:         #1B4332;
+  --bs-link-hover-color:   #2D6A4F;
+  --bs-border-color:       #E8E0D5;
+  --bs-font-sans-serif:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bs-body-font-family:   var(--bs-font-sans-serif);
+}
+
+/* --- Base --- */
+body {
+  background-color: var(--kk-cream);
+  color: var(--kk-green);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+a { color: var(--kk-green); }
+a:hover { color: var(--kk-green-mid); }
+
+/* --- Topbar --- */
+.topbar {
+  background-color: var(--kk-cream) !important;
+  border-bottom: 1px solid var(--kk-border) !important;
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--kk-green);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.brand:hover { color: var(--kk-green-mid); text-decoration: none; }
+
+/* --- Cards --- */
+.card {
+  border: 1px solid var(--kk-border) !important;
+  border-radius: 1rem !important;
+  box-shadow: var(--kk-shadow) !important;
+  background-color: #fff;
+}
+
+/* --- Buttons --- */
+.btn { border-radius: 0.5rem; font-weight: 500; }
+
+.btn-primary {
+  background-color: var(--kk-orange);
+  border-color: var(--kk-orange);
+  color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--kk-orange-dark);
+  border-color: var(--kk-orange-dark);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--kk-green);
+  border-color: var(--kk-green);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--kk-green);
+  border-color: var(--kk-green);
+  color: #fff;
+}
+
+.btn-warning {
+  background-color: var(--kk-orange);
+  border-color: var(--kk-orange);
+  color: #fff;
+}
+.btn-warning:hover {
+  background-color: var(--kk-orange-dark);
+  border-color: var(--kk-orange-dark);
+  color: #fff;
+}
+
+/* --- Admin / Generic Sidebar --- */
+.sidebar {
+  background-color: #fff;
+  border-right: 1px solid var(--kk-border);
+  min-height: calc(100vh - 62px);
+}
+
+.table-link {
+  display: block;
+  padding: 7px 14px;
+  color: var(--kk-green);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+.table-link:hover  { background: var(--kk-green-light); color: var(--kk-green); }
+.table-link.active { background: var(--kk-green-light); color: var(--kk-green); font-weight: 600; }
+
+/* --- KK Sidebar (student / lecturer) --- */
+.kk-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #fff;
+  border-right: 1px solid var(--kk-border);
+  min-height: calc(100vh - 60px);
+  padding: 1rem 0.75rem;
+}
+.kk-sidebar .nav-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--kk-muted);
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+.kk-sidebar .nav-link {
+  color: var(--kk-green);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.45rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.kk-sidebar .nav-link:hover  { background: var(--kk-green-light); color: var(--kk-green); }
+.kk-sidebar .nav-link.active { background: var(--kk-green-light); font-weight: 700; }
+
+/* Layout wrapper for sidebar pages */
+.kk-layout { display: flex; min-height: calc(100vh - 60px); }
+.kk-main   { flex: 1; min-width: 0; padding: 1.75rem; }
+
+/* --- Stat boxes --- */
+.kk-stat {
+  background: #fff;
+  border: 1px solid var(--kk-border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+.kk-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--kk-green);
+  line-height: 1;
+}
+.kk-stat-label {
+  font-size: 0.8rem;
+  color: var(--kk-muted);
+  margin-top: 0.25rem;
+}
+
+/* Existing .stat-box used in lecturer-dashboard */
+.stat-box {
+  padding: 20px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--kk-border);
+  border-radius: 14px;
+  flex: 1;
+}
+
+/* --- Greeting --- */
+.kk-greeting     { font-size: 1.75rem; font-weight: 800; color: var(--kk-green); line-height: 1.15; }
+.kk-greeting-sub { color: var(--kk-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+
+/* --- Section titles --- */
+.kk-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--kk-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* --- Empty states --- */
+.kk-empty { text-align: center; padding: 2.5rem 1rem; color: var(--kk-muted); }
+.kk-empty i { font-size: 2.5rem; color: var(--kk-border); display: block; margin-bottom: 0.75rem; }
+
+/* --- Chips --- */
+.kk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--kk-green-light);
+  color: var(--kk-green);
+}
+
+/* --- Slot / availability cards --- */
+.avail-slot, .slot-card {
+  border-left-color: var(--kk-green) !important;
+}
+.chunk-card {
+  border-left: 4px solid var(--kk-green);
+  background: var(--kk-green-light);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.chunk-card.selected { background: #b7e4c7; border-left-color: var(--kk-green-mid); }
+.joinable-card {
+  border-left: 4px solid var(--kk-orange);
+  background: #FEF3EE;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+/* --- Course cards --- */
+.course-card.border-primary { border: 2px solid var(--kk-green) !important; }
+.course-card.border-default  { border: 1px solid var(--kk-border) !important; }
+
+/* --- Calendar --- */
+.calendar-table .today { background-color: var(--kk-green) !important; color: #fff !important; font-weight: bold; }
+.calendar-table .has-consultation { background-color: var(--kk-green-light); font-weight: 600; }
+
+/* --- Forms --- */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--kk-sage);
+  box-shadow: 0 0 0 0.2rem rgba(116, 198, 157, 0.25);
+}
+
+/* --- Alerts --- */
+.alert-success {
+  background-color: var(--kk-green-light);
+  border-color: var(--kk-sage);
+  color: var(--kk-green);
+}
+
+/* --- Animations --- */
+@keyframes doorOpen {
+  from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+@keyframes knock {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-6px) rotate(-2deg); }
+  30%  { transform: translateX(6px)  rotate(2deg); }
+  45%  { transform: translateX(-5px) rotate(-1deg); }
+  60%  { transform: translateX(5px)  rotate(1deg); }
+  75%  { transform: translateX(-3px); }
+  90%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+.kk-animate-in { animation: doorOpen 0.45s ease-out; }
+.btn-knocking   { animation: knock 0.6s ease; background-color: var(--kk-orange-dark) !important; border-color: var(--kk-orange-dark) !important; }
+
+/* --- Lecturer dark sidebar --- */
+.kk-sidebar-dark {
+  width: 220px;
+  min-width: 220px;
+  background: var(--kk-green);
+}
+
+.kk-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.1rem;
+  cursor: pointer;
+}
+.kk-sidebar-link:hover  { background: rgba(255,255,255,0.1);  color: #fff; }
+.kk-sidebar-link.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .kk-sidebar      { display: none; }
+  .kk-sidebar-dark { display: none; }
+}

@@ -7,406 +7,624 @@
       from { opacity: 0; transform: scale(0.97) translateY(10px); }
       to   { opacity: 1; transform: scale(1)    translateY(0); }
     }
-    main { animation: doorOpen 0.5s ease-out; }
+    .stu-main-content { animation: doorOpen 0.5s ease-out; }
   </style>
   <% } %>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard</title>
+  <title>Dashboard — KnockKnock.prof</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
   <style>
-    body { background: #f5f7fb; }
-    .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
-    .brand { font-size: 1.5rem; font-weight: 700; }
-    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.06); border: none; }
+    /* ── Existing calendar/slot styles ── */
     .course-card { border-radius: 12px; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
-    .course-card.border-primary { border: 2px solid #0d6efd !important; }
-    .course-card.border-default { border: 1px solid #dee2e6 !important; }
-    .course-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.13) !important; transform: translateY(-2px); }
+    .course-card:hover { box-shadow: 0 4px 18px rgba(27,67,50,.15) !important; transform: translateY(-2px); }
     .day-col { min-width: 140px; flex: 1; }
-    .avail-slot {
-      border-radius: 8px;
-      padding: 6px 8px;
-      margin-bottom: 6px;
-      font-size: 0.8rem;
-      border-left: 4px solid;
-    }
+    .avail-slot { border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid; }
     .avail-slot.past-slot { opacity: 0.45; }
     .btn-xs { padding: 2px 8px; font-size: 0.75rem; }
-    .today-cell { border: 2px solid #0d6efd !important; }
+    .today-cell { border: 2px solid #064735 !important; }
     @media (max-width: 576px) {
       .calendar-row { flex-direction: column !important; }
       .day-col { min-width: 100%; }
     }
+
+    /* ── Brand ── */
+    .stu-brand-orange { color: #f57c00; }
+
+    /* ── Sidebar ── */
+    .sidebar .table-link          { color: #064735; }
+    .sidebar .table-link:hover    { background: #dff5e3; color: #064735; }
+    .sidebar .table-link.active   {
+      background: #064735;
+      color: #fff;
+      font-weight: 600;
+      border-left: 3px solid #f57c00;
+      padding-left: 11px;
+      position: relative;
+    }
+    .sidebar .table-link.active::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #f57c00;
+    }
+    .stu-logout { color: #f57c00 !important; }
+
+    /* ── Success alert ── */
+    .stu-alert-success {
+      background: linear-gradient(135deg, #dff5e3 0%, #edfaed 100%);
+      border: 1px solid #a8d5b0;
+      color: #064735;
+    }
+
+    /* ── Greeting ── */
+    .stu-name-orange { color: #f57c00; }
+
+    /* ── Stat cards ── */
+    .stu-stat-green  { border-top: 4px solid #064735 !important; }
+    .stu-stat-orange { border-top: 4px solid #f57c00 !important; }
+    .stu-stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 0.75rem;
+    }
+    .stu-stat-icon-green  { background: #dff5e3; }
+    .stu-stat-icon-orange { background: #fff0d9; }
+    .stu-val-green  { color: #064735 !important; }
+    .stu-val-orange { color: #f57c00 !important; }
+
+    /* ── Card headings ── */
+    .stu-card-heading { color: #064735; }
+
+    /* ── Buttons ── */
+    .stu-btn-green {
+      background: #064735; color: #fff;
+      border: none; border-radius: 0.5rem; font-weight: 500;
+    }
+    .stu-btn-green:hover { background: #0f6b4f; color: #fff; }
   </style>
 </head>
 <body>
 
+  <!-- Topbar -->
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, <%= user.name %></div>
-    <div class="d-flex align-items-center gap-3">
-      <a href="/student/courses" class="btn btn-outline-primary btn-sm">Edit Courses</a>
-      <a href="/" class="btn btn-outline-secondary btn-sm">Home</a>
-    </div>
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock<span class="stu-brand-orange">.prof</span></div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+    <span class="text-muted small"><%= user.name %> (Student)</span>
   </header>
 
-  <main class="container p-4">
-    <h2>My Dashboard</h2>
-    <p>Welcome back<% if (user && user.name) { %>, <%= user.name %><% } %>!</p>
-    <% if (degreeName) { %>
-      <p class="text-muted">Enrolled in: <strong><%= degreeName %></strong></p>
-    <% } %>
+  <%
+    const currentPage = typeof activePage !== 'undefined' ? activePage : 'dashboard';
+  %>
 
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert alert-danger" role="alert"><%= error %></div>
-    <% } %>
-    <% if (typeof success !== 'undefined' && success) { %>
-      <div class="alert alert-success" role="alert"><%= success %></div>
-    <% } %>
+  <div class="d-flex" style="min-height: calc(100vh - 62px)">
 
-    <!-- Enrolled Courses -->
-    <div class="card p-4 mb-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">My Courses</h4>
-        <a href="/student/courses" class="btn btn-sm btn-outline-primary">Edit</a>
-      </div>
-      <% if (enrolledCourses.length === 0) { %>
-        <p class="text-muted mb-0">You have no courses enrolled. <a href="/student/courses">Add courses</a> to get started.</p>
-      <% } else { %>
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/student/dashboard"              class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="bi bi-house-door"></i> Dashboard</a>
+      <a href="/student/dashboard?view=courses"  class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'courses'   ? 'active' : '' %>"><i class="bi bi-journal-text me-1"></i>My Courses</a>
+      <a href="/student/dashboard?view=find"     class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'find'      ? 'active' : '' %>"><i class="bi bi-search me-1"></i>Find a Consultation</a>
+      <a href="/student/dashboard?view=upcoming" class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'upcoming'  ? 'active' : '' %>"><i class="bi bi-calendar-check me-1"></i>Upcoming</a>
+      <a href="/student/dashboard?view=past"     class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'past'      ? 'active' : '' %>"><i class="bi bi-clock-history me-1"></i>Past</a>
+      <a href="/student/dashboard?view=settings" class="table-link d-flex align-items-center gap-2 mb-1 <%= currentPage === 'settings'  ? 'active' : '' %>"><i class="bi bi-gear me-1"></i>Settings</a>
+
+      <hr style="border-color:var(--kk-border);margin:1rem 0 0.5rem;">
+      <form action="/logout" method="POST">
+        <button type="submit" class="table-link stu-logout w-100 text-start border-0 bg-transparent">
+          <i class="bi bi-box-arrow-left me-1"></i> Logout
+        </button>
+      </form>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-grow-1 p-4 stu-main-content" style="background:#fbf7ef;min-width:0;">
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-dismissible fade show stu-alert-success" role="alert">
+          🎉 <%= success %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+
+      <!-- ══ DASHBOARD ══ -->
+      <% if (currentPage === 'dashboard') { %>
+
+        <div class="mb-4">
+          <h2 class="kk-greeting mb-1">Knock knock, <span class="stu-name-orange"><%= user.name %>.</span></h2>
+          <p class="kk-greeting-sub">Welcome back, <%= user.name %>! Here's your consultation overview for today.</p>
+          <% if (degreeName) { %>
+            <p class="text-muted small mb-0">Enrolled in: <strong><%= degreeName %></strong></p>
+          <% } %>
+        </div>
+
         <%
-          const yearLevels = [1, 2, 3, 4];
+          const todayConsultations = upcomingConsultations.filter(c => c.consultation_date === today);
         %>
-        <% yearLevels.forEach(year => { %>
-          <% const yearCourses = enrolledCourses.filter(c => c.year_level === year); %>
-          <% if (yearCourses.length > 0) { %>
-            <p class="text-muted small mb-2 mt-3 mb-1">Year <%= year %></p>
-            <div class="row g-2">
-              <% yearCourses.forEach(c => { %>
-                <div class="col-md-6 col-lg-4">
-                  <div class="card course-card border-default p-3 h-100">
-                    <div class="fw-semibold"><%= c.course_code %></div>
-                    <div class="text-muted small"><%= c.course_name %></div>
-                    <div class="mt-1">
-                      <span class="badge bg-secondary bg-opacity-10 text-secondary small"><%= c.dept_code %></span>
+
+        <!-- Quick Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="kk-stat stu-stat-green">
+              <div class="stu-stat-icon stu-stat-icon-green">📚</div>
+              <div class="kk-stat-value stu-val-green"><%= enrolledCourses.length %></div>
+              <div class="kk-stat-label">My Courses</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat stu-stat-orange">
+              <div class="stu-stat-icon stu-stat-icon-orange">🗓️</div>
+              <div class="kk-stat-value stu-val-orange"><%= todayConsultations.length %></div>
+              <div class="kk-stat-label">Today's Consultations</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat stu-stat-green">
+              <div class="stu-stat-icon stu-stat-icon-green">📊</div>
+              <div class="kk-stat-value stu-val-green"><%= upcomingConsultations.length %></div>
+              <div class="kk-stat-label">Upcoming Consultations</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat stu-stat-orange">
+              <div class="stu-stat-icon stu-stat-icon-orange">🕐</div>
+              <div class="kk-stat-value stu-val-orange"><%= pastConsultations.length %></div>
+              <div class="kk-stat-label">Past Consultations</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Consultations -->
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3 stu-card-heading">Today's Consultations</h5>
+          <% if (todayConsultations.length === 0) { %>
+            <div class="kk-empty">
+              <i class="bi bi-calendar-x"></i>
+              <p class="mb-0">No consultations scheduled for today.</p>
+            </div>
+          <% } else { %>
+            <% todayConsultations.forEach(c => { %>
+              <div class="card p-3 mb-3" style="border-radius:0.75rem!important;">
+                <div class="d-flex align-items-start">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <span class="fw-semibold">
+                        <a href="/consultations/<%= c.const_id %>" class="text-decoration-none text-dark"><%= c.consultation_title %></a>
+                      </span>
+                      <span class="badge <%=
+                        c.status === 'Available' ? 'bg-success' :
+                        c.status === 'Booked'    ? 'bg-primary' :
+                        c.status === 'Cancelled' ? 'bg-secondary' : 'bg-warning text-dark'
+                      %>" style="font-size:0.68rem;"><%= c.status %></span>
                     </div>
-                    <a href="/courses/<%= c.course_code %>" class="stretched-link"></a>
+                    <div class="text-muted small mb-1">
+                      <i class="bi bi-clock me-1"></i><%= c.consultation_time %>
+                      <% if (c.venue) { %>&nbsp;&middot;&nbsp;<i class="bi bi-geo-alt me-1"></i><%= c.venue %><% } %>
+                    </div>
+                    <div class="text-muted small">
+                      <i class="bi bi-person me-1"></i><%= c.lecturer_name || '—' %>
+                      &nbsp;&middot;&nbsp;
+                      <i class="bi bi-people me-1"></i><%= c.attendeeCount %>/<%= c.max_number_of_students %> students
+                    </div>
                   </div>
                 </div>
-              <% }); %>
+              </div>
+            <% }); %>
+          <% } %>
+        </div>
+
+      <% } %>
+
+      <!-- ══ MY COURSES ══ -->
+      <% if (currentPage === 'courses') { %>
+
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold stu-card-heading">My Courses</h5>
+            <a href="/student/courses" class="btn btn-sm stu-btn-green"><i class="bi bi-pencil me-1"></i>Edit</a>
+          </div>
+          <% if (enrolledCourses.length === 0) { %>
+            <p class="text-muted mb-0">You have no courses enrolled. <a href="/student/courses">Add courses</a> to get started.</p>
+          <% } else { %>
+            <%
+              const yearLevels = [1, 2, 3, 4];
+            %>
+            <% yearLevels.forEach(year => { %>
+              <% const yearCourses = enrolledCourses.filter(c => c.year_level === year); %>
+              <% if (yearCourses.length > 0) { %>
+                <p class="text-muted small mt-3 mb-1">Year <%= year %></p>
+                <div class="row g-2">
+                  <% yearCourses.forEach(c => { %>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="card course-card border-default p-3 h-100">
+                        <div class="fw-semibold"><%= c.course_code %></div>
+                        <div class="text-muted small"><%= c.course_name %></div>
+                        <div class="mt-1">
+                          <span class="badge bg-secondary bg-opacity-10 text-secondary small"><%= c.dept_code %></span>
+                        </div>
+                        <a href="/courses/<%= c.course_code %>" class="stretched-link"></a>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              <% } %>
+            <% }); %>
+          <% } %>
+        </div>
+
+      <% } %>
+
+      <!-- ══ FIND A CONSULTATION ══ -->
+      <% if (currentPage === 'find') { %>
+
+        <% if (calendarDays && calendarDays.length > 0) { %>
+        <div class="card p-4">
+          <h5 class="mb-0 fw-bold stu-card-heading mb-3">Find a Consultation</h5>
+
+          <% if (enrolledCourses.length === 0) { %>
+            <p class="text-muted mb-0">Enrol in courses to see lecturer availability here.</p>
+          <% } else { %>
+
+            <!-- Filter toggle -->
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-primary active" id="filter-availability" onclick="setFilter('availability')">By Availability</button>
+                <button type="button" class="btn btn-outline-secondary" id="filter-lecturer" onclick="setFilter('lecturer')">By Lecturer</button>
+              </div>
+              <select class="form-select form-select-sm w-auto" id="lecturer-select" style="display:none" onchange="filterByLecturer(this.value)">
+                <option value="">All lecturers</option>
+                <%
+                  const lecturerSet = {};
+                  for (const d of calendarDays) {
+                    for (const slot of (availabilityByDay[d] || [])) {
+                      lecturerSet[slot.staff_number] = slot.lecturer_name;
+                    }
+                  }
+                %>
+                <% Object.entries(lecturerSet).forEach(([sn, name]) => { %>
+                  <option value="<%= sn %>"><%= name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <% if (noHolidaysInWindow) { %>
+              <p class="text-muted mb-2" style="font-size:0.75rem;">🚪 No public holidays in the next 10 days — all doors are fully operational.</p>
+            <% } %>
+
+            <!-- Course colour legend -->
+            <% if (Object.keys(colourMap).length > 0) { %>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <% Object.entries(colourMap).forEach(([code, colour]) => { %>
+                <span class="badge rounded-pill" style="background-color:<%= colour %>; font-size:0.75rem;"><%= code %></span>
+              <% }) %>
+            </div>
+            <% } %>
+
+            <%
+              const holidayMap = {};
+              (publicHolidays || []).forEach(h => { holidayMap[h.date] = h.localName; });
+            %>
+
+            <!-- Week 1 -->
+            <%
+              const fmtWk = ds => new Date(ds + 'T12:00:00Z').toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+              const week1Label = calendarDays.length >= 5 ? `${fmtWk(calendarDays[0])} – ${fmtWk(calendarDays[4])}` : '';
+              const week2Label = calendarDays.length >= 10 ? `${fmtWk(calendarDays[5])} – ${fmtWk(calendarDays[9])}` : '';
+            %>
+            <div class="fw-semibold text-muted small mb-2"><%= week1Label %></div>
+            <div class="d-flex gap-2 mb-3 calendar-row overflow-auto pb-2">
+              <% calendarDays.slice(0, 5).forEach(dateStr => { %>
+                <%
+                  const isToday = dateStr === today;
+                  const slots = availabilityByDay[dateStr] || [];
+                  const joinable = bookedConsultationsByDay[dateStr] || [];
+                  const d2 = new Date(dateStr + 'T12:00:00Z');
+                  const dayLabel = d2.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+                %>
+                <%
+                  const holidayName = holidayMap[dateStr];
+                  const isHoliday = !!holidayName;
+                %>
+                <div class="day-col card p-2 <%= isToday ? 'today-cell' : '' %>"
+                     <% if (isHoliday) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
+                     data-day-col>
+                  <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
+                    <%= dayLabel %>
+                    <% if (isToday) { %><span class="badge ms-1" style="font-size:0.65rem;background:#064735;color:#fff;">Today</span><% } %>
+                    <% const wx = weatherByDay && weatherByDay[dateStr]; if (wx) { %><span data-bs-toggle="tooltip" title="<%= wx.message %> · <%= wx.maxTemp %>°C" style="cursor:default;"><%= wx.icon %></span><% } %>
+                  </div>
+                  <% if (isHoliday) { %>
+                    <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName %></div>
+                    <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
+                  <% } else { %>
+                    <% if (slots.length === 0 && joinable.length === 0) { %>
+                      <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+                    <% } %>
+                    <% slots.forEach(slot => { %>
+                      <%
+                        const isPast = dateStr < today || (isToday && slot.end_time <= currentTimeStr);
+                        const isStartPast = isToday && slot.start_time <= currentTimeStr;
+                      %>
+                      <div class="avail-slot <%= isPast ? 'past-slot' : '' %>"
+                           style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
+                           data-staff="<%= slot.staff_number %>">
+                        <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
+                        <div><%= slot.start_time %>–<%= slot.end_time %></div>
+                        <div class="text-muted"><%= slot.lecturer_name %></div>
+                        <% if (!isPast) { %>
+                          <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
+                             class="btn stu-btn-green btn-xs mt-1 d-block text-center"
+                             data-testid="schedule-btn">Schedule</a>
+                        <% } else { %>
+                          <span class="text-muted" style="font-size:0.7rem;">Past</span>
+                        <% } %>
+                      </div>
+                    <% }) %>
+                    <% joinable.forEach(con => { %>
+                      <div class="avail-slot" style="background-color:#fff0d9; border-left-color:#f57c00;" data-staff="<%= con.lecturer_id %>">
+                        <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
+                        <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
+                        <div class="text-muted"><%= con.lecturer_name %></div>
+                        <div class="text-muted"><%= con.attendeeCount %>/<%= con.max_number_of_students %> joined</div>
+                        <a href="/consultations/<%= con.const_id %>/join"
+                           class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                      </div>
+                    <% }) %>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+
+            <!-- Week 2 -->
+            <div class="fw-semibold text-muted small mb-2"><%= week2Label %></div>
+            <div class="d-flex gap-2 calendar-row overflow-auto pb-2">
+              <% calendarDays.slice(5, 10).forEach(dateStr => { %>
+                <%
+                  const isToday2 = dateStr === today;
+                  const slots2 = availabilityByDay[dateStr] || [];
+                  const joinable2 = bookedConsultationsByDay[dateStr] || [];
+                  const d3 = new Date(dateStr + 'T12:00:00Z');
+                  const dayLabel2 = d3.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+                %>
+                <%
+                  const holidayName2 = holidayMap[dateStr];
+                  const isHoliday2 = !!holidayName2;
+                %>
+                <div class="day-col card p-2 <%= isToday2 ? 'today-cell' : '' %>"
+                     <% if (isHoliday2) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
+                     data-day-col>
+                  <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
+                    <%= dayLabel2 %>
+                    <% const wx2 = weatherByDay && weatherByDay[dateStr]; if (wx2) { %><span data-bs-toggle="tooltip" title="<%= wx2.message %> · <%= wx2.maxTemp %>°C" style="cursor:default;"><%= wx2.icon %></span><% } %>
+                  </div>
+                  <% if (isHoliday2) { %>
+                    <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName2 %></div>
+                    <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
+                  <% } else { %>
+                    <% if (slots2.length === 0 && joinable2.length === 0) { %>
+                      <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
+                    <% } %>
+                    <% slots2.forEach(slot => { %>
+                      <%
+                        const isPast2 = dateStr < today;
+                      %>
+                      <div class="avail-slot <%= isPast2 ? 'past-slot' : '' %>"
+                           style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
+                           data-staff="<%= slot.staff_number %>">
+                        <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
+                        <div><%= slot.start_time %>–<%= slot.end_time %></div>
+                        <div class="text-muted"><%= slot.lecturer_name %></div>
+                        <% if (!isPast2) { %>
+                          <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
+                             class="btn stu-btn-green btn-xs mt-1 d-block text-center"
+                             data-testid="schedule-btn">Schedule</a>
+                        <% } %>
+                      </div>
+                    <% }) %>
+                    <% joinable2.forEach(con => { %>
+                      <div class="avail-slot" style="background-color:#fff0d9; border-left-color:#f57c00;" data-staff="<%= con.lecturer_id %>">
+                        <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
+                        <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
+                        <div class="text-muted"><%= con.lecturer_name %></div>
+                        <a href="/consultations/<%= con.const_id %>/join"
+                           class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                      </div>
+                    <% }) %>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+
+          <% } %>
+        </div>
+        <% } %>
+
+      <% } %>
+
+      <!-- ══ UPCOMING CONSULTATIONS ══ -->
+      <% if (currentPage === 'upcoming') { %>
+
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3 stu-card-heading">Upcoming Consultations</h5>
+          <% if (upcomingConsultations.length === 0) { %>
+            <div class="kk-empty">
+              <i class="bi bi-calendar-x"></i>
+              <p class="mb-0">You have no upcoming consultations. Time to book one!</p>
+            </div>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <caption class="visually-hidden">Your upcoming consultations, sorted by soonest first</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Lecturer</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Venue</th>
+                    <th scope="col">Attendees</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% upcomingConsultations.forEach(c => { %>
+                    <tr>
+                      <td><a href="/consultations/<%= c.const_id %>" class="text-decoration-none"><%= c.consultation_title %></a></td>
+                      <td><%= c.lecturer_name || 'Unknown' %></td>
+                      <td class="text-nowrap"><%= c.consultation_date %></td>
+                      <td class="text-nowrap"><%= c.consultation_time %></td>
+                      <td><%= c.venue %></td>
+                      <td><span class="badge bg-secondary"><%= c.attendeeCount %>/<%= c.max_number_of_students %></span></td>
+                      <td>
+                        <span class="badge <%=
+                          c.status === 'Available' ? 'bg-success' :
+                          c.status === 'Booked'    ? 'bg-primary' : 'bg-warning text-dark'
+                        %>"><%= c.status %></span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
             </div>
           <% } %>
-        <% }); %>
+        </div>
+
       <% } %>
-    </div>
 
-    <!-- Find a Consultation — 10-day calendar -->
-    <% if (calendarDays && calendarDays.length > 0) { %>
-    <div class="card p-4 mb-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Find a Consultation</h4>
-      </div>
+      <!-- ══ SETTINGS ══ -->
+      <% if (currentPage === 'settings') { %>
 
-      <% if (enrolledCourses.length === 0) { %>
-        <p class="text-muted mb-0">Enrol in courses to see lecturer availability here.</p>
-      <% } else { %>
+        <div class="mb-4">
+          <h2 class="kk-greeting mb-1">Settings</h2>
+          <p class="kk-greeting-sub">Your profile information.</p>
+        </div>
 
-        <!-- Filter toggle -->
-        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-          <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-primary active" id="filter-availability" onclick="setFilter('availability')">By Availability</button>
-            <button type="button" class="btn btn-outline-secondary" id="filter-lecturer" onclick="setFilter('lecturer')">By Lecturer</button>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="card p-4">
+              <h5 class="fw-bold mb-4">Profile</h5>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-muted small">Name</label>
+                <p class="mb-0 fw-semibold"><%= user.name || '—' %></p>
+              </div>
+              <hr class="my-3">
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-muted small">Student Number</label>
+                <p class="mb-0 fw-semibold"><%= user.id || '—' %></p>
+              </div>
+              <hr class="my-3">
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-muted small">Programme</label>
+                <p class="mb-0 fw-semibold"><%= degreeName || '—' %></p>
+              </div>
+
+              <div class="alert mt-3 mb-0" style="background:var(--kk-green-light);border-color:var(--kk-sage);color:var(--kk-green);font-size:0.875rem;">
+                <i class="bi bi-info-circle me-2"></i>
+                To update your profile details, contact your system administrator.
+              </div>
+            </div>
           </div>
-          <select class="form-select form-select-sm w-auto" id="lecturer-select" style="display:none" onchange="filterByLecturer(this.value)">
-            <option value="">All lecturers</option>
-            <%
-              const lecturerSet = {};
-              for (const d of calendarDays) {
-                for (const slot of (availabilityByDay[d] || [])) {
-                  lecturerSet[slot.staff_number] = slot.lecturer_name;
-                }
-              }
-            %>
-            <% Object.entries(lecturerSet).forEach(([sn, name]) => { %>
-              <option value="<%= sn %>"><%= name %></option>
-            <% }) %>
-          </select>
         </div>
 
-        <% if (noHolidaysInWindow) { %>
-          <p class="text-muted mb-2" style="font-size:0.75rem;">🚪 No public holidays in the next 10 days — all doors are fully operational.</p>
-        <% } %>
+      <% } %>
 
-        <!-- Course colour legend -->
-        <% if (Object.keys(colourMap).length > 0) { %>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <% Object.entries(colourMap).forEach(([code, colour]) => { %>
-            <span class="badge rounded-pill" style="background-color:<%= colour %>; font-size:0.75rem;"><%= code %></span>
-          <% }) %>
-        </div>
-        <% } %>
+      <!-- ══ PAST CONSULTATIONS ══ -->
+      <% if (currentPage === 'past') { %>
 
-        <%
-          const holidayMap = {};
-          (publicHolidays || []).forEach(h => { holidayMap[h.date] = h.localName; });
-        %>
-
-        <!-- Week 1 -->
-        <%
-          const fmtWk = ds => new Date(ds + 'T12:00:00Z').toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-          const week1Label = calendarDays.length >= 5 ? `${fmtWk(calendarDays[0])} – ${fmtWk(calendarDays[4])}` : '';
-          const week2Label = calendarDays.length >= 10 ? `${fmtWk(calendarDays[5])} – ${fmtWk(calendarDays[9])}` : '';
-        %>
-        <div class="fw-semibold text-muted small mb-2"><%= week1Label %></div>
-        <div class="d-flex gap-2 mb-3 calendar-row overflow-auto pb-2">
-          <% calendarDays.slice(0, 5).forEach(dateStr => { %>
-            <%
-              const isToday = dateStr === today;
-              const slots = availabilityByDay[dateStr] || [];
-              const joinable = bookedConsultationsByDay[dateStr] || [];
-              const d2 = new Date(dateStr + 'T12:00:00Z');
-              const dayLabel = d2.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-            %>
-            <%
-              const holidayName = holidayMap[dateStr];
-              const isHoliday = !!holidayName;
-            %>
-            <div class="day-col card p-2 <%= isToday ? 'today-cell' : '' %>"
-                 <% if (isHoliday) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
-                 data-day-col>
-              <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
-                <%= dayLabel %>
-                <% if (isToday) { %><span class="badge bg-primary ms-1" style="font-size:0.65rem;">Today</span><% } %>
-                <% const wx = weatherByDay && weatherByDay[dateStr]; if (wx) { %><span data-bs-toggle="tooltip" title="<%= wx.message %> · <%= wx.maxTemp %>°C" style="cursor:default;"><%= wx.icon %></span><% } %>
-              </div>
-              <% if (isHoliday) { %>
-                <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName %></div>
-                <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
-              <% } else { %>
-                <% if (slots.length === 0 && joinable.length === 0) { %>
-                  <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
-                <% } %>
-                <% slots.forEach(slot => { %>
-                  <%
-                    const isPast = dateStr < today || (isToday && slot.end_time <= currentTimeStr);
-                    const isStartPast = isToday && slot.start_time <= currentTimeStr;
-                  %>
-                  <div class="avail-slot <%= isPast ? 'past-slot' : '' %>"
-                       style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                       data-staff="<%= slot.staff_number %>">
-                    <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
-                    <div><%= slot.start_time %>–<%= slot.end_time %></div>
-                    <div class="text-muted"><%= slot.lecturer_name %></div>
-                    <% if (!isPast) { %>
-                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
-                         class="btn btn-primary btn-xs mt-1 d-block text-center"
-                         data-testid="schedule-btn">Schedule</a>
-                    <% } else { %>
-                      <span class="text-muted" style="font-size:0.7rem;">Past</span>
-                    <% } %>
-                  </div>
-                <% }) %>
-                <% joinable.forEach(con => { %>
-                  <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
-                    <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
-                    <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
-                    <div class="text-muted"><%= con.lecturer_name %></div>
-                    <div class="text-muted"><%= con.attendeeCount %>/<%= con.max_number_of_students %> joined</div>
-                    <a href="/consultations/<%= con.const_id %>/join"
-                       class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
-                  </div>
-                <% }) %>
-              <% } %>
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3 stu-card-heading">Past Consultations</h5>
+          <% if (pastConsultations.length === 0) { %>
+            <div class="kk-empty">
+              <i class="bi bi-clock-history"></i>
+              <p class="mb-0">No past consultations yet.</p>
             </div>
-          <% }) %>
-        </div>
-
-        <!-- Week 2 -->
-        <div class="fw-semibold text-muted small mb-2"><%= week2Label %></div>
-        <div class="d-flex gap-2 calendar-row overflow-auto pb-2">
-          <% calendarDays.slice(5, 10).forEach(dateStr => { %>
-            <%
-              const isToday2 = dateStr === today;
-              const slots2 = availabilityByDay[dateStr] || [];
-              const joinable2 = bookedConsultationsByDay[dateStr] || [];
-              const d3 = new Date(dateStr + 'T12:00:00Z');
-              const dayLabel2 = d3.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-            %>
-            <%
-              const holidayName2 = holidayMap[dateStr];
-              const isHoliday2 = !!holidayName2;
-            %>
-            <div class="day-col card p-2 <%= isToday2 ? 'today-cell' : '' %>"
-                 <% if (isHoliday2) { %>style="background-color:#fff3cd; border: 1px solid #ffc107 !important;"<% } %>
-                 data-day-col>
-              <div class="fw-semibold small mb-1 text-center" style="font-size:0.8rem;">
-                <%= dayLabel2 %>
-                <% const wx2 = weatherByDay && weatherByDay[dateStr]; if (wx2) { %><span data-bs-toggle="tooltip" title="<%= wx2.message %> · <%= wx2.maxTemp %>°C" style="cursor:default;"><%= wx2.icon %></span><% } %>
-              </div>
-              <% if (isHoliday2) { %>
-                <div class="text-center mt-1" style="font-size:0.75rem; color:#856404; font-weight:600;">🏖️ <%= holidayName2 %></div>
-                <div class="text-center mt-1" style="font-size:0.7rem; color:#856404;">Public holiday</div>
-              <% } else { %>
-                <% if (slots2.length === 0 && joinable2.length === 0) { %>
-                  <div class="text-muted text-center" style="font-size:0.75rem;">No availability</div>
-                <% } %>
-                <% slots2.forEach(slot => { %>
-                  <%
-                    const isPast2 = dateStr < today;
-                  %>
-                  <div class="avail-slot <%= isPast2 ? 'past-slot' : '' %>"
-                       style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                       data-staff="<%= slot.staff_number %>">
-                    <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
-                    <div><%= slot.start_time %>–<%= slot.end_time %></div>
-                    <div class="text-muted"><%= slot.lecturer_name %></div>
-                    <% if (!isPast2) { %>
-                      <a href="/consultations/new?staffNumber=<%= slot.staff_number %>&availabilityId=<%= slot.availability_id %>&date=<%= dateStr %>"
-                         class="btn btn-primary btn-xs mt-1 d-block text-center"
-                         data-testid="schedule-btn">Schedule</a>
-                    <% } %>
-                  </div>
-                <% }) %>
-                <% joinable2.forEach(con => { %>
-                  <div class="avail-slot" style="background-color:#fff3cd; border-left-color:#ffc107;" data-staff="<%= con.lecturer_id %>">
-                    <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
-                    <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
-                    <div class="text-muted"><%= con.lecturer_name %></div>
-                    <a href="/consultations/<%= con.const_id %>/join"
-                       class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
-                  </div>
-                <% }) %>
-              <% } %>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <caption class="visually-hidden">Your past consultations</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Lecturer</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Attendees</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pastConsultations.forEach(c => { %>
+                    <tr>
+                      <td><a href="/consultations/<%= c.const_id %>" class="text-decoration-none"><%= c.consultation_title %></a></td>
+                      <td><%= c.lecturer_name || 'Unknown' %></td>
+                      <td class="text-nowrap"><%= c.consultation_date %></td>
+                      <td class="text-nowrap"><%= c.consultation_time %></td>
+                      <td><span class="badge bg-secondary"><%= c.attendeeCount %>/<%= c.max_number_of_students %></span></td>
+                      <td><span class="badge bg-secondary"><%= c.status %></span></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
             </div>
-          <% }) %>
+          <% } %>
         </div>
 
       <% } %>
+
     </div>
-    <% } %>
+  </div>
 
-    <!-- Upcoming -->
-    <div class="card p-4">
-      <h4>Upcoming Consultations</h4>
-      <% if (upcomingConsultations.length === 0) { %>
-        <p class="text-muted mb-0">You have no upcoming consultations. Time to book one!</p>
-      <% } else { %>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <caption class="visually-hidden">Your upcoming consultations, sorted by soonest first</caption>
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Lecturer</th>
-                <th scope="col">Date</th>
-                <th scope="col">Time</th>
-                <th scope="col">Venue</th>
-                <th scope="col">Attendees</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% upcomingConsultations.forEach(c => { %>
-                <tr>
-                  <td><a href="/consultations/<%= c.const_id %>" class="text-decoration-none"><%= c.consultation_title %></a></td>
-                  <td><%= c.lecturer_name || 'Unknown' %></td>
-                  <td class="text-nowrap"><%= c.consultation_date %></td>
-                  <td class="text-nowrap"><%= c.consultation_time %></td>
-                  <td><%= c.venue %></td>
-                  <td>
-                    <span class="badge bg-secondary">
-                      <%= c.attendeeCount %>/<%= c.max_number_of_students %>
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge <%=
-                      c.status === 'Available' ? 'bg-success' :
-                      c.status === 'Booked'    ? 'bg-primary' : 'bg-warning text-dark'
-                    %>"><%= c.status %></span>
-                  </td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
-    </div>
-
-    <!-- Past -->
-    <div class="card p-4 mt-4">
-      <h4>Past Consultations</h4>
-      <% if (pastConsultations.length === 0) { %>
-        <p class="text-muted mb-0">No past consultations yet.</p>
-      <% } else { %>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <caption class="visually-hidden">Your past consultations</caption>
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Lecturer</th>
-                <th scope="col">Date</th>
-                <th scope="col">Time</th>
-                <th scope="col">Attendees</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% pastConsultations.forEach(c => { %>
-                <tr>
-                  <td><a href="/consultations/<%= c.const_id %>" class="text-decoration-none"><%= c.consultation_title %></a></td>
-                  <td><%= c.lecturer_name || 'Unknown' %></td>
-                  <td class="text-nowrap"><%= c.consultation_date %></td>
-                  <td class="text-nowrap"><%= c.consultation_time %></td>
-                  <td>
-                    <span class="badge bg-secondary">
-                      <%= c.attendeeCount %>/<%= c.max_number_of_students %>
-                    </span>
-                  </td>
-                  <td><span class="badge bg-secondary"><%= c.status %></span></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
-    </div>
-
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function setFilter(mode) {
-      const btnAvail = document.getElementById('filter-availability');
-      const btnLec = document.getElementById('filter-lecturer');
-      const sel = document.getElementById('lecturer-select');
-      if (mode === 'availability') {
-        btnAvail.classList.add('btn-primary', 'active');
-        btnAvail.classList.remove('btn-outline-secondary');
-        btnLec.classList.remove('btn-primary', 'active');
-        btnLec.classList.add('btn-outline-secondary');
-        sel.style.display = 'none';
-        showAllSlots();
-      } else {
-        btnLec.classList.add('btn-primary', 'active');
-        btnLec.classList.remove('btn-outline-secondary');
-        btnAvail.classList.remove('btn-primary', 'active');
-        btnAvail.classList.add('btn-outline-secondary');
-        sel.style.display = '';
-        filterByLecturer(sel.value);
-      }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function setFilter(mode) {
+    const btnAvail = document.getElementById('filter-availability');
+    const btnLec = document.getElementById('filter-lecturer');
+    const sel = document.getElementById('lecturer-select');
+    if (mode === 'availability') {
+      btnAvail.classList.add('btn-primary', 'active');
+      btnAvail.classList.remove('btn-outline-secondary');
+      btnLec.classList.remove('btn-primary', 'active');
+      btnLec.classList.add('btn-outline-secondary');
+      sel.style.display = 'none';
+      showAllSlots();
+    } else {
+      btnLec.classList.add('btn-primary', 'active');
+      btnLec.classList.remove('btn-outline-secondary');
+      btnAvail.classList.remove('btn-primary', 'active');
+      btnAvail.classList.add('btn-outline-secondary');
+      sel.style.display = '';
+      filterByLecturer(sel.value);
     }
+  }
 
-    function showAllSlots() {
-      document.querySelectorAll('.avail-slot').forEach(el => el.style.display = '');
-    }
+  function showAllSlots() {
+    document.querySelectorAll('.avail-slot').forEach(el => el.style.display = '');
+  }
 
-    function filterByLecturer(staffNumber) {
-      document.querySelectorAll('.avail-slot').forEach(el => {
-        el.style.display = (!staffNumber || el.dataset.staff === staffNumber) ? '' : 'none';
-      });
-    }
+  function filterByLecturer(staffNumber) {
+    document.querySelectorAll('.avail-slot').forEach(el => {
+      el.style.display = (!staffNumber || el.dataset.staff === staffNumber) ? '' : 'none';
+    });
+  }
 
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-  </script>
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+</script>
 </body>
 </html>

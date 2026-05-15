@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — KnockKnock.prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock.prof</div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+    <span class="text-muted small"><%= user.name %> (Lecturer)</span>
+  </header>
+
+  <div class="d-flex" style="min-height: calc(100vh - 62px)">
+
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/lecturer/dashboard"     class="table-link d-flex align-items-center gap-2 mb-1"><i class="bi bi-house-door"></i> Dashboard</a>
+      <a href="/lecturer/consultations" class="table-link"><i class="bi bi-calendar-check me-1"></i>Consultations</a>
+      <a href="/lecturer/availability"  class="table-link"><i class="bi bi-clock me-1"></i>Availability</a>
+      <a href="/lecturer/courses"       class="table-link"><i class="bi bi-journal-text me-1"></i>My Courses</a>
+      <a href="/lecturer/settings"      class="table-link active"><i class="bi bi-gear me-1"></i>Settings</a>
+
+      <hr style="border-color:var(--kk-border);margin:1rem 0 0.5rem;">
+      <form action="/logout" method="POST">
+        <button type="submit" class="table-link w-100 text-start border-0 bg-transparent">
+          <i class="bi bi-box-arrow-left me-1"></i> Logout
+        </button>
+      </form>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-grow-1 p-4" style="background:var(--kk-cream);min-width:0;">
+
+      <div class="mb-4">
+        <h2 class="kk-greeting mb-1">Settings</h2>
+        <p class="kk-greeting-sub">Your profile information.</p>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger" role="alert"><%= error %></div>
+      <% } %>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-4">Profile</h5>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">Name</label>
+              <p class="mb-0 fw-semibold"><%= profile.name || '—' %></p>
+            </div>
+            <hr class="my-3">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">Staff Number</label>
+              <p class="mb-0 fw-semibold"><%= profile.staff_number || '—' %></p>
+            </div>
+            <hr class="my-3">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">Email</label>
+              <p class="mb-0 fw-semibold"><%= profile.email || '—' %></p>
+            </div>
+            <hr class="my-3">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">Department</label>
+              <p class="mb-0 fw-semibold"><%= profile.dept_code || profile.department || '—' %></p>
+            </div>
+
+            <div class="alert mt-3 mb-0" style="background:var(--kk-green-light);border-color:var(--kk-sage);color:var(--kk-green);font-size:0.875rem;">
+              <i class="bi bi-info-circle me-2"></i>
+              To update your profile details, contact your system administrator.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
