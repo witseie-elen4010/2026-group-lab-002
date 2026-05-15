@@ -55,4 +55,18 @@ describe('logAdminAudit()', () => {
     expect(oldArg).toBeNull();
     expect(newArg).toBeNull();
   });
+
+  test('passes oldData as JSON and null for newData when only oldData is provided (DELETE case)', () => {
+    const oldData = { dept_code: 'ENG', dept_name: 'Engineering' };
+    logAdminAudit({ adminId: 'ADMIN001', action: 'DELETE', tableName: 'departments', rowId: 5, oldData });
+
+    const [,,,,oldArg, newArg] = mockRun.mock.calls[0];
+    expect(oldArg).toBe(JSON.stringify(oldData));
+    expect(newArg).toBeNull();
+  });
+
+  test('throws if action is not INSERT, UPDATE, or DELETE', () => {
+    expect(() => logAdminAudit({ adminId: 'ADMIN001', action: 'DROP', tableName: 'students', rowId: 1 }))
+      .toThrow('invalid action');
+  });
 });
