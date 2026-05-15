@@ -20,7 +20,7 @@ test('student can book a consultation via the 10-day calendar', async ({ page })
 
   await page.waitForURL('**/student/dashboard**');
   await page.goto('/student/dashboard?view=find');
-  await expect(page.locator('text=Find a Consultation')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Find a Consultation' })).toBeVisible();
 
   const scheduleBtn = page.locator('[data-testid="schedule-btn"]').first();
   await expect(scheduleBtn).toBeVisible();
