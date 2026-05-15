@@ -44,9 +44,16 @@ const getInputTypes = (columns) => {
 const showAdminDashboard = (req, res) => {
   const user = { id: req.session.userId, name: req.session.userName }
   const tables = getAllTables()
+  const stats = {
+    students: db.prepare('SELECT COUNT(*) as n FROM students').get().n,
+    staff: db.prepare('SELECT COUNT(*) as n FROM staff').get().n,
+    consultations: db.prepare('SELECT COUNT(*) as n FROM consultations').get().n,
+    availability: db.prepare('SELECT COUNT(*) as n FROM lecturer_availability').get().n
+  }
   res.render('admin-dashboard', {
     user,
     tables,
+    stats,
     activeTable: null,
     columns: [],
     rows: [],
