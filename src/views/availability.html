@@ -106,7 +106,7 @@
                   name="max_number_of_students" min="1" max="10" value="1" required>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100">Save Slot</button>
+              <button type="submit" class="btn btn-primary w-100" data-testid="save-slot-btn">Save Slot</button>
             </form>
           </div>
         </div>
@@ -121,7 +121,7 @@
               </div>
             <% } else { %>
               <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" data-testid="availability-table">
                   <caption class="visually-hidden">Your current availability slots</caption>
                   <thead style="background:var(--kk-green-light);">
                     <tr>
