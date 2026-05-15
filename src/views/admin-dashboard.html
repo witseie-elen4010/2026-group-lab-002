@@ -5,16 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - KnockKnock.prof</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
   <style>
-    body { background: #f5f7fb; }
-    .topbar { border-bottom: 1px solid #dde2e6; background: #fff; }
-    .brand { font-size: 1.5rem; font-weight: 700; }
-    .sidebar { background: #fff; border-right: 1px solid #dde2e6; min-height: calc(100vh - 62px); }
-    .table-link { display: block; padding: 7px 14px; color: #444; text-decoration: none; border-radius: 8px; font-size: 0.9rem; }
-    .table-link:hover { background: #f0f4ff; color: #1a73e8; }
-    .table-link.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
-    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: none; }
     td, th { white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Brand ── */
+    .adm-brand-orange { color: #f57c00; }
+
+    /* ── Topbar logout ── */
+    .adm-btn-logout {
+      background: transparent;
+      color: #064735;
+      border: 1.5px solid #064735;
+      border-radius: 6px;
+      padding: 5px 16px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: 0.2s ease;
+      cursor: pointer;
+    }
+    .adm-btn-logout:hover {
+      background: #fff0d9;
+      border-color: #f57c00;
+      color: #f57c00;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar .table-link         { color: #064735; }
+    .sidebar .table-link:hover   { background: #dff5e3; color: #064735; }
+    .sidebar .table-link.active  {
+      background: #064735;
+      color: #fff;
+      font-weight: 600;
+      border-left: 3px solid #f57c00;
+      padding-left: 11px;
+      position: relative;
+    }
+    .sidebar .table-link.active::after {
+      content: '';
+      position: absolute;
+      right: 10px; top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #f57c00;
+    }
+    .adm-nav-label {
+      font-size: 0.63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #667085;
+      margin: 0.85rem 0 0.25rem;
+      padding: 0 2px;
+      display: block;
+    }
+
+    /* ── Page background ── */
+    .adm-main { background: #fbf7ef; }
+
+    /* ── Heading ── */
+    .adm-heading-green  { color: #064735; }
+    .adm-heading-orange { color: #f57c00; }
+
+    /* ── Stat cards ── */
+    .adm-stat-green  { border-top: 4px solid #064735 !important; }
+    .adm-stat-orange { border-top: 4px solid #f57c00 !important; }
+
+    .adm-stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 0.75rem;
+    }
+    .adm-stat-icon-green  { background: #dff5e3; }
+    .adm-stat-icon-orange { background: #fff0d9; }
+
+    .adm-val-green  { color: #064735 !important; }
+    .adm-val-orange { color: #f57c00 !important; }
+
+    /* ── Section title ── */
+    .adm-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #667085;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Management card icons ── */
+    .adm-mgmt-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .adm-mgmt-icon-green  { background: #dff5e3; }
+    .adm-mgmt-icon-orange { background: #fff0d9; }
+
+    .adm-card-title { color: #064735; margin-bottom: 0; }
+
+    /* ── Chip nav buttons ── */
+    .adm-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1.5px solid #064735;
+      color: #064735;
+      background: transparent;
+      text-decoration: none;
+      transition: 0.2s ease;
+    }
+    .adm-chip:hover {
+      background: #fff0d9;
+      border-color: #f57c00;
+      color: #f57c00;
+    }
   </style>
 </head>
 <body>
@@ -27,11 +140,17 @@ function formatCol(name) {
 }
 %>
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <div class="brand">Knock Knock, Admin</div>
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock<span class="adm-brand-orange">.prof</span></div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
     <div class="d-flex align-items-center gap-3">
       <span class="text-muted small"><%= user.name %> (Admin)</span>
       <form action="/logout" method="POST" class="d-inline">
-        <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+        <button type="submit" class="adm-btn-logout">Logout</button>
       </form>
     </div>
   </header>
@@ -39,15 +158,33 @@ function formatCol(name) {
   <div class="d-flex" style="min-height: calc(100vh - 62px)">
 
     <!-- Sidebar -->
-    <div class="sidebar p-3" style="width: 210px; min-width: 210px;">
-      <p class="text-muted text-uppercase small fw-bold mb-2" style="font-size:0.7rem; letter-spacing:.05em;">Tables</p>
-      <% tables.forEach(function(t) { %>
-        <a href="/admin/table/<%= t %>" class="table-link <%= activeTable === t ? 'active' : '' %>"><%= formatCol(t) %></a>
-      <% }); %>
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/admin/dashboard" class="table-link d-flex align-items-center gap-2 mb-1 <%= !activeTable ? 'active' : '' %>">
+        <i class="bi bi-house-door"></i> Home
+      </a>
+
+      <span class="adm-nav-label">Users</span>
+      <a href="/admin/table/admins"   class="table-link <%= activeTable === 'admins'   ? 'active' : '' %>"><i class="bi bi-shield-check me-1"></i>Admins</a>
+      <a href="/admin/table/students" class="table-link <%= activeTable === 'students' ? 'active' : '' %>"><i class="bi bi-people me-1"></i>Students</a>
+      <a href="/admin/table/staff"    class="table-link <%= activeTable === 'staff'    ? 'active' : '' %>"><i class="bi bi-person-badge me-1"></i>Staff</a>
+
+      <span class="adm-nav-label">Academic</span>
+      <a href="/admin/table/courses"      class="table-link <%= activeTable === 'courses'      ? 'active' : '' %>"><i class="bi bi-journal-text me-1"></i>Courses</a>
+      <a href="/admin/table/degrees"      class="table-link <%= activeTable === 'degrees'      ? 'active' : '' %>"><i class="bi bi-mortarboard me-1"></i>Degrees</a>
+      <a href="/admin/table/departments"  class="table-link <%= activeTable === 'departments'  ? 'active' : '' %>"><i class="bi bi-building me-1"></i>Departments</a>
+      <a href="/admin/table/enrollments"  class="table-link <%= activeTable === 'enrollments'  ? 'active' : '' %>"><i class="bi bi-card-list me-1"></i>Enrollments</a>
+      <a href="/admin/table/staff_courses" class="table-link <%= activeTable === 'staff_courses' ? 'active' : '' %>"><i class="bi bi-link-45deg me-1"></i>Staff Courses</a>
+
+      <span class="adm-nav-label">Consultations</span>
+      <a href="/admin/table/consultations"          class="table-link <%= activeTable === 'consultations'          ? 'active' : '' %>"><i class="bi bi-calendar-event me-1"></i>Consultations</a>
+      <a href="/admin/table/consultation_attendees" class="table-link <%= activeTable === 'consultation_attendees' ? 'active' : '' %>"><i class="bi bi-person-lines-fill me-1"></i>Attendees</a>
+
+      <span class="adm-nav-label">Availability</span>
+      <a href="/admin/table/lecturer_availability" class="table-link <%= activeTable === 'lecturer_availability' ? 'active' : '' %>"><i class="bi bi-clock-history me-1"></i>Lecturer Availability</a>
     </div>
 
     <!-- Main -->
-    <div class="flex-grow-1 p-4">
+    <div class="flex-grow-1 p-4 adm-main">
 
       <% if (error) { %>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -64,6 +201,84 @@ function formatCol(name) {
 
       <% if (activeTable) { %>
 
+        <% if (activeTable === 'consultations') { %>
+
+        <!-- ── Consultations custom view ── -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Consultations</h4>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Record</button>
+        </div>
+
+        <form class="d-flex gap-2 mb-2" method="GET" action="/admin/table/consultations">
+          <input type="text" class="form-control form-control-sm" name="search"
+            value="<%= search %>" placeholder="Search consultations...">
+          <button type="submit" class="btn btn-primary btn-sm px-3">Search</button>
+          <% if (search) { %>
+            <a href="/admin/table/consultations" class="btn btn-outline-secondary btn-sm">Clear</a>
+          <% } %>
+        </form>
+        <% if (search) { %>
+          <p class="text-muted small mb-2"><%= totalRows %> result<%= totalRows !== 1 ? 's' : '' %> for "<%= search %>"</p>
+        <% } %>
+
+        <div class="card p-0 mb-3" style="overflow:hidden;">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" style="min-width:640px;">
+              <thead style="background:var(--kk-green-light);">
+                <tr>
+                  <th class="ps-4 py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Title</th>
+                  <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Date &amp; Time</th>
+                  <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Lecturer</th>
+                  <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Organiser</th>
+                  <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Duration</th>
+                  <th class="py-3 pe-4" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;width:195px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% rows.forEach(function(row) { %>
+                  <tr>
+                    <td class="ps-4 py-3" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= row.consultation_title %>">
+                      <span class="badge me-1 <%=
+                        row.status === 'Booked'    ? 'bg-primary' :
+                        row.status === 'Ongoing'   ? 'bg-warning text-dark' :
+                        row.status === 'Cancelled' ? 'bg-secondary' : 'bg-success'
+                      %>" style="font-size:0.68rem;"><%= row.status %></span>
+                      <span class="fw-semibold"><%= row.consultation_title %></span>
+                    </td>
+                    <td class="py-3" style="white-space:nowrap;font-size:0.875rem;"><%= row.consultation_date %> <span class="text-muted">at</span> <%= row.consultation_time %></td>
+                    <td class="py-3 text-muted" style="white-space:nowrap;font-size:0.875rem;"><%= row.lecturer_id %></td>
+                    <td class="py-3 text-muted" style="white-space:nowrap;font-size:0.875rem;"><%= row.organiser %></td>
+                    <td class="py-3 text-muted" style="white-space:nowrap;font-size:0.875rem;"><%= row.duration_min %> min</td>
+                    <td class="py-3 pe-4" style="white-space:nowrap;">
+                      <button class="btn btn-sm me-1 view-details-btn"
+                        style="background:var(--kk-green-light);color:var(--kk-green);border:none;"
+                        data-row="<%= JSON.stringify(row) %>">
+                        <i class="bi bi-eye"></i> View
+                      </button>
+                      <button class="btn btn-outline-primary btn-sm me-1 edit-btn"
+                        data-row="<%= JSON.stringify(row) %>"
+                        data-rowid="<%= row.rowid %>">Edit</button>
+                      <button class="btn btn-outline-danger btn-sm delete-btn"
+                        data-rowid="<%= row.rowid %>">Del</button>
+                    </td>
+                  </tr>
+                <% }); %>
+                <% if (rows.length === 0) { %>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                      <i class="bi bi-calendar-x d-block fs-3 mb-2 opacity-50"></i>
+                      <%= search ? 'No consultations match your search.' : 'No consultations yet.' %>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <% } else { %>
+
+        <!-- ── Generic table ── -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0"><%= formatCol(activeTable) %></h4>
           <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Record</button>
@@ -81,24 +296,27 @@ function formatCol(name) {
           <p class="text-muted small mb-2"><%= totalRows %> result<%= totalRows !== 1 ? 's' : '' %> for "<%= search %>"</p>
         <% } %>
 
-        <div class="bg-white rounded-3 shadow-sm mb-3">
+        <div class="card p-0 mb-3" style="overflow:hidden;">
           <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0">
-              <thead class="table-light">
+            <table class="table table-hover mb-0">
+              <thead style="background:var(--kk-green-light);">
                 <tr>
                   <% columns.forEach(function(col) { %>
-                    <th title="<%= col.name %> · <%= col.type %>"><%= formatCol(col.name) %><% if (col.pk) { %> <span class="text-muted" style="font-size:.7rem">PK</span><% } %></th>
+                    <th class="ps-4 py-3" title="<%= col.name %> · <%= col.type %>"
+                        style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">
+                      <%= formatCol(col.name) %><% if (col.pk) { %> <span style="opacity:.5;font-size:.65rem;">PK</span><% } %>
+                    </th>
                   <% }); %>
-                  <th style="width:120px">Actions</th>
+                  <th class="py-3 pe-4" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;width:130px;">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% rows.forEach(function(row) { %>
                   <tr>
                     <% columns.forEach(function(col) { %>
-                      <td title="<%= row[col.name] %>"><%= row[col.name] %></td>
+                      <td class="ps-4 py-3" style="font-size:0.875rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= row[col.name] %>"><%= row[col.name] %></td>
                     <% }); %>
-                    <td>
+                    <td class="py-3 pe-4" style="white-space:nowrap;">
                       <button class="btn btn-outline-primary btn-sm me-1 edit-btn"
                         data-row="<%= JSON.stringify(row) %>"
                         data-rowid="<%= row.rowid %>">Edit</button>
@@ -111,13 +329,18 @@ function formatCol(name) {
                 <% }); %>
                 <% if (rows.length === 0) { %>
                   <tr>
-                    <td colspan="<%= columns.length + 1 %>" class="text-center text-muted py-4"><%= search ? 'No records match your search.' : 'No records in this table.' %></td>
+                    <td colspan="<%= columns.length + 1 %>" class="text-center text-muted py-5">
+                      <i class="bi bi-inbox d-block fs-3 mb-2 opacity-50"></i>
+                      <%= search ? 'No records match your search.' : 'No records in this table.' %>
+                    </td>
                   </tr>
                 <% } %>
               </tbody>
             </table>
           </div>
         </div>
+
+        <% } %>
 
         <% if (totalPages > 1) { %>
           <nav>
@@ -223,18 +446,122 @@ function formatCol(name) {
           </div>
         </div>
 
-      <% } else { %>
-
-        <h2 class="mb-4">Admin Dashboard</h2>
-        <div class="row g-4 mb-4">
-          <div class="col-md-4">
-            <div class="card p-4 text-center">
-              <h3 class="fw-bold mb-1"><%= tables.length %></h3>
-              <p class="text-muted small mb-0">Database Tables</p>
+        <!-- View Details Modal (consultations) -->
+        <div class="modal fade" id="viewDetailsModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header" style="background:var(--kk-green-light);">
+                <h5 class="modal-title" style="color:var(--kk-green);">Consultation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4" id="viewDetailsBody"></div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
             </div>
           </div>
         </div>
-        <p class="text-muted">Select a table from the sidebar to view and manage its records.</p>
+
+      <% } else { %>
+
+        <!-- ── Home view ── -->
+        <div class="mb-4">
+          <h2 class="fw-bold mb-1">
+            <span class="adm-heading-green">Knock Knock,</span>
+            <span class="adm-heading-orange"> Admin.</span>
+          </h2>
+          <p class="text-muted">Welcome back, <%= user.name %>. Here's what's in the system.</p>
+        </div>
+
+        <div class="row g-3 mb-5">
+          <div class="col-6 col-md-3">
+            <div class="kk-stat adm-stat-green">
+              <div class="adm-stat-icon adm-stat-icon-green">🎓</div>
+              <div class="kk-stat-value adm-val-green"><%= stats.students %></div>
+              <div class="kk-stat-label">Students</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat adm-stat-orange">
+              <div class="adm-stat-icon adm-stat-icon-orange">👨‍🏫</div>
+              <div class="kk-stat-value adm-val-orange"><%= stats.staff %></div>
+              <div class="kk-stat-label">Staff / Lecturers</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat adm-stat-green">
+              <div class="adm-stat-icon adm-stat-icon-green">📅</div>
+              <div class="kk-stat-value adm-val-green"><%= stats.consultations %></div>
+              <div class="kk-stat-label">Consultations</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="kk-stat adm-stat-orange">
+              <div class="adm-stat-icon adm-stat-icon-orange">⏰</div>
+              <div class="kk-stat-value adm-val-orange"><%= stats.availability %></div>
+              <div class="kk-stat-label">Availability Slots</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="adm-section-title">Management Areas</p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="adm-mgmt-icon adm-mgmt-icon-green">👥</div>
+                <h5 class="adm-card-title">Users</h5>
+              </div>
+              <p class="text-muted small mb-3">Manage admin accounts, student records, and lecturer staff.</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="/admin/table/students" class="adm-chip">Students</a>
+                <a href="/admin/table/staff"    class="adm-chip">Staff</a>
+                <a href="/admin/table/admins"   class="adm-chip">Admins</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="adm-mgmt-icon adm-mgmt-icon-orange">📚</div>
+                <h5 class="adm-card-title">Academic Records</h5>
+              </div>
+              <p class="text-muted small mb-3">Departments, degrees, courses, enrollments, and teaching assignments.</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="/admin/table/courses"     class="adm-chip">Courses</a>
+                <a href="/admin/table/departments" class="adm-chip">Departments</a>
+                <a href="/admin/table/enrollments" class="adm-chip">Enrollments</a>
+                <a href="/admin/table/degrees"     class="adm-chip">Degrees</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="adm-mgmt-icon adm-mgmt-icon-green">🗓️</div>
+                <h5 class="adm-card-title">Consultations</h5>
+              </div>
+              <p class="text-muted small mb-3">View all booked consultations and manage attendee records.</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="/admin/table/consultations"          class="adm-chip">Consultations</a>
+                <a href="/admin/table/consultation_attendees" class="adm-chip">Attendees</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="adm-mgmt-icon adm-mgmt-icon-orange">🕒</div>
+                <h5 class="adm-card-title">Availability</h5>
+              </div>
+              <p class="text-muted small mb-3">Manage lecturer availability windows for student bookings.</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="/admin/table/lecturer_availability" class="adm-chip">Lecturer Availability</a>
+                <a href="/admin/table/staff_courses"         class="adm-chip">Staff Courses</a>
+              </div>
+            </div>
+          </div>
+        </div>
 
       <% } %>
     </div>
@@ -336,6 +663,35 @@ function formatCol(name) {
 
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', () => openDelete(btn.dataset.rowid));
+    });
+
+    document.querySelectorAll('.view-details-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = JSON.parse(btn.dataset.row);
+        const fields = [
+          ['ID',              row.const_id],
+          ['Title',           row.consultation_title],
+          ['Description',     row.consultation_description || '—'],
+          ['Date',            row.consultation_date],
+          ['Time',            row.consultation_time],
+          ['Duration',        row.duration_min != null ? row.duration_min + ' min' : '—'],
+          ['Venue',           row.venue],
+          ['Status',          row.status],
+          ['Max Students',    row.max_number_of_students],
+          ['Allow Join',      row.allow_join ? 'Yes' : 'No'],
+          ['Lecturer ID',     row.lecturer_id],
+          ['Organiser',       row.organiser],
+          ['Availability ID', row.availability_id],
+        ];
+        document.getElementById('viewDetailsBody').innerHTML =
+          '<dl class="row mb-0">' +
+          fields.map(([label, val]) =>
+            `<dt class="col-sm-4 text-muted fw-normal small py-1">${label}</dt>` +
+            `<dd class="col-sm-8 fw-semibold py-1 mb-0">${val != null ? val : '—'}</dd>`
+          ).join('') +
+          '</dl>';
+        new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+      });
     });
   </script>
 </body>

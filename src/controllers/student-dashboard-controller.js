@@ -186,6 +186,7 @@ const showStudentDashboard = async (req, res) => {
       publicHolidays,
       noHolidaysInWindow,
       weatherByDay,
+      activePage: req.query.view || 'dashboard',
     });
 
   } catch (err) {
@@ -207,6 +208,7 @@ const showStudentDashboard = async (req, res) => {
       publicHolidays: [],
       noHolidaysInWindow: false,
       weatherByDay: {},
+      activePage: 'dashboard',
     });
   }
 };
