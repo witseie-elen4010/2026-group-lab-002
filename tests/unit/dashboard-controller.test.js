@@ -30,14 +30,10 @@ const mockRes = () => {
 describe('showLecturerDashboard()', () => {
   beforeEach(() => db.prepare.mockReset());
 
-  test('computes stats from Available slots only, ignoring Booked and Ongoing', async () => {
-    const rows = [
-      { consultation_date: '2026-05-01', consultation_time: '09:00', duration_min: 60, status: 'Available' },
-      { consultation_date: '2026-05-01', consultation_time: '10:00', duration_min: 60, status: 'Booked' },
-      { consultation_date: '2026-05-02', consultation_time: '09:00', duration_min: 120, status: 'Available' },
-    ];
+  test('computes stats from lecturer_availability', async () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ daysAvailable: 2, hoursAvailable: 3 }) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
 
@@ -45,16 +41,14 @@ describe('showLecturerDashboard()', () => {
     await showLecturerDashboard(mockReq(), res);
 
     expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
-      stats: { daysAvailable: 2, hoursAvailable: 3, totalSlots: 2 },
+      stats: { daysAvailable: 2, hoursAvailable: 3 },
     }));
   });
 
-  test('returns zero stats when there are no Available slots', async () => {
-    const rows = [
-      { consultation_date: '2026-05-01', consultation_time: '09:00', duration_min: 60, status: 'Booked' },
-    ];
+  test('returns zero stats when lecturer_availability is empty', async () => {
     db.prepare
-      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(rows) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ daysAvailable: 0, hoursAvailable: 0 }) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
 
@@ -62,7 +56,7 @@ describe('showLecturerDashboard()', () => {
     await showLecturerDashboard(mockReq(), res);
 
     expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
-      stats: { daysAvailable: 0, hoursAvailable: 0, totalSlots: 0 },
+      stats: { daysAvailable: 0, hoursAvailable: 0 },
     }));
   });
 
@@ -77,7 +71,7 @@ describe('showLecturerDashboard()', () => {
 
     expect(res.render).toHaveBeenCalledWith('lecturer-dashboard', expect.objectContaining({
       upcomingConsultations: [],
-      stats: { daysAvailable: 0, hoursAvailable: 0, totalSlots: 0 },
+      stats: { daysAvailable: 0, hoursAvailable: 0 },
       error: 'Could not load dashboard data. Please try again.',
     }));
   });
@@ -89,6 +83,7 @@ describe('showLecturerDashboard()', () => {
     ];
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ daysAvailable: 0, hoursAvailable: 0 }) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(courses) });
 
@@ -103,6 +98,7 @@ describe('showLecturerDashboard()', () => {
   test('passes assignedCourses as empty array when the lecturer has no courses', async () => {
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ daysAvailable: 0, hoursAvailable: 0 }) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) });
 
@@ -118,6 +114,7 @@ describe('showLecturerDashboard()', () => {
     const coursesQuery = jest.fn().mockReturnValue([]);
     db.prepare
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ daysAvailable: 0, hoursAvailable: 0 }) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue([]) })
       .mockReturnValueOnce({ all: coursesQuery });
 

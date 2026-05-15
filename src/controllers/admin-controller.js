@@ -39,8 +39,14 @@ const getInputTypes = (columns) => {
 const showAdminDashboard = (req, res) => {
   const user = { id: req.session.userId, name: req.session.userName };
   const tables = getAllTables();
+  const stats = {
+    students:      db.prepare(`SELECT COUNT(*) as n FROM students`).get().n,
+    staff:         db.prepare(`SELECT COUNT(*) as n FROM staff`).get().n,
+    consultations: db.prepare(`SELECT COUNT(*) as n FROM consultations`).get().n,
+    availability:  db.prepare(`SELECT COUNT(*) as n FROM lecturer_availability`).get().n,
+  };
   res.render('admin-dashboard', {
-    user, tables,
+    user, tables, stats,
     activeTable: null, columns: [], rows: [], page: 1, totalPages: 1, totalRows: 0, search: '',
     fkOptions: {}, inputTypes: {}, error: null, success: null,
   });
@@ -73,7 +79,7 @@ const showTable = (req, res) => {
   const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
 
   res.render('admin-dashboard', {
-    user, tables,
+    user, tables, stats: null,
     activeTable: tableName, columns, rows, page, totalPages, totalRows, search, fkOptions, inputTypes,
     error: req.query.error || null,
     success: req.query.success || null,
@@ -102,7 +108,7 @@ const createRecord = (req, res) => {
     const rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" LIMIT ?`).all(PAGE_SIZE);
     res.render('admin-dashboard', {
       user: { id: req.session.userId, name: req.session.userName },
-      tables, activeTable: tableName, columns, rows, page: 1, totalPages, totalRows, search: '',
+      tables, stats: null, activeTable: tableName, columns, rows, page: 1, totalPages, totalRows, search: '',
       fkOptions, inputTypes, error: friendlyError(err.message), success: null,
     });
   }

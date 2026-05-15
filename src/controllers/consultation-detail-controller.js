@@ -89,12 +89,31 @@ const joinConsultation = (req, res) => {
   return res.redirect('/student/dashboard?success=Successfully+joined+consultation');
 };
 
-const cancelConsultationTodo = (req, res) => {
-  return res.redirect(`/consultations/${req.params.constId}?error=Cancel+not+yet+implemented`);
+const cancelConsultation = (req, res) => {
+  const user = getStudentUser(req);
+  const { constId } = req.params;
+
+  const consultation = db.prepare('SELECT * FROM consultations WHERE const_id = ?').get(constId);
+
+  if (!consultation) {
+    return res.redirect('/student/dashboard?error=Consultation+not+found');
+  }
+
+  if (consultation.organiser !== user.id) {
+    return res.redirect(`/consultations/${constId}?error=Only+the+organiser+can+cancel+this+consultation`);
+  }
+
+  if (consultation.status === 'Cancelled') {
+    return res.redirect(`/consultations/${constId}?error=Consultation+is+already+cancelled`);
+  }
+
+  db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
+
+  return res.redirect('/student/dashboard?success=Consultation+cancelled+successfully');
 };
 
 const leaveConsultationTodo = (req, res) => {
   return res.redirect(`/consultations/${req.params.constId}?error=Leave+not+yet+implemented`);
 };
 
-module.exports = { showConsultationDetail, joinConsultation, cancelConsultationTodo, leaveConsultationTodo };
+module.exports = { showConsultationDetail, joinConsultation, cancelConsultation, leaveConsultationTodo };
