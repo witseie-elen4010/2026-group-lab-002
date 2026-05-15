@@ -382,8 +382,9 @@
                         <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
                         <div class="text-muted"><%= con.lecturer_name %></div>
                         <div class="text-muted"><%= con.attendeeCount %>/<%= con.max_number_of_students %> joined</div>
-                        <a href="/consultations/<%= con.const_id %>/join"
-                           class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                        <form method="POST" action="/consultations/<%= con.const_id %>/join">
+                          <button type="submit" class="btn btn-warning btn-xs mt-1 d-block text-center text-dark w-100">Join</button>
+                        </form>
                       </div>
                     <% }) %>
                   <% } %>
@@ -442,8 +443,9 @@
                         <div class="fw-semibold" style="font-size:0.75rem;"><%= con.consultation_title %></div>
                         <div><%= con.consultation_time %> (<%= con.duration_min %>min)</div>
                         <div class="text-muted"><%= con.lecturer_name %></div>
-                        <a href="/consultations/<%= con.const_id %>/join"
-                           class="btn btn-warning btn-xs mt-1 d-block text-center text-dark">Join</a>
+                        <form method="POST" action="/consultations/<%= con.const_id %>/join">
+                          <button type="submit" class="btn btn-warning btn-xs mt-1 d-block text-center text-dark w-100">Join</button>
+                        </form>
                       </div>
                     <% }) %>
                   <% } %>

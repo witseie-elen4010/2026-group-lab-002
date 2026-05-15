@@ -6,9 +6,11 @@ jest.mock('../../database/db', () => ({
   transaction: jest.fn()
 }))
 jest.mock('../../src/services/logging-service', () => ({ logActivity: jest.fn().mockResolvedValue(true) }))
+jest.mock('../../src/services/admin-audit-service', () => ({ logAdminAudit: jest.fn() }))
 
 const db = require('../../database/db')
 const { logActivity } = require('../../src/services/logging-service')
+const { logAdminAudit } = require('../../src/services/admin-audit-service')
 
 const mockReq = (overrides = {}) => ({
   session: { userId: 'ADMIN001', userName: 'System Admin' },
@@ -27,12 +29,13 @@ const mockRes = () => {
   return res
 }
 
-const TABLES = [{ name: 'admins' }, { name: 'courses' }, { name: 'departments' }]
+const TABLES = [{ name: 'admins' }, { name: 'courses' }, { name: 'departments' }, { name: 'admin_audit_log' }]
 const COLUMNS = [
   { cid: 0, name: 'admin_id', type: 'TEXT', notnull: 1, dflt_value: null, pk: 1 },
   { cid: 1, name: 'name', type: 'TEXT', notnull: 1, dflt_value: null, pk: 0 }
 ]
 const ROWS = [{ rowid: 1, admin_id: 'ADMIN001', name: 'System Admin' }]
+const EXISTING_ROW = { rowid: 1, admin_id: 'ADMIN001', name: 'System Admin' }
 const NO_FK = []
 
 const setupSmartMock = (scenario = 'default') => {
@@ -45,7 +48,6 @@ const setupSmartMock = (scenario = 'default') => {
       run: jest.fn().mockReturnValue({ lastInsertRowid: 1, changes: 1 })
     }
 
-    // Safely route data
     if (q.includes('sqlite_master')) {
       stmt.all.mockReturnValue(TABLES)
       stmt.get.mockReturnValue(TABLES[0])
@@ -68,7 +70,6 @@ const setupSmartMock = (scenario = 'default') => {
       }
     }
 
-    // Inject Errors
     if (scenario === 'insert-error' && q.includes('insert')) {
       stmt.run.mockImplementation(() => { throw new Error('UNIQUE constraint failed') })
     } else if (scenario === 'update-error' && q.includes('update')) {
@@ -84,6 +85,7 @@ const setupSmartMock = (scenario = 'default') => {
 beforeEach(() => {
   db.prepare.mockReset()
   logActivity.mockClear()
+  logAdminAudit.mockClear()
   db.transaction.mockImplementation((fn) => (...args) => fn(...args))
   setupSmartMock('default')
 })
@@ -96,7 +98,7 @@ describe('showAdminDashboard', () => {
     await showAdminDashboard(req, res)
 
     expect(res.render).toHaveBeenCalledWith('admin-dashboard', expect.objectContaining({
-      tables: ['admins', 'courses', 'departments'],
+      tables: ['admins', 'courses', 'departments', 'admin_audit_log'],
       activeTable: null,
       columns: [],
       rows: []
@@ -147,21 +149,49 @@ describe('showTable', () => {
 
 describe('createRecord', () => {
   test('redirects to the table view on successful insert', async () => {
-    setupSmartMock('insert-success')
-
     const req = mockReq({
       params: { tableName: 'admins' },
       body: { admin_id: 'ADMIN002', name: 'New Admin' }
     })
     const res = mockRes()
 
-    try {
-      await createRecord(req, res)
-    } catch (e) {
-      console.error('CONTROLLER CRASHED:', e)
-    }
+    await createRecord(req, res)
 
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?success=Record+added')
+  })
+
+  test('calls logAdminAudit with INSERT action after a successful insert', async () => {
+    const req = mockReq({
+      params: { tableName: 'courses' },
+      body: { course_code: 'CS101', course_name: 'Intro to CS' }
+    })
+
+    await createRecord(req, mockRes())
+
+    expect(logAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      adminId: 'ADMIN001',
+      action: 'INSERT',
+      tableName: 'courses',
+      rowId: 1
+    }))
+  })
+
+  test('blocks inserts into admin_audit_log', async () => {
+    const req = mockReq({ params: { tableName: 'admin_audit_log' }, body: {} })
+    const res = mockRes()
+
+    await createRecord(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admin_audit_log?error=This+table+is+read-only')
+    expect(logAdminAudit).not.toHaveBeenCalled()
+  })
+
+  test('does not call logAdminAudit when the insert fails', async () => {
+    setupSmartMock('insert-error')
+
+    await createRecord(mockReq({ params: { tableName: 'admins' }, body: { admin_id: 'ADMIN001' } }), mockRes())
+
+    expect(logAdminAudit).not.toHaveBeenCalled()
   })
 
   test('re-renders with friendly error message when the insert fails', async () => {
@@ -184,7 +214,6 @@ describe('createRecord', () => {
 
 describe('updateRecord', () => {
   test('redirects to the table view on successful update', async () => {
-    setupSmartMock('default')
     const req = mockReq({
       params: { tableName: 'admins', rowId: '1' },
       body: { name: 'Updated Name' }
@@ -194,6 +223,49 @@ describe('updateRecord', () => {
     await updateRecord(req, res)
 
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?success=Record+updated')
+  })
+
+  test('calls logAdminAudit with UPDATE action, oldData and newData', async () => {
+    const req = mockReq({
+      params: { tableName: 'admins', rowId: '1' },
+      body: { name: 'Updated Name' }
+    })
+
+    await updateRecord(req, mockRes())
+
+    expect(logAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      adminId: 'ADMIN001',
+      action: 'UPDATE',
+      tableName: 'admins',
+      rowId: '1',
+      oldData: EXISTING_ROW,
+      newData: { name: 'Updated Name' }
+    }))
+  })
+
+  test('returns Record not found when the row does not exist', async () => {
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(COLUMNS) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+
+    const req = mockReq({ params: { tableName: 'admins', rowId: '999' }, body: { name: 'X' } })
+    const res = mockRes()
+
+    await updateRecord(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?error=Record+not+found')
+    expect(logAdminAudit).not.toHaveBeenCalled()
+  })
+
+  test('blocks updates to admin_audit_log', async () => {
+    const req = mockReq({ params: { tableName: 'admin_audit_log', rowId: '1' }, body: {} })
+    const res = mockRes()
+
+    await updateRecord(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admin_audit_log?error=This+table+is+read-only')
+    expect(logAdminAudit).not.toHaveBeenCalled()
   })
 
   test('redirects with friendly error when the update fails', async () => {
@@ -215,7 +287,6 @@ describe('updateRecord', () => {
 
 describe('deleteRecord', () => {
   test('redirects to the table view on successful delete', async () => {
-    setupSmartMock('default')
     const req = mockReq({ params: { tableName: 'courses', rowId: '1' } })
     const res = mockRes()
 
@@ -224,14 +295,51 @@ describe('deleteRecord', () => {
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/courses?success=Record+deleted')
   })
 
+  test('calls logAdminAudit with DELETE action and oldData', async () => {
+    const req = mockReq({ params: { tableName: 'courses', rowId: '1' } })
+
+    await deleteRecord(req, mockRes())
+
+    expect(logAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      adminId: 'ADMIN001',
+      action: 'DELETE',
+      tableName: 'courses',
+      rowId: '1',
+      oldData: EXISTING_ROW
+    }))
+  })
+
   test('blocks deletion of admin accounts', async () => {
-    setupSmartMock('default')
     const req = mockReq({ params: { tableName: 'admins', rowId: '1' } })
     const res = mockRes()
 
     await deleteRecord(req, res)
 
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admins?error=Admin+accounts+cannot+be+deleted')
+  })
+
+  test('blocks deletion of admin_audit_log entries', async () => {
+    const req = mockReq({ params: { tableName: 'admin_audit_log', rowId: '1' } })
+    const res = mockRes()
+
+    await deleteRecord(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/admin_audit_log?error=Audit+log+entries+cannot+be+deleted')
+    expect(logAdminAudit).not.toHaveBeenCalled()
+  })
+
+  test('returns Record not found when the row does not exist', async () => {
+    db.prepare
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+
+    const req = mockReq({ params: { tableName: 'courses', rowId: '999' } })
+    const res = mockRes()
+
+    await deleteRecord(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/courses?error=Record+not+found')
+    expect(logAdminAudit).not.toHaveBeenCalled()
   })
 
   test('redirects with friendly error when a foreign key constraint prevents deletion', async () => {
