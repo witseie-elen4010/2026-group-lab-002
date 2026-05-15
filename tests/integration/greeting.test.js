@@ -111,8 +111,8 @@ describe('Login greeting message (Issue #64)', () => {
       .send({ staffStudentNumber: 'A999001', password: 'testpass' });
 
     const res = await agent.get('/lecturer/dashboard');
-    expect(res.text).toContain('Upcoming Consultations');
-    expect(res.text).toContain('Availability Overview');
+    expect(res.text).toContain("Today's Consultations");
+    expect(res.text).toContain('Calendar');
   });
 
 });

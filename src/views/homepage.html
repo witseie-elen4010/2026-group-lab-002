@@ -1,91 +1,840 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KnockKnock.prof | Open the door to better consultations</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
   <style>
-  @keyframes doorOpen {
-    from { opacity: 0; transform: scale(0.97) translateY(10px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0); }
-  }
-  main { animation: doorOpen 0.5s ease-out; }
-</style>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KnockKnock.prof</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background: #f5f7fb; }
-    .topbar { background: #212529; }
-    .brand { font-size: 1.5rem; font-weight: 700; color: #fff; }
-    .card { border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: none; }
-    .hero-title { font-size: 2.6rem; font-weight: 800; line-height: 1.15; }
-    .hero-tagline { font-size: 1.1rem; font-weight: 600; }
+    :root {
+      --kk-green:        #1e7d3c;
+      --kk-green-mid:    #27a34f;
+      --kk-green-light:  #5dc982;
+      --kk-green-pale:   #dff5ea;
+      --kk-orange:       #f05f00;
+      --kk-orange-mid:   #f97316;
+      --kk-orange-light: #fdba74;
+      --kk-orange-pale:  #fff0e5;
+      --kk-cream:        #fbf8f3;
+      --kk-white:        #ffffff;
+      --kk-dark:         #182b1e;
+      --kk-muted:        #5a7262;
+    }
+
+    body {
+      overflow-x: hidden;
+      background: var(--kk-cream);
+    }
+
+    .homepage {
+      color: var(--kk-dark);
+      background: var(--kk-cream);
+      min-height: 100vh;
+    }
+
+    .homepage-brand,
+    .homepage-hero-title,
+    .homepage-section-title,
+    .homepage-cta-title,
+    .homepage-step-title,
+    .homepage-step-number,
+    .homepage-calendar-label {
+      font-weight: 800;
+    }
+
+    .homepage a {
+      text-decoration: none;
+    }
+
+    .homepage-nav {
+      background: var(--kk-white);
+      border-bottom: 2px solid var(--kk-green-pale);
+      min-height: 76px;
+      z-index: 200;
+    }
+
+    .homepage-logo-door {
+      width: 52px;
+      height: 52px;
+      background: var(--kk-green);
+      border-radius: 14px 14px 6px 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 14px rgba(30, 125, 60, 0.25);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .homepage-logo-door::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 6px;
+      background: #b8732c;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .homepage-brand {
+      font-size: 1.5rem;
+      line-height: 1;
+      color: var(--kk-dark);
+    }
+
+    .homepage-brand span {
+      color: var(--kk-orange);
+    }
+
+    .homepage-subtitle {
+      font-size: 0.72rem;
+      color: var(--kk-muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-top: 1px;
+    }
+
+    .homepage-nav .nav-link {
+      color: var(--kk-muted);
+      font-weight: 800;
+      font-size: 0.92rem;
+      padding-bottom: 4px;
+    }
+
+    .homepage-nav .nav-link.active,
+    .homepage-nav .nav-link:hover {
+      color: var(--kk-dark);
+    }
+
+    .homepage-btn-outline {
+      border: 2px solid #d8d3cb;
+      color: var(--kk-dark);
+      background: transparent;
+      padding: 9px 24px;
+      border-radius: 8px;
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+
+    .homepage-btn-outline:hover {
+      border-color: var(--kk-green-mid);
+      background: var(--kk-green-pale);
+      color: var(--kk-dark);
+    }
+
+    .homepage-btn-primary {
+      background: var(--kk-orange);
+      color: #ffffff;
+      border: 0;
+      padding: 12px 30px;
+      border-radius: 12px;
+      font-weight: 900;
+      box-shadow: 0 6px 20px rgba(240, 95, 0, 0.35);
+      transition: 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .homepage-btn-primary:hover {
+      background: #d45300;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(240, 95, 0, 0.45);
+    }
+
+    .homepage-hero {
+      min-height: calc(100vh - 76px);
+      position: relative;
+      overflow: hidden;
+      padding: 72px 0 56px;
+    }
+
+    .homepage-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .homepage-blob-one {
+      width: 520px;
+      height: 520px;
+      background: var(--kk-green-mid);
+      top: -160px;
+      right: -60px;
+    }
+
+    .homepage-blob-two {
+      width: 360px;
+      height: 360px;
+      background: var(--kk-orange);
+      bottom: -120px;
+      left: -120px;
+    }
+
+    .homepage-trust-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--kk-white);
+      border: 1.5px solid var(--kk-green-pale);
+      border-radius: 50px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 900;
+      color: var(--kk-green);
+      margin-bottom: 26px;
+      box-shadow: 0 2px 10px rgba(30, 125, 60, 0.08);
+    }
+
+    .homepage-hero-title {
+      font-size: clamp(3rem, 6vw, 4.4rem);
+      line-height: 1.05;
+      margin-bottom: 12px;
+      color: var(--kk-dark);
+    }
+
+    .homepage-hero-title .homepage-orange-line {
+      display: inline-block;
+      color: var(--kk-orange);
+      position: relative;
+    }
+
+    .homepage-hero-title .homepage-orange-line::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3Cpath d='M0 5 Q15 0 30 5 Q45 10 60 5 Q75 0 90 5 Q105 10 120 5' fill='none' stroke='%23FDBA74' stroke-width='3'/%3E%3C/svg%3E") repeat-x;
+      background-size: 120px 10px;
+    }
+
+    .homepage-knock-dots {
+      display: flex;
+      gap: 6px;
+      margin: 20px 0;
+    }
+
+    .homepage-knock-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--kk-orange);
+      animation: homepage-knock-pulse 1s ease-in-out infinite;
+    }
+
+    .homepage-knock-dot:nth-child(2) {
+      animation-delay: 0.15s;
+      background: var(--kk-orange-mid);
+    }
+
+    .homepage-knock-dot:nth-child(3) {
+      animation-delay: 0.3s;
+      background: var(--kk-orange-light);
+    }
+
+    @keyframes homepage-knock-pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.5); }
+    }
+
+    .homepage-hero-text {
+      color: var(--kk-muted);
+      font-size: 1.08rem;
+      line-height: 1.75;
+      max-width: 500px;
+      font-weight: 700;
+      margin-bottom: 34px;
+    }
+
+    .homepage-art {
+      position: relative;
+      width: min(420px, 100%);
+      height: 460px;
+      margin-inline: auto;
+    }
+
+    .homepage-calendar {
+      position: absolute;
+      top: 30px;
+      right: 0;
+      width: min(340px, 88vw);
+      height: 320px;
+      background: var(--kk-white);
+      border-radius: 20px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.1);
+      border: 2.5px solid var(--kk-green-pale);
+      overflow: hidden;
+      animation: homepage-float-calendar 6s ease-in-out infinite;
+    }
+
+    @keyframes homepage-float-calendar {
+      0%, 100% { transform: translateY(0) rotate(1deg); }
+      50%       { transform: translateY(-14px) rotate(-1deg); }
+    }
+
+    .homepage-calendar-rings {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      height: 28px;
+      background: var(--kk-green);
+      padding: 0 24px;
+    }
+
+    .homepage-ring {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid var(--kk-cream);
+      background: var(--kk-green);
+    }
+
+    .homepage-calendar-body {
+      padding: 14px 18px;
+    }
+
+    .homepage-calendar-label {
+      font-size: 1rem;
+      color: var(--kk-green);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .homepage-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .homepage-day {
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #888888;
+    }
+
+    .homepage-day-header {
+      color: var(--kk-muted);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
+
+    .homepage-day-active    { background: var(--kk-green); color: #ffffff; }
+    .homepage-day-available { background: var(--kk-orange-pale); color: var(--kk-orange); }
+
+    .homepage-floating-card {
+      position: absolute;
+      top: 0;
+      left: 10px;
+      background: var(--kk-white);
+      border-radius: 16px;
+      padding: 12px 18px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 4px solid var(--kk-green);
+      z-index: 10;
+      min-width: 220px;
+      animation: homepage-card-float 5s ease-in-out infinite;
+    }
+
+    @keyframes homepage-card-float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    .homepage-floating-title    { font-weight: 900; font-size: 0.82rem; color: var(--kk-dark); }
+    .homepage-floating-subtitle { font-size: 0.72rem; color: var(--kk-muted); font-weight: 700; }
+
+    .homepage-status-badge {
+      position: absolute;
+      bottom: 200px;
+      left: 30px;
+      background: var(--kk-orange);
+      color: white;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-weight: 900;
+      font-size: 0.8rem;
+      box-shadow: 0 6px 18px rgba(240, 95, 0, 0.4);
+      animation: homepage-card-float 5s ease-in-out infinite 2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 11;
+    }
+
+    .homepage-door-art {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 130px;
+      height: 190px;
+      animation: homepage-door-float 7s ease-in-out infinite;
+    }
+
+    @keyframes homepage-door-float {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50%       { transform: translateY(-12px) rotate(2deg); }
+    }
+
+    .homepage-door-frame {
+      width: 110px;
+      height: 165px;
+      background: var(--kk-green);
+      border-radius: 38px 38px 6px 6px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(30, 125, 60, 0.3);
+      margin: 0 auto;
+    }
+
+    .homepage-door-panel {
+      position: absolute;
+      inset: 14px 12px;
+      background: #176631;
+      border-radius: 28px 28px 4px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .homepage-door-window {
+      width: 48px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50% 50% 10px 10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .homepage-door-knocker,
+    .homepage-door-knob {
+      border-radius: 50%;
+      background: #b8732c;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .homepage-door-knocker { width: 24px; height: 24px; }
+    .homepage-door-knob    { width: 12px; height: 12px; }
+
+    .homepage-door-step {
+      width: 130px;
+      height: 14px;
+      background: #b8732c;
+      border-radius: 6px;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .homepage-plant {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 3.5rem;
+    }
+
+    .homepage-section {
+      padding: 80px 0 90px;
+      background: var(--kk-white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .homepage-section::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--kk-orange-pale) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .homepage-section::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--kk-green-pale) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .homepage-section-content { position: relative; z-index: 2; }
+
+    .homepage-eyebrow {
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--kk-orange);
+      margin-bottom: 10px;
+    }
+
+    .homepage-section-title,
+    .homepage-cta-title {
+      color: var(--kk-dark);
+    }
+
+    .homepage-section-title { font-size: clamp(2.2rem, 5vw, 2.8rem); }
+
+    .homepage-step-card {
+      background: var(--kk-cream);
+      border-radius: 28px;
+      padding: 40px 30px 36px;
+      text-align: center;
+      border: 2px solid transparent;
+      height: 100%;
+      transition: 0.3s ease;
+    }
+
+    .homepage-step-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(30, 125, 60, 0.12);
+      border-color: var(--kk-green-pale);
+    }
+
+    .homepage-step-number {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: var(--kk-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 1.6rem;
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(30, 125, 60, 0.3);
+    }
+
+    .homepage-step-card:nth-child(2) .homepage-step-number {
+      background: var(--kk-orange);
+      box-shadow: 0 6px 20px rgba(240, 95, 0, 0.3);
+    }
+
+    .homepage-step-card:nth-child(3) .homepage-step-number {
+      background: var(--kk-green-mid);
+    }
+
+    .homepage-step-icon  { font-size: 3.4rem; display: block; margin-bottom: 18px; }
+    .homepage-step-title { font-size: 1.5rem; color: var(--kk-dark); margin-bottom: 10px; }
+
+    .homepage-step-text {
+      font-size: 0.95rem;
+      color: var(--kk-muted);
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .homepage-cta {
+      padding: 90px 0;
+      text-align: center;
+      background: var(--kk-orange-pale);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .homepage-cta::before {
+      content: '';
+      position: absolute;
+      right: -2%;
+      top: -10%;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(240, 95, 0, 0.12), transparent 65%);
+      pointer-events: none;
+    }
+
+    .homepage-cta-title {
+      font-size: clamp(2.4rem, 5vw, 3.2rem);
+      margin-bottom: 26px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .homepage-cta-title span { color: var(--kk-orange); }
+
+    @media (max-width: 991px) {
+      .homepage-nav  { padding: 10px 0; }
+      .homepage-hero { text-align: center; padding-top: 56px; }
+      .homepage-hero-text   { margin-inline: auto; }
+      .homepage-knock-dots  { justify-content: center; }
+      .homepage-art         { margin-top: 40px; }
+    }
+
+    @media (max-width: 575px) {
+      .homepage-logo-door { width: 44px; height: 44px; }
+      .homepage-brand     { font-size: 1.2rem; }
+      .homepage-subtitle  { font-size: 0.65rem; }
+      .homepage-art       { height: 420px; }
+      .homepage-floating-card  { left: 0; min-width: 200px; }
+      .homepage-status-badge   { left: 0; }
+      .homepage-door-art       { left: 0; transform: scale(0.9); }
+      .homepage-plant          { right: 0; }
+    }
   </style>
 </head>
+
 <body>
+  <main class="homepage">
 
-  <header class="topbar px-4 py-3 d-flex justify-content-between align-items-center">
-    <span class="brand d-flex align-items-center gap-2">
-      <img src="/images/logo.svg" alt="KnockKnock.prof logo" height="32" style="filter: brightness(0) invert(1);">
-      KnockKnock.prof
-    </span>
-    <nav class="d-flex align-items-center gap-3">
-      <a href="/" class="text-white text-decoration-none small fw-semibold">Home</a>
-      <% if (user) { %>
-        <% const dashLink = user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard'; %>
-        <a href="<%= dashLink %>" class="btn btn-outline-light btn-sm">Dashboard</a>
-        <form action="/logout" method="POST" class="d-inline m-0">
-          <button type="submit" class="btn btn-light btn-sm">Logout</button>
-        </form>
-      <% } else { %>
-        <a href="/login"   class="btn btn-primary btn-sm">Login</a>
-        <a href="/sign/up" class="btn btn-outline-light btn-sm">Sign Up</a>
-      <% } %>
+    <!-- Nav -->
+    <nav class="navbar navbar-expand-lg sticky-top homepage-nav" aria-label="Main navigation">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-3" href="/">
+          <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" style="width:52px;height:52px;object-fit:contain;">
+          <span>
+            <span class="homepage-brand d-block">KnockKnock<span>.prof</span></span>
+            <span class="homepage-subtitle d-block">Open the door to better consultations</span>
+          </span>
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#homepageNavbar"
+          aria-controls="homepageNavbar"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="homepageNavbar">
+          <ul class="navbar-nav mx-auto mb-3 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#how-it-works">How It Works</a>
+            </li>
+          </ul>
+
+          <div class="d-flex flex-column flex-lg-row gap-2">
+            <% if (user) { %>
+              <% const dashLink = user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard'; %>
+              <a class="homepage-btn-outline text-center" href="<%= dashLink %>">Dashboard</a>
+              <form action="/logout" method="POST" class="m-0">
+                <button type="submit" class="homepage-btn-primary">Logout</button>
+              </form>
+            <% } else { %>
+              <a class="homepage-btn-outline text-center" href="/login">Log In</a>
+              <a class="homepage-btn-primary text-center" href="/sign/up">Sign Up</a>
+            <% } %>
+          </div>
+        </div>
+      </div>
     </nav>
-  </header>
-
-  <main class="container py-5">
 
     <!-- Hero -->
-    <div class="mb-5">
-      <h1 class="hero-title mb-2">KnockKnock.prof</h1>
-      <p class="hero-tagline mb-1">Knock Knock. Who's There? Your Next Consultation.</p>
-      <p class="text-muted">Book and manage consultations between students and lecturers...all in one place.</p>
-    </div>
+    <section class="homepage-hero">
+      <div class="homepage-blob homepage-blob-one"></div>
+      <div class="homepage-blob homepage-blob-two"></div>
 
-    <div class="row g-4 align-items-center">
+      <div class="container position-relative">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-6">
+            <div class="homepage-trust-badge">
+              <span aria-hidden="true">🏫</span>
+              <span>Built for students and lecturers</span>
+            </div>
 
-      <!-- Left: cards -->
-      <div class="col-lg-5 d-flex flex-column gap-3">
+            <h1 class="homepage-hero-title">
+              Knock knock.<br />
+              Who's there?<br />
+              <span class="homepage-orange-line">Your next consultation.</span>
+            </h1>
+
+            <div class="homepage-knock-dots" aria-hidden="true">
+              <span class="homepage-knock-dot"></span>
+              <span class="homepage-knock-dot"></span>
+              <span class="homepage-knock-dot"></span>
+            </div>
+
+            <p class="homepage-hero-text">
+              KnockKnock.prof helps students book group consultations with lecturers, view
+              available slots, and manage academic support in one place.
+            </p>
+
+            <% if (user) { %>
+              <% const heroLink = user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard'; %>
+              <a class="homepage-btn-primary" href="<%= heroLink %>">Go to Dashboard</a>
+            <% } else { %>
+              <a class="homepage-btn-primary" href="/sign/up">Get Started</a>
+            <% } %>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="homepage-art" aria-label="Illustration of a consultation calendar">
+              <div class="homepage-floating-card">
+                <span class="fs-4" aria-hidden="true">📅</span>
+                <span>
+                  <span class="homepage-floating-title d-block">15:00 Consultation</span>
+                  <span class="homepage-floating-subtitle d-block">Available lecturer slot</span>
+                </span>
+              </div>
+
+              <div class="homepage-calendar">
+                <div class="homepage-calendar-rings" aria-hidden="true">
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                  <span class="homepage-ring"></span>
+                </div>
+
+                <div class="homepage-calendar-body">
+                  <div class="homepage-calendar-label">Availability</div>
+
+                  <div class="homepage-calendar-grid" aria-hidden="true">
+                    <span class="homepage-day homepage-day-header">Mo</span>
+                    <span class="homepage-day homepage-day-header">Tu</span>
+                    <span class="homepage-day homepage-day-header">We</span>
+                    <span class="homepage-day homepage-day-header">Th</span>
+                    <span class="homepage-day homepage-day-header">Fr</span>
+                    <span class="homepage-day homepage-day-header">Sa</span>
+                    <span class="homepage-day homepage-day-header">Su</span>
+
+                    <span class="homepage-day"></span>
+                    <span class="homepage-day homepage-day-available">1</span>
+                    <span class="homepage-day homepage-day-available">2</span>
+                    <span class="homepage-day">3</span>
+                    <span class="homepage-day">4</span>
+                    <span class="homepage-day">5</span>
+                    <span class="homepage-day">6</span>
+
+                    <span class="homepage-day">7</span>
+                    <span class="homepage-day homepage-day-active">8</span>
+                    <span class="homepage-day">9</span>
+                    <span class="homepage-day homepage-day-available">10</span>
+                    <span class="homepage-day">11</span>
+                    <span class="homepage-day">12</span>
+                    <span class="homepage-day">13</span>
+
+                    <span class="homepage-day">14</span>
+                    <span class="homepage-day homepage-day-available">15</span>
+                    <span class="homepage-day">16</span>
+                    <span class="homepage-day">17</span>
+                    <span class="homepage-day">18</span>
+                    <span class="homepage-day">19</span>
+                    <span class="homepage-day">20</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="homepage-door-art" aria-hidden="true">
+                <div class="homepage-door-frame">
+                  <div class="homepage-door-panel">
+                    <div class="homepage-door-window">🌿</div>
+                    <div class="homepage-door-knocker"></div>
+                    <div class="homepage-door-knob"></div>
+                  </div>
+                </div>
+                <div class="homepage-door-step"></div>
+              </div>
+
+              <div class="homepage-status-badge">
+                <span aria-hidden="true">🟢</span>
+                <span>Available slot</span>
+              </div>
+
+              <div class="homepage-plant" aria-hidden="true">🌿</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="homepage-section" id="how-it-works">
+      <div class="container homepage-section-content">
+        <div class="text-center mb-5">
+          <div class="homepage-eyebrow">Simple Process</div>
+          <h2 class="homepage-section-title">How it works <span aria-hidden="true">⚡</span></h2>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-4">
+            <article class="homepage-step-card">
+              <div class="homepage-step-number">1</div>
+              <span class="homepage-step-icon" aria-hidden="true">🚪</span>
+              <h3 class="homepage-step-title">Knock</h3>
+              <p class="homepage-step-text">
+                Sign in with the correct role so students and lecturers see the right dashboard.
+              </p>
+            </article>
+          </div>
+
+          <div class="col-md-4">
+            <article class="homepage-step-card">
+              <div class="homepage-step-number">2</div>
+              <span class="homepage-step-icon" aria-hidden="true">🔍</span>
+              <h3 class="homepage-step-title">Find a Slot</h3>
+              <p class="homepage-step-text">
+                Students view lecturer availability and choose a consultation time that fits.
+              </p>
+            </article>
+          </div>
+
+          <div class="col-md-4">
+            <article class="homepage-step-card">
+              <div class="homepage-step-number">3</div>
+              <span class="homepage-step-icon" aria-hidden="true">🎓</span>
+              <h3 class="homepage-step-title">Book and Manage</h3>
+              <p class="homepage-step-text">
+                Create, join, or manage consultations while the system keeps the details organised.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="homepage-cta">
+      <div class="container position-relative">
+        <h2 class="homepage-cta-title">Ready to <span>open the door</span>?</h2>
         <% if (user) { %>
-          <% const dashLink = user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard'; %>
-          <div class="card p-4">
-            <h5 class="fw-bold mb-2">Welcome back, <%= user.name %>!</h5>
-            <p class="text-muted mb-3">Head to your dashboard to manage your consultations.</p>
-            <a href="<%= dashLink %>" class="btn btn-primary w-100">Go to Dashboard</a>
-          </div>
+          <a class="homepage-btn-primary" href="<%= user.role === 'student' ? '/student/dashboard' : '/lecturer/dashboard' %>">Go to Dashboard</a>
         <% } else { %>
-          <div class="card p-4">
-            <h5 class="fw-bold mb-1">New here?</h5>
-            <p class="text-muted mb-3">Create an account to start booking or managing consultations.</p>
-            <a href="/sign/up" class="btn btn-outline-primary w-100">Sign Up</a>
-          </div>
-          <div class="card p-4">
-            <h5 class="fw-bold mb-1">Already have an account?</h5>
-            <p class="text-muted mb-3">Log in to view and manage your consultations.</p>
-            <a href="/login" class="btn btn-primary w-100">Log In</a>
-          </div>
+          <a class="homepage-btn-primary" href="/sign/up">Get Started</a>
         <% } %>
       </div>
-
-      <!-- Right: illustration -->
-      <div class="col-lg-7 text-center">
-        <img src="/images/consultation.svg" alt="Consultation illustration" class="img-fluid" style="max-height: 420px;">
-      </div>
-
-    </div>
+    </section>
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
 </body>
 </html>

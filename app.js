@@ -12,6 +12,7 @@ const lecturerCoursesRoutes = require('./src/routes/lecturer-courses-routes')
 const adminRoutes = require('./src/routes/admin-routes')
 const courseRoutes = require('./src/routes/course-routes')
 const consultationRoutes = require('./src/routes/consultation-routes')
+const { showHomepage } = require('./src/controllers/homepage-controller')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -48,12 +49,7 @@ app.use('/', adminRoutes)
 app.use('/', courseRoutes)
 app.use('/', consultationRoutes)
 
-app.get('/', (req, res) => {
-  const user = req.session && req.session.userId
-    ? { name: req.session.userName, role: req.session.userRole }
-    : null
-  return res.render('homepage', { user })
-})
+app.get('/', showHomepage)
 
 if (require.main === module) {
   app.listen(PORT, () => {

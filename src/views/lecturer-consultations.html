@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultations — KnockKnock.prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock.prof</div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+    <span class="text-muted small"><%= user.name %> (Lecturer)</span>
+  </header>
+
+  <div class="d-flex" style="min-height: calc(100vh - 62px)">
+
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/lecturer/dashboard"     class="table-link d-flex align-items-center gap-2 mb-1"><i class="bi bi-house-door"></i> Dashboard</a>
+      <a href="/lecturer/consultations" class="table-link active"><i class="bi bi-calendar-check me-1"></i>Consultations</a>
+      <a href="/lecturer/availability"  class="table-link"><i class="bi bi-clock me-1"></i>Availability</a>
+      <a href="/lecturer/courses"       class="table-link"><i class="bi bi-journal-text me-1"></i>My Courses</a>
+      <a href="/lecturer/settings"      class="table-link"><i class="bi bi-gear me-1"></i>Settings</a>
+
+      <hr style="border-color:var(--kk-border);margin:1rem 0 0.5rem;">
+      <form action="/logout" method="POST">
+        <button type="submit" class="table-link w-100 text-start border-0 bg-transparent">
+          <i class="bi bi-box-arrow-left me-1"></i> Logout
+        </button>
+      </form>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-grow-1 p-4" style="background:var(--kk-cream);min-width:0;">
+
+      <div class="mb-4">
+        <h2 class="kk-greeting mb-1">My Consultations</h2>
+        <p class="kk-greeting-sub">All your consultations in one place.</p>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-dismissible fade show" style="background:var(--kk-green-light);border-color:var(--kk-sage);color:var(--kk-green);" role="alert">
+          <%= success %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-4" id="consultTabs">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-upcoming">
+            Upcoming <span class="badge bg-primary ms-1"><%= upcoming.length %></span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-past">
+            Past <span class="badge bg-secondary ms-1"><%= past.length %></span>
+          </button>
+        </li>
+        <% if (cancelled.length > 0) { %>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cancelled">
+            Cancelled <span class="badge bg-secondary ms-1"><%= cancelled.length %></span>
+          </button>
+        </li>
+        <% } %>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- Upcoming -->
+        <div class="tab-pane fade show active" id="tab-upcoming">
+          <% if (upcoming.length === 0) { %>
+            <div class="kk-empty">
+              <i class="bi bi-calendar-check"></i>
+              <p class="mb-0">No upcoming consultations.</p>
+            </div>
+          <% } else { %>
+            <div class="card p-0" style="overflow:hidden;">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead style="background:var(--kk-green-light);">
+                    <tr>
+                      <th class="ps-4 py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Title</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Date &amp; Time</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Venue</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Organiser</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Attendees</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Status</th>
+                      <th class="py-3 pe-4" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% upcoming.forEach(c => { %>
+                      <tr>
+                        <td class="ps-4 py-3 fw-semibold" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= c.consultation_title %>"><%= c.consultation_title %></td>
+                        <td class="py-3 text-nowrap"><%= c.consultation_date %> <span class="text-muted">at</span> <%= c.consultation_time %></td>
+                        <td class="py-3 text-muted"><%= c.venue %></td>
+                        <td class="py-3 text-muted"><%= c.organiser_name || '—' %></td>
+                        <td class="py-3">
+                          <span class="kk-chip"><%= c.attendeeCount %>/<%= c.max_number_of_students %></span>
+                        </td>
+                        <td class="py-3">
+                          <span class="badge <%=
+                            c.status === 'Available' ? 'bg-success' :
+                            c.status === 'Booked'    ? 'bg-primary' :
+                            c.status === 'Cancelled' ? 'bg-secondary' : 'bg-warning text-dark'
+                          %>"><%= c.status %></span>
+                        </td>
+                        <td class="py-3 pe-4">
+                          <form method="POST" action="/lecturer/consultations/<%= c.const_id %>/cancel"
+                                onsubmit="return confirm('Cancel this consultation? This cannot be undone.');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                          </form>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Past -->
+        <div class="tab-pane fade" id="tab-past">
+          <% if (past.length === 0) { %>
+            <div class="kk-empty">
+              <i class="bi bi-archive"></i>
+              <p class="mb-0">No past consultations found.</p>
+            </div>
+          <% } else { %>
+            <div class="card p-0" style="overflow:hidden;">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead style="background:var(--kk-green-light);">
+                    <tr>
+                      <th class="ps-4 py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Title</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Date &amp; Time</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Venue</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Organiser</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Attendees</th>
+                      <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% past.forEach(c => { %>
+                      <tr>
+                        <td class="ps-4 py-3 fw-semibold" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= c.consultation_title %>"><%= c.consultation_title %></td>
+                        <td class="py-3 text-nowrap text-muted"><%= c.consultation_date %> <span class="text-muted">at</span> <%= c.consultation_time %></td>
+                        <td class="py-3 text-muted"><%= c.venue %></td>
+                        <td class="py-3 text-muted"><%= c.organiser_name || '—' %></td>
+                        <td class="py-3">
+                          <span class="kk-chip"><%= c.attendeeCount %>/<%= c.max_number_of_students %></span>
+                        </td>
+                        <td class="py-3">
+                          <span class="badge bg-secondary"><%= c.status %></span>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Cancelled -->
+        <% if (cancelled.length > 0) { %>
+        <div class="tab-pane fade" id="tab-cancelled">
+          <div class="card p-0" style="overflow:hidden;">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead style="background:var(--kk-green-light);">
+                  <tr>
+                    <th class="ps-4 py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Title</th>
+                    <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Date &amp; Time</th>
+                    <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Organiser</th>
+                    <th class="py-3" style="color:var(--kk-green);font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Attendees</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% cancelled.forEach(c => { %>
+                    <tr>
+                      <td class="ps-4 py-3 fw-semibold text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= c.consultation_title %></td>
+                      <td class="py-3 text-nowrap text-muted"><%= c.consultation_date %> at <%= c.consultation_time %></td>
+                      <td class="py-3 text-muted"><%= c.organiser_name || '—' %></td>
+                      <td class="py-3">
+                        <span class="kk-chip"><%= c.attendeeCount %>/<%= c.max_number_of_students %></span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

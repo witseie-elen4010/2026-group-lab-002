@@ -7,8 +7,9 @@ test('lecturer dashboard shows My Courses section with seeded course after login
   await page.click('[type="submit"]');
 
   await page.waitForURL('**/lecturer/dashboard**');
-
-  await expect(page.getByText('My Courses')).toBeVisible();
-  await expect(page.getByText('ELEN4010')).toBeVisible();
   await expect(page.locator('a[href="/lecturer/courses"]').first()).toBeVisible();
+
+  await page.goto('/lecturer/courses');
+  await expect(page.getByRole('heading', { name: 'My Courses' })).toBeVisible();
+  await expect(page.getByText('ELEN4010')).toBeVisible();
 });
