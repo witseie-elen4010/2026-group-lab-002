@@ -114,14 +114,36 @@ const cancelConsultation = async (req, res) => {
     return res.redirect(`/consultations/${constId}?error=Consultation+is+already+cancelled`)
   }
 
-  db.prepare('UPDATE consultations SET status = \'Cancelled\' WHERE const_id = ?').run(constId)
-  await logActivity(req.session.userId, ActionTypes.CONSULT_CANCEL_ORG, [{ table: 'consultations', id: req.params.constId }])
-  return res.redirect('/student/dashboard?success=Consultation+cancelled+successfully')
-}
+  db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
+  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId);
+  await logActivity(req.session.userId, ActionTypes.CONSULT_CANCEL_ORG, [{ table: 'consultations', id: req.params.constId }]);
+  return res.redirect('/student/dashboard?success=Consultation+cancelled+successfully');
+};
 
-const leaveConsultationTodo = async (req, res) => {
-  await logActivity(req.session.userId, ActionTypes.CONSULT_LEAVE, [{ table: 'consultations', id: req.params.constId }])
-  return res.redirect(`/consultations/${req.params.constId}?error=Leave+not+yet+implemented`)
-}
+const leaveConsultation = async (req, res) => {
+  const user = getStudentUser(req);
+  const { constId } = req.params;
 
-module.exports = { showConsultationDetail, joinConsultation, cancelConsultation, leaveConsultationTodo }
+  const consultation = db.prepare('SELECT * FROM consultations WHERE const_id = ?').get(constId);
+  if (!consultation) {
+    return res.redirect('/student/dashboard?error=Consultation+not+found');
+  }
+
+  if (consultation.organiser === user.id) {
+    return res.redirect(`/consultations/${constId}?error=Organisers+must+cancel+not+leave`);
+  }
+
+  const attendee = db.prepare(
+    'SELECT 1 FROM consultation_attendees WHERE const_id = ? AND student_number = ?'
+  ).get(constId, user.id);
+
+  if (!attendee) {
+    return res.redirect(`/consultations/${constId}?error=You+are+not+attending+this+consultation`);
+  }
+
+  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = ?').run(constId, user.id);
+  await logActivity(req.session.userId, ActionTypes.CONSULT_LEAVE, [{ table: 'consultations', id: req.params.constId }]);
+  return res.redirect('/student/dashboard?success=You+have+left+the+consultation');
+};
+
+module.exports = { showConsultationDetail, joinConsultation, cancelConsultation, leaveConsultation };

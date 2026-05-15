@@ -84,15 +84,15 @@
       <div class="d-flex gap-2 flex-wrap">
         <% if (isOrganiser) { %>
           <form method="POST" action="/consultations/<%= consultation.const_id %>/cancel">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this consultation?')">Cancel Consultation</button>
+            <button type="submit" class="btn btn-danger" data-testid="cancel-btn" onclick="return confirm('Cancel this consultation?')">Cancel Consultation</button>
           </form>
         <% } else if (isAttendee) { %>
           <form method="POST" action="/consultations/<%= consultation.const_id %>/leave">
-            <button type="submit" class="btn btn-outline-danger">Leave Consultation</button>
+            <button type="submit" class="btn btn-outline-danger" data-testid="leave-btn">Leave Consultation</button>
           </form>
         <% } else if (canJoin) { %>
           <form method="POST" action="/consultations/<%= consultation.const_id %>/join">
-            <button type="submit" class="btn btn-warning">Join Consultation</button>
+            <button type="submit" class="btn btn-warning" data-testid="join-btn">Join Consultation</button>
           </form>
         <% } %>
       </div>
