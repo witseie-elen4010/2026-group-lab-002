@@ -1,12 +1,10 @@
 /* eslint-env jest */
 const mockPrepare = jest.fn()
 
-// 1. MOCK THE DATABASE
 jest.mock('../../database/db', () => ({
   prepare: mockPrepare
 }))
 
-// 2. MOCK THE LOGGING SERVICE (The missing piece that stopped the crash!)
 jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
@@ -38,7 +36,7 @@ describe('Sign Up greeting validation', () => {
         get: jest.fn().mockReturnValue(undefined)
       })
       .mockReturnValueOnce({
-        run: jest.fn() // No lastInsertRowid needed here!
+        run: jest.fn()
       })
 
     const req = mockReq({
@@ -52,7 +50,6 @@ describe('Sign Up greeting validation', () => {
     req.session = {}
     const res = mockRes()
 
-    // 4. Added await
     await registerUser(req, res)
 
     expect(req.session.userId).toBe(2468101)
@@ -73,7 +70,6 @@ describe('Sign Up greeting validation', () => {
     )
   })
 
-  // 3. Added async
   test('lecturer signup shows success greeting', async () => {
     mockPrepare
       .mockReturnValueOnce({
@@ -83,7 +79,7 @@ describe('Sign Up greeting validation', () => {
         get: jest.fn().mockReturnValue(undefined)
       })
       .mockReturnValueOnce({
-        run: jest.fn() // No lastInsertRowid needed here!
+        run: jest.fn()
       })
 
     const req = mockReq({

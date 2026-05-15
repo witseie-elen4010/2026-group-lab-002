@@ -92,14 +92,6 @@ describe('showAdminDashboard', () => {
   test('renders admin dashboard with list of tables and no active table', async () => {
     const req = mockReq()
     const res = mockRes()
-    // test('renders admin dashboard with list of tables and no active table', () => {
-    //   const statGet = jest.fn().mockReturnValue({ n: 0 });
-    //   db.prepare
-    //     .mockReturnValueOnce({ all: jest.fn().mockReturnValue(TABLES) })  // getAllTables
-    //     .mockReturnValueOnce({ get: statGet })  // students count
-    //     .mockReturnValueOnce({ get: statGet })  // staff count
-    //     .mockReturnValueOnce({ get: statGet })  // consultations count
-    //     .mockReturnValueOnce({ get: statGet }); // availability count
 
     await showAdminDashboard(req, res)
 
