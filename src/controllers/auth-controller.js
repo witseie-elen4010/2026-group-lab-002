@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const db = require('../../database/db')
 const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
+const bcryptjs = require('bcryptjs')
 const { sendLoginWarningEmail } = require('../services/email-service')
 
 const showLogin = (req, res) => {
@@ -42,94 +43,129 @@ const _recordFailedAttempt = async (userId, table, email) => {
 }
 
 const login = async (req, res) => {
-  const { staffStudentNumber, password } = req.body
+  try {
+    const { staffStudentNumber, password } = req.body
 
-  const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
-  if (staff) {
-    if (staff.login_pin) {
-      req.session.pendingUserId = staff.staff_number
-      req.session.pendingUserRole = 'lecturer'
-      req.session.pendingUserName = staff.name
-      return res.redirect('/login/pin')
+    if (!staffStudentNumber || !password) {
+      return res.render('login', { error: 'Please enter both your user number and password.', success: null })
     }
-    if (staff.password === password) {
-      if (!staff.email_verified) {
-        return res.render('login', {
-          error: 'Your email address has not been verified. Please check your inbox.',
-          success: null,
-        })
+
+    // 1. Staff Check
+    const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
+    if (staff) {
+      if (staff.login_pin) {
+        req.session.pendingUserId = staff.staff_number
+        req.session.pendingUserRole = 'lecturer'
+        req.session.pendingUserName = staff.name
+        return res.redirect('/login/pin')
       }
-      db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
-      req.session.userId = staff.staff_number
-      req.session.userName = staff.name
-      req.session.userRole = 'lecturer'
-      req.session.showWelcome = true
-      await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
-      return res.redirect('/lecturer/dashboard?welcome=1')
-    }
-    const { attempts, pinSent } = await _recordFailedAttempt(staff.staff_number, 'staff', staff.email)
-    if (attempts >= 4) {
-      const msg = pinSent
-        ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
-        : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
-      return res.render('login', { error: msg, success: null })
-    }
-    const remaining = 4 - attempts
-    return res.render('login', {
-      error: `Invalid username or password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
-      success: null
-    })
-  }
 
-  const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
-  if (student) {
-    if (student.login_pin) {
-      req.session.pendingUserId = student.student_number
-      req.session.pendingUserRole = 'student'
-      req.session.pendingUserName = student.name
-      return res.redirect('/login/pin')
-    }
-    if (student.password === password) {
-      if (!student.email_verified) {
-        return res.render('login', {
-          error: 'Your email address has not been verified. Please check your inbox.',
-          success: null,
-        })
+      const isMatch = await bcryptjs.compare(password, staff.password)
+      
+      if (isMatch) {
+        if (!staff.email_verified) {
+          return res.render('login', {
+            error: 'Your email address has not been verified. Please check your inbox.',
+            success: null,
+          })
+        }
+        
+        db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
+        req.session.userId = staff.staff_number
+        req.session.userName = staff.name
+        req.session.userRole = 'lecturer'
+        req.session.showWelcome = true
+        await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
+        return res.redirect('/lecturer/dashboard?welcome=1')
+      } 
+      
+      const { attempts, pinSent } = await _recordFailedAttempt(staff.staff_number, 'staff', staff.email)
+      if (attempts >= 4) {
+        const msg = pinSent
+          ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
+          : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
+        return res.render('login', { error: msg, success: null })
       }
-      db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
-      req.session.userId = student.student_number
-      req.session.userName = student.name
-      req.session.userRole = 'student'
-      req.session.showWelcome = true
-      await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
-      return res.redirect('/student/dashboard?welcome=1')
+      
+      const remaining = 4 - attempts
+      return res.render('login', {
+        error: `Invalid password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
+        success: null
+      })
     }
-    const { attempts, pinSent } = await _recordFailedAttempt(student.student_number, 'students', student.email)
-    if (attempts >= 4) {
-      const msg = pinSent
-        ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
-        : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
-      return res.render('login', { error: msg, success: null })
+
+    // 2. Student Check
+    const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
+    if (student) {
+      if (student.login_pin) {
+        req.session.pendingUserId = student.student_number
+        req.session.pendingUserRole = 'student'
+        req.session.pendingUserName = student.name
+        return res.redirect('/login/pin')
+      }
+
+      const isMatch = await bcryptjs.compare(password, student.password)
+      
+      if (isMatch) {
+        if (!student.email_verified) {
+          return res.render('login', {
+            error: 'Your email address has not been verified. Please check your inbox.',
+            success: null,
+          })
+        }
+        
+        db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
+        req.session.userId = student.student_number
+        req.session.userName = student.name
+        req.session.userRole = 'student'
+        req.session.showWelcome = true
+        await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
+        return res.redirect('/student/dashboard?welcome=1')
+      } 
+      
+      const { attempts, pinSent } = await _recordFailedAttempt(student.student_number, 'students', student.email)
+      if (attempts >= 4) {
+        const msg = pinSent
+          ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
+          : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
+        return res.render('login', { error: msg, success: null })
+      }
+      
+      const remaining = 4 - attempts
+      return res.render('login', {
+        error: `Invalid password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
+        success: null
+      })
     }
-    const remaining = 4 - attempts
-    return res.render('login', {
-      error: `Invalid username or password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
-      success: null
-    })
-  }
 
-  let admin = null
-  try { admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber) } catch (_) {}
-  if (admin && admin.password === password) {
-    req.session.userId = admin.admin_id
-    req.session.userName = admin.name
-    req.session.userRole = 'admin'
-    await logActivity(admin.admin_id, ActionTypes.USER_LOGIN, [])
-    return res.redirect('/admin/dashboard')
-  }
+    // 3. Admin Check
+    let admin = null
+    try { 
+      admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber) 
+    } catch (_) {} 
+    
+    if (admin) {
+      const isMatch = await bcryptjs.compare(password, admin.password)
+      if (isMatch) {
+        req.session.userId = admin.admin_id
+        req.session.userName = admin.name
+        req.session.userRole = 'admin'
+        await logActivity(admin.admin_id, ActionTypes.USER_LOGIN, [])
+        return res.redirect('/admin/dashboard')
+      } else { 
+        await logActivity(admin.admin_id, ActionTypes.AUTH_FAILED_LOGIN, [])
+        return res.render('login', { error: 'Invalid password.', success: null })
+      }
+    } 
 
-  await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
-  return res.render('login', { error: 'Invalid username or password.', success: null })
+    // 4. Fallback: No user matched
+    await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
+    return res.render('login', { error: 'Invalid user number.', success: null })
+
+  } catch (error) {
+    console.error('Login error:', error)
+    return res.render('login', { error: 'Your email address has not been verified. Please check your inbox.', success: null })
+  }
 }
 
 const showLoginPin = (req, res) => {
@@ -201,7 +237,10 @@ const verifyLoginPin = async (req, res) => {
 }
 
 const logout = async (req, res) => {
-  await logActivity(req.session.userId, ActionTypes.USER_LOGOUT, [])
+  if (req.session && req.session.userId) {
+    await logActivity(req.session.userId, ActionTypes.USER_LOGOUT, [])
+  }
+
   req.session.destroy(() => {
     res.redirect('/')
   })

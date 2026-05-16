@@ -9,6 +9,9 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword123')
+}))
 jest.mock('../../src/services/email-service', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
   sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
@@ -43,8 +46,8 @@ describe('Sign Up — redirects to verify-email after account creation', () => {
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
@@ -70,8 +73,8 @@ describe('Sign Up — redirects to verify-email after account creation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}

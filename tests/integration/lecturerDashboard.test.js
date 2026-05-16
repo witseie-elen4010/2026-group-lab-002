@@ -2,6 +2,8 @@
 const request = require('supertest');
 const app = require('../../app');
 
+const CORRECT_PASSWORD = 'Password01';
+
 describe('GET /lecturer/dashboard', () => {
   test('redirects to /login when not authenticated', async () => {
     const res = await request(app).get('/lecturer/dashboard');
@@ -11,7 +13,7 @@ describe('GET /lecturer/dashboard', () => {
 
   test('renders dashboard with correct headings when authenticated as a lecturer', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: CORRECT_PASSWORD });
     const res = await agent.get('/lecturer/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain("Today's Consultations");
@@ -20,7 +22,7 @@ describe('GET /lecturer/dashboard', () => {
 
   test('renders My Courses link in sidebar when authenticated as a lecturer', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: CORRECT_PASSWORD });
     const res = await agent.get('/lecturer/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('My Courses');
@@ -28,7 +30,7 @@ describe('GET /lecturer/dashboard', () => {
 
   test('renders seeded course code ELEN4010 on the courses page for lecturer A000356', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: CORRECT_PASSWORD });
     const res = await agent.get('/lecturer/courses');
     expect(res.status).toBe(200);
     expect(res.text).toContain('ELEN4010');

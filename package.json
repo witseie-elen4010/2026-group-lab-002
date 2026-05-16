@@ -5,8 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "npm install && npm rebuild sqlite3 better-sqlite3 --build-from-source && npm run setup",
+    "build": "npm install && npm rebuild sqlite3 --build-from-source && npm run setup && npm run dependencies",
     "setup": "node database/setup.js",
+    "dependencies": "npm install bcryptjs better-sqlite3 ejs express express-session",
     "test": "jest --coverage",
     "test:e2e": "playwright test"
   },
@@ -27,7 +28,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "^12.10.0",
     "dotenv": "^17.4.2",
     "ejs": "^5.0.2",
     "express": "^5.2.1",
