@@ -127,3 +127,33 @@ The application previously stored user passwords in plaintext, a critical securi
 - **Improved Credential Strength:** The new policy prevents users from setting weak passwords, reducing the risk of account compromise through guessing or common password lists.
 - **Minor Performance Impact:** A slight, acceptable performance overhead is introduced during signup and login due to bcrypt's computational cost. This is a necessary trade-off for robust security.
 - **New Dependency:** The `bcryptjs` package is now a required dependency for the application to run.
+
+---
+
+<!-- Append new decisions below this line using the same structure -->
+
+## Decision 5 — Forgot Password / Secure Password Reset (2026-05-16)
+
+**Related to:** Decision 4 (bcrypt makes passwords non-retrievable)
+
+### Context
+
+Because passwords are now stored as bcrypt hashes (Decision 4), they cannot be retrieved or shown to users. A user who forgets their password has no way back in without a secure reset mechanism.
+
+### Decision
+
+A token-based email reset flow:
+
+1. User submits their email on `/forgot-password`.
+2. If the email matches an account, the server generates a 32-byte cryptographically random token (`crypto.randomBytes`), stores its SHA-256 hash in a new `reset_token` column, and records a 1-hour expiry in `reset_token_expiry`. The raw token is emailed as a link to `/reset-password?token=<raw>&email=<email>`.
+3. On visiting the link, the server hashes the token from the URL and compares it to the stored hash. If valid and unexpired, the user sees a password form.
+4. On submission, the server re-validates the token, enforces the existing password policy (8+ chars, 1 uppercase, 1 number), bcrypt-hashes the new password, saves it, and clears the reset token. The user is redirected to login.
+
+The response to step 1 is always "if an account exists, a link has been sent" — the email address is never confirmed or denied.
+
+### Consequences
+
+- Users can recover access without admin intervention.
+- A database breach does not expose reset tokens (only SHA-256 hashes are stored).
+- The 1-hour expiry and one-time-use token limit the window of a stolen link.
+- Email addresses are not enumerable through this endpoint.

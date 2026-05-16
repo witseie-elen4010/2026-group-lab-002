@@ -61,15 +61,12 @@ const login = async (req, res) => {
       }
 
       const isMatch = await bcryptjs.compare(password, staff.password)
-      
+
       if (isMatch) {
         if (!staff.email_verified) {
-          return res.render('login', {
-            error: 'Your email address has not been verified. Please check your inbox.',
-            success: null,
-          })
+          return res.redirect(`/verify-email?email=${encodeURIComponent(staff.email)}&fromLogin=1`)
         }
-        
+
         db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
         req.session.userId = staff.staff_number
         req.session.userName = staff.name
@@ -77,8 +74,8 @@ const login = async (req, res) => {
         req.session.showWelcome = true
         await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
         return res.redirect('/lecturer/dashboard?welcome=1')
-      } 
-      
+      }
+
       const { attempts, pinSent } = await _recordFailedAttempt(staff.staff_number, 'staff', staff.email)
       if (attempts >= 4) {
         const msg = pinSent
@@ -108,10 +105,7 @@ const login = async (req, res) => {
       
       if (isMatch) {
         if (!student.email_verified) {
-          return res.render('login', {
-            error: 'Your email address has not been verified. Please check your inbox.',
-            success: null,
-          })
+          return res.redirect(`/verify-email?email=${encodeURIComponent(student.email)}&fromLogin=1`)
         }
         
         db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
@@ -164,7 +158,7 @@ const login = async (req, res) => {
 
   } catch (error) {
     console.error('Login error:', error)
-    return res.render('login', { error: 'Your email address has not been verified. Please check your inbox.', success: null })
+    return res.render('login', { error: 'An unexpected error occurred. Please try again.', success: null })
   }
 }
 

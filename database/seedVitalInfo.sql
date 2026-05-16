@@ -284,8 +284,9 @@ INSERT OR IGNORE INTO courses (course_code, course_name, year_level, dept_code) 
 
 -- ─── Staff ───────────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password , email_verified) VALUES
-  ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1),
-  ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1);
+  ('A000356', 'Clark Kent',  'clark.kent@wits.ac.za',  'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1),
+  ('A000357', 'Lois Lane',   'lois.lane@wits.ac.za',   'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1),
+  ('A000358', 'Bruce Wayne', 'bruce.wayne@wits.ac.za', 'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1);
 
 -- Staff data
 INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES

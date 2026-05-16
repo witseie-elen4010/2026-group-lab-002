@@ -49,7 +49,9 @@ CREATE TABLE students (
   token_expiry       TEXT,
   resend_count       INTEGER NOT NULL DEFAULT 0,
   failed_attempts    INTEGER NOT NULL DEFAULT 0,
-  login_pin          TEXT
+  login_pin          TEXT,
+  reset_token        TEXT,
+  reset_token_expiry TEXT
 );
 
 CREATE TABLE courses (
@@ -79,7 +81,9 @@ CREATE TABLE staff (
   token_expiry       TEXT,
   resend_count       INTEGER NOT NULL DEFAULT 0,
   failed_attempts    INTEGER NOT NULL DEFAULT 0,
-  login_pin          TEXT
+  login_pin          TEXT,
+  reset_token        TEXT,
+  reset_token_expiry TEXT
 );
 
 CREATE TABLE staff_courses (
