@@ -1,5 +1,14 @@
 const { requireAuth, requireRole } = require('../../src/middleware/auth-middleware');
 
+const res = {
+  redirect: jest.fn(),
+  render: jest.fn(),
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+  set: jest.fn(),        
+  clearCookie: jest.fn()  
+};
+
 const mockReq = (overrides = {}) => ({
   session: {},
   ...overrides
@@ -10,6 +19,8 @@ const mockRes = () => {
   res.redirect = jest.fn();
   res.status = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
+  res.set = jest.fn().mockReturnValue(res);
+  res.clearCookie = jest.fn().mockReturnValue(res);
   return res;
 };
 

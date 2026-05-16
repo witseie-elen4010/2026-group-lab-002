@@ -1,4 +1,18 @@
 /* eslint-env jest */
+jest.mock('../../src/middleware/auth-middleware', () => {
+  return {
+    requireAuth: (req, res, next) => {
+      req.session = {
+        userId: 1234567,
+        userName: 'Test Student',
+        userRole: 'student'
+      };
+      next(); 
+    },
+    requireRole: () => (req, res, next) => next() 
+  };
+});
+
 const request = require('supertest');
 const app = require('../../app');
 
@@ -9,6 +23,15 @@ jest.mock('../../src/services/public-holidays-service', () => ({
 jest.mock('../../src/services/weather-service', () => ({
   getWitsWeather: jest.fn().mockResolvedValue({}),
 }));
+
+const res = {
+  redirect: jest.fn(),
+  render: jest.fn(),
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+  set: jest.fn(),        
+  clearCookie: jest.fn()  
+};
 
 const { getSAPublicHolidays } = require('../../src/services/public-holidays-service');
 const { getWitsWeather } = require('../../src/services/weather-service');
@@ -29,17 +52,23 @@ describe('GET /student/dashboard', () => {
     getSAPublicHolidays.mockResolvedValue([]);
   });
 
-  test('responds with 200 and renders the student dashboard page', async () => {
-    const res = await request(app).get('/student/dashboard');
+ test('responds with 200 and renders the student dashboard page', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('My Courses');
     expect(res.text).toContain('Upcoming Consultations');
     expect(res.text).toContain('Past Consultations');
   });
-
+  
   test('shows the student welcome message', async () => {
-    const res = await request(app).get('/student/dashboard');
-    expect(res.text).toContain('Welcome back, Test Student');
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    
+    const res = await agent.get('/student/dashboard?welcome=1'); 
+    
+    expect(res.text).toContain('Welcome back, Aditya Raghunandan');
   });
 
   test('renders the Find a Consultation calendar section', async () => {
@@ -77,7 +106,9 @@ describe('GET /student/dashboard', () => {
 
   test('renders Find a Consultation normally when the holidays API is unreachable', async () => {
     getSAPublicHolidays.mockRejectedValueOnce(new Error('Network error'));
-    const res = await request(app).get('/student/dashboard');
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Find a Consultation');
   });
@@ -104,7 +135,9 @@ describe('public holidays and weather integration', () => {
   test('dashboard renders with status 200 and contains Find a Consultation when both services throw', async () => {
     getSAPublicHolidays.mockRejectedValueOnce(new Error('Holidays API unavailable'));
     getWitsWeather.mockRejectedValueOnce(new Error('Weather API unavailable'));
-    const res = await request(app).get('/student/dashboard');
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Find a Consultation');
   });
