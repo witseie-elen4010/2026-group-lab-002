@@ -6,7 +6,7 @@ jest.mock('../../src/services/email-service', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined)
 }))
 
-const { verifyEmail, resendCode } = require('../../src/controllers/verify-controller')
+const { showVerifyPage, verifyEmail, resendCode } = require('../../src/controllers/verify-controller')
 const db = require('../../database/db')
 const { sendVerificationEmail } = require('../../src/services/email-service')
 
@@ -27,6 +27,29 @@ const pastExpiry = () => new Date(Date.now() - 1000).toISOString()
 beforeEach(() => {
   db.prepare.mockReset()
   sendVerificationEmail.mockClear()
+})
+
+describe('showVerifyPage', () => {
+  test('renders with emailFailed message when query flag is set', () => {
+    const req = { query: { email: 'a@wits.ac.za', emailFailed: '1' } }
+    const res = mockRes()
+    showVerifyPage(req, res)
+    expect(res.render).toHaveBeenCalledWith('verify-email', expect.objectContaining({
+      email: 'a@wits.ac.za',
+      message: expect.stringContaining('trouble sending'),
+      error: null
+    }))
+  })
+
+  test('renders with fromLogin message when query flag is set', () => {
+    const req = { query: { email: 'b@wits.ac.za', fromLogin: '1' } }
+    const res = mockRes()
+    showVerifyPage(req, res)
+    expect(res.render).toHaveBeenCalledWith('verify-email', expect.objectContaining({
+      message: expect.stringContaining('not yet verified'),
+      error: null
+    }))
+  })
 })
 
 describe('POST /verify-email', () => {
@@ -153,6 +176,40 @@ describe('POST /verify-email/resend', () => {
     expect(res.render).toHaveBeenCalledWith('verify-email', expect.objectContaining({
       message: 'A new code has been sent to your email.',
       error: null,
+    }))
+  })
+
+  test('renders error when no account found for email', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    const req = mockReq({ email: 'ghost@wits.ac.za' })
+    const res = mockRes()
+    await resendCode(req, res)
+    expect(res.render).toHaveBeenCalledWith('verify-email', expect.objectContaining({
+      error: 'No account found for this email address.'
+    }))
+  })
+
+  test('redirects to login when account is already verified', async () => {
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ email_verified: 1, resend_count: 0 }) })
+    const req = mockReq({ email: 'test@students.wits.ac.za' })
+    const res = mockRes()
+    await resendCode(req, res)
+    expect(res.redirect).toHaveBeenCalledWith('/login?success=Email+already+verified.+Please+log+in.')
+  })
+
+  test('renders error when email send fails', async () => {
+    const { sendVerificationEmail } = require('../../src/services/email-service')
+    sendVerificationEmail.mockRejectedValueOnce(new Error('SMTP down'))
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 1, email_verified: 0, resend_count: 0 }) })
+      .mockReturnValueOnce({ run: jest.fn() })
+    const req = mockReq({ email: 'test@students.wits.ac.za' })
+    const res = mockRes()
+    await resendCode(req, res)
+    expect(res.render).toHaveBeenCalledWith('verify-email', expect.objectContaining({
+      error: expect.stringContaining('could not send')
     }))
   })
 
