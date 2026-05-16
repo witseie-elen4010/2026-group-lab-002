@@ -307,11 +307,17 @@
               <p class="text-muted mb-2" style="font-size:0.75rem;">🚪 No public holidays in the next 10 days — all doors are fully operational.</p>
             <% } %>
 
-            <!-- Course colour legend -->
+            <!-- Course filter chips -->
             <% if (Object.keys(colourMap).length > 0) { %>
-            <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+              <button class="badge rounded-pill border-0 course-chip active-chip" id="chip-ALL"
+                      style="background-color:#064735;font-size:0.75rem;cursor:pointer;"
+                      onclick="filterByCourse('ALL')">All</button>
               <% Object.entries(colourMap).forEach(([code, colour]) => { %>
-                <span class="badge rounded-pill" style="background-color:<%= colour %>; font-size:0.75rem;"><%= code %></span>
+                <button class="badge rounded-pill border-0 course-chip" id="chip-<%= code %>"
+                        style="background-color:<%= colour %>88;font-size:0.75rem;cursor:pointer;color:#111;"
+                        data-active-colour="<%= colour %>"
+                        onclick="filterByCourse('<%= code %>')"><%= code %></button>
               <% }) %>
             </div>
             <% } %>
@@ -363,7 +369,8 @@
                       %>
                       <div class="avail-slot <%= isPast ? 'past-slot' : '' %>"
                            style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                           data-staff="<%= slot.staff_number %>">
+                           data-staff="<%= slot.staff_number %>"
+                           data-course="<%= slot.course_code %>">
                         <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
                         <div><%= slot.start_time %>–<%= slot.end_time %></div>
                         <div class="text-muted"><%= slot.lecturer_name %></div>
@@ -393,6 +400,10 @@
             </div>
 
             <!-- Week 2 -->
+            <button class="btn btn-sm btn-outline-secondary mb-2" id="week2-toggle" onclick="toggleWeek2()" style="font-size:0.8rem;">
+              Show next week <i class="bi bi-chevron-down ms-1"></i>
+            </button>
+            <div id="week2-section" style="display:none;">
             <div class="fw-semibold text-muted small mb-2"><%= week2Label %></div>
             <div class="d-flex gap-2 calendar-row overflow-auto pb-2">
               <% calendarDays.slice(5, 10).forEach(dateStr => { %>
@@ -427,7 +438,8 @@
                       %>
                       <div class="avail-slot <%= isPast2 ? 'past-slot' : '' %>"
                            style="background-color:<%= slot.course_colour %>18; border-left-color:<%= slot.course_colour %>;"
-                           data-staff="<%= slot.staff_number %>">
+                           data-staff="<%= slot.staff_number %>"
+                           data-course="<%= slot.course_code %>">
                         <div style="color:<%= slot.course_colour %>; font-weight:600;"><%= slot.course_code %></div>
                         <div><%= slot.start_time %>–<%= slot.end_time %></div>
                         <div class="text-muted"><%= slot.lecturer_name %></div>
@@ -452,6 +464,7 @@
                 </div>
               <% }) %>
             </div>
+            </div><!-- /week2-section -->
 
           <% } %>
         </div>
@@ -595,29 +608,54 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  let activeCourse = 'ALL';
+
+  function filterByCourse(code) {
+    activeCourse = code;
+    document.querySelectorAll('.course-chip').forEach(chip => {
+      const isActive = chip.id === 'chip-' + code;
+      const colour = chip.dataset.activeColour;
+      if (isActive) {
+        chip.classList.add('active-chip');
+        chip.style.backgroundColor = chip.id === 'chip-ALL' ? '#064735' : colour;
+        chip.style.color = '#fff';
+      } else {
+        chip.classList.remove('active-chip');
+        chip.style.backgroundColor = chip.id === 'chip-ALL' ? '#06473540' : (chip.dataset.activeColour + '55');
+        chip.style.color = '#111';
+      }
+    });
+    document.querySelectorAll('.avail-slot[data-course]').forEach(el => {
+      el.style.display = (code === 'ALL' || el.dataset.course === code) ? '' : 'none';
+    });
+  }
+
+  function toggleWeek2() {
+    const sec = document.getElementById('week2-section');
+    const btn = document.getElementById('week2-toggle');
+    const hidden = sec.style.display === 'none';
+    sec.style.display = hidden ? '' : 'none';
+    btn.innerHTML = hidden
+      ? 'Hide next week <i class="bi bi-chevron-up ms-1"></i>'
+      : 'Show next week <i class="bi bi-chevron-down ms-1"></i>';
+    if (hidden) filterByCourse(activeCourse);
+  }
+
   function setFilter(mode) {
     const btnAvail = document.getElementById('filter-availability');
-    const btnLec = document.getElementById('filter-lecturer');
-    const sel = document.getElementById('lecturer-select');
+    const btnLec   = document.getElementById('filter-lecturer');
+    const sel      = document.getElementById('lecturer-select');
     if (mode === 'availability') {
-      btnAvail.classList.add('btn-primary', 'active');
-      btnAvail.classList.remove('btn-outline-secondary');
-      btnLec.classList.remove('btn-primary', 'active');
-      btnLec.classList.add('btn-outline-secondary');
+      btnAvail.classList.add('btn-primary','active'); btnAvail.classList.remove('btn-outline-secondary');
+      btnLec.classList.remove('btn-primary','active'); btnLec.classList.add('btn-outline-secondary');
       sel.style.display = 'none';
-      showAllSlots();
+      filterByCourse(activeCourse);
     } else {
-      btnLec.classList.add('btn-primary', 'active');
-      btnLec.classList.remove('btn-outline-secondary');
-      btnAvail.classList.remove('btn-primary', 'active');
-      btnAvail.classList.add('btn-outline-secondary');
+      btnLec.classList.add('btn-primary','active'); btnLec.classList.remove('btn-outline-secondary');
+      btnAvail.classList.remove('btn-primary','active'); btnAvail.classList.add('btn-outline-secondary');
       sel.style.display = '';
       filterByLecturer(sel.value);
     }
-  }
-
-  function showAllSlots() {
-    document.querySelectorAll('.avail-slot').forEach(el => el.style.display = '');
   }
 
   function filterByLecturer(staffNumber) {
