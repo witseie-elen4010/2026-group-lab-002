@@ -212,3 +212,6 @@ CREATE INDEX idx_polymorphic_lookup
 
 CREATE INDEX idx_user_history
     ON activity_log(user_id);
+
+CREATE INDEX idx_activity_log_action_created
+    ON activity_log(action_id, created_at);

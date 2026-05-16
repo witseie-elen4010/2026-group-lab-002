@@ -185,3 +185,36 @@ All user-supplied output is rendered through EJS escaped output (`<%= %>`). Unes
 - Oversized input is rejected with a clear message before reaching the database.
 - SQL injection via prepared statements was already in place; this decision documents and confirms that coverage.
 - Client-side `maxlength` attributes remain for UX but are no longer the sole enforcement point.
+
+---
+
+<!-- Append new decisions below this line using the same structure -->
+
+## Decision 7 — Activity Log Query Index (2026-05-16)
+
+**Related to:** Decision 6 (activity log infrastructure), PR review feedback
+
+### Context
+
+The `showActivityLog` and `showFailedLogins` views sort the `activity_log` table by `created_at DESC` and filter by `action_id` (via a JOIN to `actions`). As the log grows with every user action across the system, this sort becomes a full table scan — there was no index covering both the join column and the sort column.
+
+A PR review comment flagged this after Decision 6 introduced the Failed Logins view, which filters by `action_name = 'AUTH_FAILED_LOGIN'` through the same JOIN path.
+
+### Decision
+
+A composite index was added to `createSchema.sql`:
+
+```sql
+CREATE INDEX idx_activity_log_action_created
+    ON activity_log(action_id, created_at);
+```
+
+This covers the JOIN filter on `action_id` and the `ORDER BY created_at DESC` sort in a single index scan, avoiding a full table scan for both the general activity log and the failed-logins filtered view.
+
+The existing `idx_user_history` index on `activity_log(user_id)` was retained — it serves a different access pattern (per-user history lookups) and is not redundant with this new index.
+
+### Consequences
+
+- The `ORDER BY created_at DESC` sort on both the Activity Log and Failed Logins pages is backed by an index and will remain efficient as log volume grows.
+- No application code changes were required — the index is transparent to the query layer.
+- Accepted trade-off: the index adds a small write overhead on every `INSERT` into `activity_log`. Given that log writes are infrequent relative to reads (every user action writes one row), this overhead is negligible.

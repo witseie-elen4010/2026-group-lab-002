@@ -59,7 +59,6 @@ const showActivityLog = (req, res) => {
   const search         = (req.query.search  || '').trim();
   const categoryFilter = (req.query.category || '').trim();
 
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r => r.name);
   const { where, params } = buildWhere(search, categoryFilter);
 
   try {
@@ -111,7 +110,6 @@ const showActivityLog = (req, res) => {
 
     res.render('admin-activity-log', {
       user,
-      tables,
       rows: enriched,
       page,
       pageSize: PAGE_SIZE,
@@ -132,7 +130,6 @@ const showActivityLog = (req, res) => {
     console.error('showActivityLog error:', err);
     res.render('admin-activity-log', {
       user,
-      tables,
       rows: [],
       page: 1,
       pageSize: PAGE_SIZE,
@@ -157,8 +154,6 @@ const showFailedLogins = (req, res) => {
   const page   = Math.max(1, parseInt(req.query.page) || 1);
   const offset = (page - 1) * PAGE_SIZE;
   const search = (req.query.search || '').trim();
-
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r => r.name);
 
   const parts  = ["a.action_name = 'AUTH_FAILED_LOGIN'"];
   const params = [];
@@ -204,7 +199,6 @@ const showFailedLogins = (req, res) => {
 
     res.render('admin-activity-log', {
       user,
-      tables,
       rows: enriched,
       page,
       pageSize: PAGE_SIZE,
@@ -225,7 +219,6 @@ const showFailedLogins = (req, res) => {
     console.error('showFailedLogins error:', err);
     res.render('admin-activity-log', {
       user,
-      tables,
       rows: [],
       page: 1,
       pageSize: PAGE_SIZE,
