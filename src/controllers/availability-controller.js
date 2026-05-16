@@ -3,6 +3,7 @@ const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
 
 const { validateSlotFields, isBusinessHours, isOverlapping } = require('../services/availability-helpers')
+const { validateRequiredText } = require('../services/input-validation')
 
 const getAvailability = (staffNumber) =>
   db.prepare(`
@@ -27,6 +28,16 @@ const saveAvailability = async (req, res) => {
       user,
       availability: getAvailability(user.id),
       error: 'All fields are required.',
+      success: null
+    })
+  }
+
+  const venueError = validateRequiredText('Venue', venue, 100)
+  if (venueError) {
+    return res.render('availability', {
+      user,
+      availability: getAvailability(user.id),
+      error: venueError,
       success: null
     })
   }
@@ -99,6 +110,14 @@ const updateAvailability = async (req, res) => {
     return res.render('availability', {
       user, availability: getAvailability(user.id),
       error: 'All fields are required.', success: null
+    })
+  }
+
+  const venueError = validateRequiredText('Venue', venue, 100)
+  if (venueError) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: venueError, success: null
     })
   }
 

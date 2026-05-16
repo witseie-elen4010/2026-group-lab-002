@@ -184,7 +184,9 @@ function formatCol(name) {
 
       <span class="adm-nav-label">Security</span>
       <a href="/admin/activity-log" class="table-link"><i class="bi bi-journal-check me-1"></i>Activity Log</a>
-      <a href="/admin/table/failed_login_log" class="table-link <%= activeTable === 'failed_login_log' ? 'active' : '' %>"><i class="bi bi-exclamation-triangle me-1"></i>Failed Logins</a>
+      <% if (failedLoginCount > 0) { %>
+        <a href="/admin/failed-logins" class="table-link"><i class="bi bi-exclamation-triangle me-1"></i>Failed Logins</a>
+      <% } %>
     </div>
 
     <!-- Main -->
