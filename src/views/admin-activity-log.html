@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Log — KnockKnock.prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    .adm-brand-orange { color: #f57c00; }
+
+    .adm-btn-logout {
+      background: transparent; color: #064735;
+      border: 1.5px solid #064735; border-radius: 6px;
+      padding: 5px 16px; font-weight: 600; font-size: 0.875rem;
+      transition: 0.2s ease; cursor: pointer;
+    }
+    .adm-btn-logout:hover { background: #fff0d9; border-color: #f57c00; color: #f57c00; }
+
+    .sidebar .table-link         { color: #064735; }
+    .sidebar .table-link:hover   { background: #dff5e3; color: #064735; }
+    .sidebar .table-link.active  {
+      background: #064735; color: #fff; font-weight: 600;
+      border-left: 3px solid #f57c00; padding-left: 11px; position: relative;
+    }
+    .sidebar .table-link.active::after {
+      content: ''; position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%); width: 6px; height: 6px;
+      border-radius: 50%; background: #f57c00;
+    }
+    .adm-nav-label {
+      font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #667085;
+      margin: 0.85rem 0 0.25rem; padding: 0 2px; display: block;
+    }
+
+    .adm-main { background: #fbf7ef; }
+    .adm-heading-green { color: #064735; }
+
+    /* ── Category chips ── */
+    .cat-chip {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+    }
+    .cat-Auth         { background: #e0f2fe; color: #0369a1; }
+    .cat-Booking      { background: #dcfce7; color: #166534; }
+    .cat-Cancellation { background: #fee2e2; color: #991b1b; }
+    .cat-Availability { background: #fef9c3; color: #713f12; }
+    .cat-Admin        { background: #f3e8ff; color: #6b21a8; }
+    .cat-System       { background: #f1f5f9; color: #475569; }
+
+    /* ── Status chips ── */
+    .status-chip {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+    }
+    .status-Success   { background: #dcfce7; color: #166534; }
+    .status-Failed    { background: #fee2e2; color: #991b1b; }
+    .status-Cancelled { background: #fef3c7; color: #92400e; }
+    .status-Deleted   { background: #fee2e2; color: #991b1b; }
+    .status-Updated   { background: #e0f2fe; color: #0369a1; }
+
+    /* ── Filter buttons ── */
+    .filter-btn {
+      padding: 4px 14px; border-radius: 999px; font-size: 0.8rem;
+      font-weight: 600; border: 1.5px solid #064735; color: #064735;
+      background: transparent; text-decoration: none; transition: 0.2s ease;
+      display: inline-block;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: #064735; color: #fff; border-color: #064735;
+    }
+
+    /* ── Main table: allow truncation for space ── */
+    .log-table td, .log-table th {
+      white-space: nowrap; max-width: 200px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── Modal detail table: never truncate ── */
+    .modal-detail-table td,
+    .modal-detail-table th {
+      white-space: normal !important;
+      max-width: none !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+      word-break: break-word;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock<span class="adm-brand-orange">.prof</span></div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-muted small"><%= user.name %> (Admin)</span>
+      <form action="/logout" method="POST" class="d-inline">
+        <button type="submit" class="adm-btn-logout">Logout</button>
+      </form>
+    </div>
+  </header>
+
+  <div class="d-flex" style="min-height: calc(100vh - 62px)">
+
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width: 220px; min-width: 220px;">
+      <a href="/admin/dashboard" class="table-link d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-house-door"></i> Home
+      </a>
+
+      <span class="adm-nav-label">Users</span>
+      <a href="/admin/table/admins"    class="table-link"><i class="bi bi-shield-check me-1"></i>Admins</a>
+      <a href="/admin/table/students"  class="table-link"><i class="bi bi-people me-1"></i>Students</a>
+      <a href="/admin/table/staff"     class="table-link"><i class="bi bi-person-badge me-1"></i>Staff</a>
+
+      <span class="adm-nav-label">Academic</span>
+      <a href="/admin/table/courses"       class="table-link"><i class="bi bi-journal-text me-1"></i>Courses</a>
+      <a href="/admin/table/degrees"       class="table-link"><i class="bi bi-mortarboard me-1"></i>Degrees</a>
+      <a href="/admin/table/departments"   class="table-link"><i class="bi bi-building me-1"></i>Departments</a>
+      <a href="/admin/table/enrollments"   class="table-link"><i class="bi bi-card-list me-1"></i>Enrollments</a>
+      <a href="/admin/table/staff_courses" class="table-link"><i class="bi bi-link-45deg me-1"></i>Staff Courses</a>
+
+      <span class="adm-nav-label">Consultations</span>
+      <a href="/admin/table/consultations"          class="table-link"><i class="bi bi-calendar-event me-1"></i>Consultations</a>
+      <a href="/admin/table/consultation_attendees" class="table-link"><i class="bi bi-person-lines-fill me-1"></i>Attendees</a>
+
+      <span class="adm-nav-label">Availability</span>
+      <a href="/admin/table/lecturer_availability" class="table-link"><i class="bi bi-clock-history me-1"></i>Lecturer Availability</a>
+
+      <span class="adm-nav-label">Security</span>
+      <a href="/admin/activity-log" class="table-link active"><i class="bi bi-journal-check me-1"></i>Activity Log</a>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-grow-1 p-4 adm-main" style="min-width:0;">
+
+      <div class="mb-3">
+        <h3 class="adm-heading-green fw-bold mb-1">Activity Log</h3>
+        <p class="text-muted small mb-0">System-wide record of all user actions across students, lecturers, and administrators.</p>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+
+      <!-- Search + Filter bar -->
+      <div class="card p-3 mb-3">
+        <form method="GET" action="/admin/activity-log" class="d-flex flex-wrap gap-2 align-items-center">
+          <input type="text" name="search" class="form-control form-control-sm" style="max-width:260px;"
+            placeholder="Search user, action, page..." value="<%= search %>">
+          <input type="hidden" name="category" value="<%= categoryFilter %>">
+          <button type="submit" class="btn btn-sm btn-primary">Search</button>
+          <% if (search || categoryFilter) { %>
+            <a href="/admin/activity-log" class="btn btn-sm btn-outline-secondary">Clear</a>
+          <% } %>
+        </form>
+
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <a href="/admin/activity-log<%= search ? '?search=' + encodeURIComponent(search) : '' %>"
+             class="filter-btn <%= !categoryFilter ? 'active' : '' %>">All</a>
+          <% categories.forEach(cat => { %>
+            <a href="/admin/activity-log?category=<%= encodeURIComponent(cat) %><%= search ? '&search=' + encodeURIComponent(search) : '' %>"
+               class="filter-btn <%= categoryFilter === cat ? 'active' : '' %>"><%= cat %></a>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- Results summary -->
+      <div class="text-muted small mb-2">
+        <% if (totalRows === 0) { %>
+          No entries found
+        <% } else { %>
+          Showing <%= (page - 1) * pageSize + 1 %>–<%= Math.min(page * pageSize, totalRows) %> of <%= totalRows %> entries
+        <% } %>
+        <% if (categoryFilter) { %> &mdash; filtered by <strong><%= categoryFilter %></strong><% } %>
+        <% if (search) { %> &mdash; matching <strong>"<%= search %>"</strong><% } %>
+      </div>
+
+      <% if (rows.length === 0) { %>
+        <div class="card p-5 text-center text-muted">
+          <i class="bi bi-journal-x fs-1 mb-2"></i>
+          <p class="mb-0">No activity log entries found<% if (search || categoryFilter) { %> for the current filters<% } %>.</p>
+        </div>
+      <% } else { %>
+
+      <div class="card p-0 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 log-table">
+            <caption class="visually-hidden">System activity log</caption>
+            <thead style="background:#dff5e3;">
+              <tr>
+                <th class="ps-3 py-2" style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Timestamp</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">User</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Role</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Event</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Detail</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Category</th>
+                <th class="py-2"      style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Status</th>
+                <th class="py-2 pe-3" style="color:#064735;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rows.forEach(row => { %>
+                <tr>
+                  <td class="ps-3 text-nowrap" style="font-size:0.82rem;color:#475569;">
+                    <%= row.created_at ? row.created_at.replace('T', ' ').substring(0, 16) : '—' %>
+                  </td>
+                  <td class="fw-semibold" style="font-size:0.88rem;"><%= row.actorName %></td>
+                  <td style="font-size:0.82rem;"><%= row.actor_role %></td>
+                  <td style="font-size:0.88rem;"><%= row.eventLabel %></td>
+                  <td class="text-muted" style="font-size:0.8rem;"><%= row.description %></td>
+                  <td><span class="cat-chip cat-<%= row.category %>"><%= row.category %></span></td>
+                  <td><span class="status-chip status-<%= row.status %>"><%= row.status %></span></td>
+                  <td class="pe-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                      data-bs-toggle="modal"
+                      data-bs-target="#detailModal"
+                      data-log-id="<%= row.log_id %>"
+                      data-user-id="<%= row.user_id %>"
+                      data-actor-name="<%= row.actorName %>"
+                      data-actor-role="<%= row.actor_role %>"
+                      data-timestamp="<%= row.created_at || '' %>"
+                      data-action-name="<%= row.action_name %>"
+                      data-event-label="<%= row.eventLabel %>"
+                      data-page-context="<%= row.page_context %>"
+                      data-description="<%= row.description %>"
+                      data-category="<%= row.category %>"
+                      data-status="<%= row.status %>"
+                      data-affected="<%= row.affected_summary || '' %>"
+                      data-old-data="<%= row.old_data || '' %>"
+                      data-new-data="<%= row.new_data || '' %>">
+                      View
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+        <nav aria-label="Activity log pages" class="mt-3">
+          <ul class="pagination pagination-sm justify-content-end mb-0">
+            <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="/admin/activity-log?page=<%= page - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= categoryFilter ? '&category=' + encodeURIComponent(categoryFilter) : '' %>">Previous</a>
+            </li>
+            <% for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) { %>
+              <li class="page-item <%= p === page ? 'active' : '' %>">
+                <a class="page-link" href="/admin/activity-log?page=<%= p %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= categoryFilter ? '&category=' + encodeURIComponent(categoryFilter) : '' %>"><%= p %></a>
+              </li>
+            <% } %>
+            <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="/admin/activity-log?page=<%= page + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= categoryFilter ? '&category=' + encodeURIComponent(categoryFilter) : '' %>">Next</a>
+            </li>
+          </ul>
+        </nav>
+      <% } %>
+
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background:#dff5e3;">
+          <h5 class="modal-title fw-bold" id="detailModalLabel" style="color:#064735;">Log Entry Detail</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <h6 class="fw-semibold text-muted mb-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Summary</h6>
+          <table class="table table-sm table-bordered mb-4 modal-detail-table" style="font-size:0.88rem;">
+            <tbody>
+              <tr><th style="width:160px;white-space:nowrap;">Log ID</th>       <td id="d-log-id"></td></tr>
+              <tr><th style="white-space:nowrap;">Timestamp</th>                <td id="d-timestamp"></td></tr>
+              <tr><th style="white-space:nowrap;">User</th>                     <td id="d-actor-name"></td></tr>
+              <tr><th style="white-space:nowrap;">Actor ID</th>                 <td id="d-user-id" style="font-family:monospace;font-size:0.82rem;"></td></tr>
+              <tr><th style="white-space:nowrap;">Role</th>                     <td id="d-actor-role"></td></tr>
+              <tr><th style="white-space:nowrap;">Event</th>                    <td id="d-event-label"></td></tr>
+              <tr><th style="white-space:nowrap;">Action Code</th>              <td id="d-action-name" style="font-family:monospace;font-size:0.82rem;"></td></tr>
+              <tr><th style="white-space:nowrap;">Category</th>                 <td><span id="d-category-chip" class="cat-chip"></span></td></tr>
+              <tr><th style="white-space:nowrap;">Status</th>                   <td><span id="d-status-chip" class="status-chip"></span></td></tr>
+              <tr><th style="white-space:nowrap;">Page / Context</th>           <td id="d-page-context"></td></tr>
+              <tr><th style="white-space:nowrap;">Full Detail</th>              <td id="d-description"></td></tr>
+            </tbody>
+          </table>
+
+          <h6 class="fw-semibold text-muted mb-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Affected Records</h6>
+          <div id="d-affected" class="mb-4" style="font-size:0.88rem;"></div>
+
+          <div id="d-change-section">
+            <h6 class="fw-semibold text-muted mb-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;">Change Data</h6>
+            <table class="table table-sm table-bordered mb-0 modal-detail-table" style="font-size:0.88rem;">
+              <tbody>
+                <tr id="d-old-row">
+                  <th style="width:160px;white-space:nowrap;vertical-align:top;">Old Data</th>
+                  <td><pre id="d-old-data" style="font-size:0.78rem;max-height:200px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-all;"></pre></td>
+                </tr>
+                <tr id="d-new-row">
+                  <th style="white-space:nowrap;vertical-align:top;">New Data</th>
+                  <td><pre id="d-new-data" style="font-size:0.78rem;max-height:200px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-all;"></pre></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (value !== null && value !== undefined && value !== '') ? value : '—';
+  }
+
+  function formatJson(raw) {
+    if (!raw) return null;
+    try { return JSON.stringify(JSON.parse(raw), null, 2); }
+    catch { return raw; }
+  }
+
+  document.getElementById('detailModal').addEventListener('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+
+    setText('d-log-id',       btn.dataset.logId);
+    setText('d-timestamp',    btn.dataset.timestamp);
+    setText('d-actor-name',   btn.dataset.actorName);
+    setText('d-user-id',      btn.dataset.userId);
+    setText('d-actor-role',   btn.dataset.actorRole);
+    setText('d-event-label',  btn.dataset.eventLabel);
+    setText('d-action-name',  btn.dataset.actionName);
+    setText('d-page-context', btn.dataset.pageContext);
+    setText('d-description',  btn.dataset.description);
+
+    const category = btn.dataset.category || '';
+    const catChip  = document.getElementById('d-category-chip');
+    catChip.textContent = category;
+    catChip.className   = 'cat-chip cat-' + category;
+
+    const status   = btn.dataset.status || '';
+    const statChip = document.getElementById('d-status-chip');
+    statChip.textContent = status;
+    statChip.className   = 'status-chip status-' + status;
+
+    // Affected records
+    const affectedEl = document.getElementById('d-affected');
+    const affected   = btn.dataset.affected || '';
+    if (!affected) {
+      affectedEl.textContent = 'No affected records recorded.';
+    } else {
+      const ul = document.createElement('ul');
+      ul.className = 'mb-0 ps-3';
+      ul.style.fontSize = '0.88rem';
+      affected.split(' | ').forEach(entry => {
+        const li = document.createElement('li');
+        const parts = entry.split(':');
+        li.textContent = parts.length === 2
+          ? parts[0].trim() + ' — record #' + parts[1].trim()
+          : entry;
+        ul.appendChild(li);
+      });
+      affectedEl.replaceChildren(ul);
+    }
+
+    // Old / new data (admin CRUD only)
+    const oldRaw = btn.dataset.oldData || '';
+    const newRaw = btn.dataset.newData || '';
+    const hasChange = oldRaw || newRaw;
+
+    document.getElementById('d-change-section').style.display = hasChange ? '' : 'none';
+
+    if (hasChange) {
+      const oldFormatted = formatJson(oldRaw);
+      const newFormatted = formatJson(newRaw);
+
+      const oldPre = document.getElementById('d-old-data');
+      const oldRow = document.getElementById('d-old-row');
+      if (oldFormatted) { oldPre.textContent = oldFormatted; oldRow.style.display = ''; }
+      else              { oldRow.style.display = 'none'; }
+
+      const newPre = document.getElementById('d-new-data');
+      const newRow = document.getElementById('d-new-row');
+      if (newFormatted) { newPre.textContent = newFormatted; newRow.style.display = ''; }
+      else              { newRow.style.display = 'none'; }
+    }
+  });
+</script>
+
+</body>
+</html>

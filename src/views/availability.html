@@ -143,7 +143,16 @@
                         <td><%= slot.venue %></td>
                         <td><%= slot.max_number_of_students %></td>
                         <td><%= slot.max_booking_min %></td>
-                        <td class="pe-3">
+                        <td class="pe-3 text-nowrap">
+                          <button type="button" class="btn btn-outline-secondary btn-sm me-1"
+                            data-bs-toggle="modal" data-bs-target="#editSlotModal"
+                            data-id="<%= slot.availability_id %>"
+                            data-day="<%= slot.day_of_week %>"
+                            data-start="<%= slot.start_time %>"
+                            data-end="<%= slot.end_time %>"
+                            data-venue="<%= slot.venue %>"
+                            data-students="<%= slot.max_number_of_students %>"
+                            data-duration="<%= slot.max_booking_min %>">Edit</button>
                           <form action="/lecturer/availability/<%= slot.availability_id %>/delete" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
                           </form>
@@ -162,5 +171,77 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Edit Slot Modal -->
+<div class="modal fade" id="editSlotModal" tabindex="-1" aria-labelledby="editSlotModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editSlotForm" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editSlotModalLabel">Edit Availability Slot</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="edit_day_of_week" class="form-label fw-semibold">Day</label>
+            <select class="form-select" id="edit_day_of_week" name="day_of_week" required>
+              <option value="Mon">Monday</option>
+              <option value="Tue">Tuesday</option>
+              <option value="Wed">Wednesday</option>
+              <option value="Thu">Thursday</option>
+              <option value="Fri">Friday</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label for="edit_start_time" class="form-label fw-semibold">Start Time</label>
+              <input type="time" class="form-control" id="edit_start_time" name="start_time" min="08:00" max="18:00" required>
+            </div>
+            <div class="col-6">
+              <label for="edit_end_time" class="form-label fw-semibold">End Time</label>
+              <input type="time" class="form-control" id="edit_end_time" name="end_time" min="08:00" max="18:00" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_max_booking_min" class="form-label fw-semibold">Max Consultation Duration (min)</label>
+            <input type="number" class="form-control" id="edit_max_booking_min" name="max_booking_min" min="15" max="480" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_venue" class="form-label fw-semibold">Venue</label>
+            <input type="text" class="form-control" id="edit_venue" name="venue" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_max_number_of_students" class="form-label fw-semibold">Max Students per Slot</label>
+            <input type="number" class="form-control" id="edit_max_number_of_students" name="max_number_of_students" min="1" max="10" required>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('editSlotModal').addEventListener('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+    document.getElementById('editSlotForm').action = '/lecturer/availability/' + btn.dataset.id + '/edit';
+    document.getElementById('edit_day_of_week').value = btn.dataset.day;
+    document.getElementById('edit_start_time').value = btn.dataset.start;
+    document.getElementById('edit_end_time').value = btn.dataset.end;
+    document.getElementById('edit_venue').value = btn.dataset.venue;
+    document.getElementById('edit_max_booking_min').value = btn.dataset.duration;
+    document.getElementById('edit_max_number_of_students').value = btn.dataset.students;
+  });
+</script>
+
 </body>
 </html>

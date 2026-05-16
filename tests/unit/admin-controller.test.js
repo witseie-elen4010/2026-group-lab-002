@@ -29,7 +29,7 @@ const mockRes = () => {
   return res
 }
 
-const TABLES = [{ name: 'admins' }, { name: 'courses' }, { name: 'departments' }, { name: 'admin_audit_log' }]
+const TABLES = [{ name: 'actions' }, { name: 'activity_log' }, { name: 'admins' }, { name: 'affected_records' }, { name: 'courses' }, { name: 'departments' }, { name: 'admin_audit_log' }]
 const COLUMNS = [
   { cid: 0, name: 'admin_id', type: 'TEXT', notnull: 1, dflt_value: null, pk: 1 },
   { cid: 1, name: 'name', type: 'TEXT', notnull: 1, dflt_value: null, pk: 0 }
@@ -98,7 +98,7 @@ describe('showAdminDashboard', () => {
     await showAdminDashboard(req, res)
 
     expect(res.render).toHaveBeenCalledWith('admin-dashboard', expect.objectContaining({
-      tables: ['admins', 'courses', 'departments', 'admin_audit_log'],
+      tables: ['actions', 'activity_log', 'admins', 'affected_records', 'courses', 'departments', 'admin_audit_log'],
       activeTable: null,
       columns: [],
       rows: []
@@ -184,6 +184,24 @@ describe('createRecord', () => {
 
     expect(res.redirect).toHaveBeenCalledWith('/admin/table/admin_audit_log?error=This+table+is+read-only')
     expect(logAdminAudit).not.toHaveBeenCalled()
+  })
+
+  test('blocks inserts into activity_log', async () => {
+    const res = mockRes()
+    await createRecord(mockReq({ params: { tableName: 'activity_log' }, body: {} }), res)
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/activity_log?error=This+table+is+read-only')
+  })
+
+  test('blocks inserts into affected_records', async () => {
+    const res = mockRes()
+    await createRecord(mockReq({ params: { tableName: 'affected_records' }, body: {} }), res)
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/affected_records?error=This+table+is+read-only')
+  })
+
+  test('blocks inserts into actions', async () => {
+    const res = mockRes()
+    await createRecord(mockReq({ params: { tableName: 'actions' }, body: {} }), res)
+    expect(res.redirect).toHaveBeenCalledWith('/admin/table/actions?error=This+table+is+read-only')
   })
 
   test('does not call logAdminAudit when the insert fails', async () => {
