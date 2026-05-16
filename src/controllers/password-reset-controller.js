@@ -8,10 +8,10 @@ const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
 
 const hashToken = (raw) => crypto.createHash('sha256').update(raw).digest('hex')
 
-const lookupByEmail = (email) => {
-  const student = db.prepare('SELECT * FROM students WHERE email = ?').get(email)
+const lookupByIdentifier = (identifier) => {
+  const student = db.prepare('SELECT * FROM students WHERE CAST(student_number AS TEXT) = ?').get(identifier)
   if (student) return { user: student, table: 'students', idCol: 'student_number' }
-  const staff = db.prepare('SELECT * FROM staff WHERE email = ?').get(email)
+  const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(identifier)
   if (staff) return { user: staff, table: 'staff', idCol: 'staff_number' }
   return null
 }
@@ -21,9 +21,9 @@ const showForgotPassword = (req, res) => {
 }
 
 const requestPasswordReset = async (req, res) => {
-  const { email } = req.body
+  const { identifier } = req.body
 
-  const found = lookupByEmail(email)
+  const found = lookupByIdentifier(identifier)
 
   if (found) {
     const rawToken = crypto.randomBytes(32).toString('hex')
@@ -34,10 +34,11 @@ const requestPasswordReset = async (req, res) => {
       `UPDATE ${found.table} SET reset_token = ?, reset_token_expiry = ? WHERE ${found.idCol} = ?`
     ).run(tokenHash, expiry, found.user[found.idCol])
 
-    const resetLink = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`
+    const toEmail = found.user.email
+    const resetLink = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${rawToken}&email=${encodeURIComponent(toEmail)}`
 
     try {
-      await sendPasswordResetEmail(email, resetLink)
+      await sendPasswordResetEmail(toEmail, resetLink)
     } catch (err) {
       console.error('Password reset email failed:', err)
     }
