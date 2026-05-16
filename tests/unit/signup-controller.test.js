@@ -9,12 +9,12 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
-// NEW: Mock bcrypt so the tests don't try to actually hash passwords
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('hashedPassword123')
 }))
 
 const db = require('../../database/db')
+const bcrypt = require('bcryptjs') 
 
 const mockReq = (body = {}) => ({ body })
 
@@ -28,6 +28,7 @@ const mockRes = () => {
 
 beforeEach(() => {
   db.prepare.mockReset()
+  jest.clearAllMocks() 
 })
 
 describe('email domain validation', () => {
@@ -63,7 +64,7 @@ describe('email domain validation', () => {
         redirectTo: '/student/courses',
         fullName: '',
         number: '',
-        email: '' // Removed password & confirmPassword expectations here
+        email: ''
       }
     )
   })
@@ -219,5 +220,102 @@ describe('email domain validation', () => {
     )
 
     expect(db.prepare).not.toHaveBeenCalled()
+  })
+})
+
+describe('Password Validation & Hashing', () => {
+  test('hashes the password with exactly 11 salt rounds before saving to database', async () => {
+    const runMock = jest.fn()
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ run: runMock })
+
+    const req = mockReq({
+      fullName: 'Test Student',
+      number: '1234567',
+      email: 'student@students.wits.ac.za',
+      password: 'ValidPassword01',
+      confirmPassword: 'ValidPassword01'
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(bcrypt.hash).toHaveBeenCalledTimes(1)
+    expect(bcrypt.hash).toHaveBeenCalledWith('ValidPassword01', 11)
+    
+    expect(runMock).toHaveBeenCalledWith(
+      1234567, 
+      'Test Student', 
+      'student@students.wits.ac.za', 
+      'hashedPassword123', 
+      'BSCENGINFO'
+    )
+  })
+
+  test('rejects registration and renders error if password is empty', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: '', confirmPassword: '' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Not your password, it seems")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if password does not meet criteria (missing number)', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'InvalidPassword', confirmPassword: 'InvalidPassword' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Password must be at least 8 characters long")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if password does not meet criteria (missing uppercase)', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'invalidpassword01', confirmPassword: 'invalidpassword01' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("contain one uppercase letter")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if passwords do not match', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'ValidPassword01', confirmPassword: 'ValidPassword02' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Passwords do not match")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
   })
 })
