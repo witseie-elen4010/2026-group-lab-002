@@ -42,6 +42,10 @@
         <div class="alert alert-danger"><%= error %></div>
       <% } %>
 
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+
       <form action="/login/pin" method="POST">
         <div class="mb-4">
           <label for="pin" class="form-label fw-semibold">One-time PIN</label>
@@ -63,7 +67,12 @@
         <button type="submit" class="btn btn-danger w-100 py-2 mb-3">Verify PIN</button>
       </form>
 
-      <div class="text-center">
+      <div class="text-center d-flex flex-column gap-2">
+        <form action="/login/pin/resend" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">
+            Didn't receive it? Resend PIN
+          </button>
+        </form>
         <a href="/login" class="btn btn-link btn-sm p-0 text-decoration-none text-muted">
           Back to login
         </a>

@@ -1,5 +1,5 @@
 const express = require('express');
-const { showLogin, login, logout, showLoginPin, verifyLoginPin } = require('../controllers/auth-controller');
+const { showLogin, login, logout, showLoginPin, resendLoginPin, verifyLoginPin } = require('../controllers/auth-controller');
 const { showVerifyPage, verifyEmail, resendCode } = require('../controllers/verify-controller');
 
 const router = express.Router();
@@ -10,6 +10,7 @@ router.post('/logout', logout);
 
 router.get('/login/pin', showLoginPin);
 router.post('/login/pin', verifyLoginPin);
+router.post('/login/pin/resend', resendLoginPin);
 
 router.get('/verify-email', showVerifyPage);
 router.post('/verify-email', verifyEmail);

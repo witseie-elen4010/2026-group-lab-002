@@ -1,5 +1,5 @@
 /* eslint-env jest */
-const { showLogin, login, logout, showLoginPin, verifyLoginPin } = require('../../src/controllers/auth-controller')
+const { showLogin, login, logout, showLoginPin, resendLoginPin, verifyLoginPin } = require('../../src/controllers/auth-controller')
 
 jest.mock('../../database/db', () => ({
   prepare: jest.fn()
@@ -253,7 +253,36 @@ describe('showLoginPin', () => {
     const req = mockReq({ session: { pendingUserId: 'A000356', pendingUserRole: 'lecturer' } })
     const res = mockRes()
     showLoginPin(req, res)
-    expect(res.render).toHaveBeenCalledWith('login-pin', { error: null })
+    expect(res.render).toHaveBeenCalledWith('login-pin', { error: null, message: null })
+  })
+})
+
+describe('resendLoginPin', () => {
+  test('redirects to /login if no pending session', async () => {
+    const req = mockReq({ session: {} })
+    const res = mockRes()
+    await resendLoginPin(req, res)
+    expect(res.redirect).toHaveBeenCalledWith('/login')
+  })
+
+  test('generates new PIN, updates DB, sends email, and renders success message', async () => {
+    const { sendLoginWarningEmail } = require('../../src/services/email-service')
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ email: 'clark.kent@wits.ac.za' }) }) // SELECT email
+      .mockReturnValueOnce({ run: jest.fn() })                                                     // UPDATE login_pin
+
+    const req = mockReq({
+      session: { pendingUserId: 'A000356', pendingUserRole: 'lecturer' }
+    })
+    const res = mockRes()
+
+    await resendLoginPin(req, res)
+
+    expect(sendLoginWarningEmail).toHaveBeenCalledWith('clark.kent@wits.ac.za', expect.any(String))
+    expect(res.render).toHaveBeenCalledWith('login-pin', {
+      error: null,
+      message: 'A new PIN has been sent to your email.'
+    })
   })
 })
 

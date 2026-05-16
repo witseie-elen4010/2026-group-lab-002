@@ -134,7 +134,31 @@ const login = async (req, res) => {
 
 const showLoginPin = (req, res) => {
   if (!req.session.pendingUserId) return res.redirect('/login')
-  return res.render('login-pin', { error: null })
+  return res.render('login-pin', { error: null, message: null })
+}
+
+const resendLoginPin = async (req, res) => {
+  if (!req.session.pendingUserId) return res.redirect('/login')
+
+  const userId = req.session.pendingUserId
+  const role = req.session.pendingUserRole
+  const table = role === 'lecturer' ? 'staff' : 'students'
+  const idCol = role === 'lecturer' ? 'staff_number' : 'student_number'
+
+  const user = db.prepare(`SELECT email FROM ${table} WHERE ${idCol} = ?`).get(userId)
+  if (!user) return res.redirect('/login')
+
+  const pin = String(Math.floor(100000 + Math.random() * 900000))
+  const pinHash = crypto.createHash('sha256').update(pin).digest('hex')
+  db.prepare(`UPDATE ${table} SET login_pin = ? WHERE ${idCol} = ?`).run(pinHash, userId)
+
+  try {
+    await sendLoginWarningEmail(user.email, pin)
+    return res.render('login-pin', { error: null, message: 'A new PIN has been sent to your email.' })
+  } catch (err) {
+    console.error('Resend PIN email failed:', err)
+    return res.render('login-pin', { error: 'Failed to resend PIN. Please try again.', message: null })
+  }
 }
 
 const verifyLoginPin = async (req, res) => {
@@ -157,7 +181,7 @@ const verifyLoginPin = async (req, res) => {
 
   const pinHash = crypto.createHash('sha256').update(pin).digest('hex')
   if (pinHash !== user.login_pin) {
-    return res.render('login-pin', { error: 'Incorrect PIN. Check your security alert email and try again.' })
+    return res.render('login-pin', { error: 'Incorrect PIN. Check your security alert email and try again.', message: null })
   }
 
   db.prepare(`UPDATE ${table} SET login_pin = NULL, failed_attempts = 0 WHERE ${idCol} = ?`).run(userId)
@@ -183,4 +207,4 @@ const logout = async (req, res) => {
   })
 }
 
-module.exports = { showLogin, login, logout, showLoginPin, verifyLoginPin }
+module.exports = { showLogin, login, logout, showLoginPin, resendLoginPin, verifyLoginPin }
