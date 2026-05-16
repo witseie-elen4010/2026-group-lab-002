@@ -250,4 +250,45 @@ describe('validateBookingRequest()', () => {
     });
     expect(result.valid).toBe(true);
   });
+
+  test('rejects when duration_min exceeds window.max_booking_min', () => {
+    const result = validateBookingRequest({
+      date: '2026-05-11',
+      start_time: '10:00',
+      duration_min: 90,
+      window: makeWindow('10:00', '12:00', 5, 60),
+      bookingsOnDay: [],
+      todayStr,
+      currentTimeStr: '08:00',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toMatch(/maximum consultation duration/);
+  });
+
+  test('rejects when duration_min exceeds remaining chunk length', () => {
+    const result = validateBookingRequest({
+      date: '2026-05-11',
+      start_time: '10:00',
+      duration_min: 45,
+      window: makeWindow('10:00', '12:00', 5, 60),
+      bookingsOnDay: [makeBooking('10:30', 30, 0, 1)],
+      todayStr,
+      currentTimeStr: '08:00',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toMatch(/available time/);
+  });
+
+  test('accepts when duration_min equals window.max_booking_min exactly', () => {
+    const result = validateBookingRequest({
+      date: '2026-05-11',
+      start_time: '10:00',
+      duration_min: 60,
+      window: makeWindow('10:00', '12:00', 5, 60),
+      bookingsOnDay: [],
+      todayStr,
+      currentTimeStr: '08:00',
+    });
+    expect(result.valid).toBe(true);
+  });
 });

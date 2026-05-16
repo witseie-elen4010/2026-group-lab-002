@@ -183,27 +183,57 @@ const createBooking = async (req, res) => {
     )
   }
 
-  const countRow = db.prepare('SELECT COUNT(*) AS cnt FROM consultations WHERE consultation_date = ?').get(date)
-  const constId = generateConstId(date, countRow.cnt)
   const allowJoinVal = allow_join === '1' || allow_join === 1 ? 1 : 0
 
-  db.prepare(`
-    INSERT INTO consultations
-      (const_id, consultation_title, consultation_description, consultation_date, consultation_time,
-       lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Booked', ?)
-  `).run(
-    constId, cleanTitle, cleanDescription, date, start_time,
-    staff_number, user.id, availability_id,
-    Number(duration_min), window.max_number_of_students, window.venue,
-    allowJoinVal
-  )
+  const bookingResult = db.transaction(() => {
+    const freshBookings = db.prepare(`
+      SELECT c.const_id, c.consultation_time, c.duration_min, c.allow_join,
+             COUNT(ca.student_number) AS attendee_count
+      FROM consultations c
+      LEFT JOIN consultation_attendees ca ON ca.const_id = c.const_id
+      WHERE c.consultation_date = ? AND c.lecturer_id = ? AND c.availability_id = ?
+        AND c.status IN ('Booked', 'Available', 'Ongoing')
+      GROUP BY c.const_id
+    `).all(date, staff_number, availability_id)
 
-  db.prepare(
-    'INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, ?)'
-  ).run(constId, user.id)
+    const freshValidation = validateBookingRequest({
+      date, start_time, duration_min: Number(duration_min),
+      window, bookingsOnDay: freshBookings, todayStr: today, currentTimeStr
+    })
 
-  await logActivity(req.session.userId, ActionTypes.CONSULT_CREATE, [{ table: 'consultations', id: constId }])
+    if (!freshValidation.valid) {
+      return { valid: false, reason: freshValidation.reason }
+    }
+
+    const countRow = db.prepare('SELECT COUNT(*) AS cnt FROM consultations WHERE consultation_date = ?').get(date)
+    const constId = generateConstId(date, countRow.cnt)
+
+    db.prepare(`
+      INSERT INTO consultations
+        (const_id, consultation_title, consultation_description, consultation_date, consultation_time,
+         lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Booked', ?)
+    `).run(
+      constId, cleanTitle, cleanDescription, date, start_time,
+      staff_number, user.id, availability_id,
+      Number(duration_min), window.max_number_of_students, window.venue,
+      allowJoinVal
+    )
+
+    db.prepare(
+      'INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, ?)'
+    ).run(constId, user.id)
+
+    return { valid: true, constId }
+  })()
+
+  if (!bookingResult.valid) {
+    return res.redirect(
+      `/consultations/new?staffNumber=${staff_number}&availabilityId=${availability_id}&date=${date}&error=${encodeURIComponent(bookingResult.reason)}`
+    )
+  }
+
+  await logActivity(req.session.userId, ActionTypes.CONSULT_CREATE, [{ table: 'consultations', id: bookingResult.constId }])
   return res.redirect('/student/dashboard?success=Consultation+booked')
 }
 

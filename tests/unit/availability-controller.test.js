@@ -136,6 +136,19 @@ describe('saveAvailability', () => {
     }))
   })
 
+  test('rejects slot where max_booking_min exceeds window duration', async () => {
+    db.prepare.mockReturnValue({ all: jest.fn().mockReturnValue([]) })
+
+    const req = mockReq({ body: { ...validBody, max_booking_min: '120' } }) // window is 09:00-10:00 = 60 min
+    const res = mockRes()
+    await saveAvailability(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('availability', expect.objectContaining({
+      error: expect.stringContaining('cannot exceed window length'),
+      success: null
+    }))
+  })
+
   test('renders error when new slot overlaps an existing slot', async () => {
     const existingSlot = { start_time: '09:00', end_time: '10:00' }
     db.prepare
@@ -261,6 +274,19 @@ describe('updateAvailability', () => {
 
     expect(res.render).toHaveBeenCalledWith('availability', expect.objectContaining({
       error: 'Max students must be between 1 and 10.'
+    }))
+  })
+
+  test('rejects slot where max_booking_min exceeds window duration', async () => {
+    db.prepare.mockReturnValue({ all: jest.fn().mockReturnValue([]) })
+
+    const req = mockReq({ params: { id: '1' }, body: { ...validBody, max_booking_min: '120' } }) // window is 09:00-10:00 = 60 min
+    const res = mockRes()
+    await updateAvailability(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('availability', expect.objectContaining({
+      error: expect.stringContaining('cannot exceed window length'),
+      success: null
     }))
   })
 })

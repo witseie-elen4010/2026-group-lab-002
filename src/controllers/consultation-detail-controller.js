@@ -95,7 +95,21 @@ const joinConsultation = async (req, res) => {
     return res.redirect('/student/dashboard?error=You+are+not+enrolled+in+a+course+taught+by+this+lecturer')
   }
 
-  db.prepare('INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, user.id)
+  const joinResult = db.transaction(() => {
+    const currentAttendees = db.prepare(
+      'SELECT student_number FROM consultation_attendees WHERE const_id = ?'
+    ).all(constId)
+    if (currentAttendees.length >= consultation.max_number_of_students) {
+      return { full: true }
+    }
+    db.prepare('INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, user.id)
+    return { full: false }
+  })()
+
+  if (joinResult.full) {
+    return res.redirect(`/student/dashboard?error=${encodeURIComponent('This consultation is at full capacity.')}`)
+  }
+
   await logActivity(req.session.userId, ActionTypes.CONSULT_JOIN, [{ table: 'consultations', id: constId }])
   return res.redirect('/student/dashboard?success=Successfully+joined+consultation')
 }
@@ -127,8 +141,10 @@ const cancelConsultation = async (req, res) => {
     return res.redirect(`/consultations/${constId}?error=Consultations+cannot+be+cancelled+within+2+hours+of+the+start+time`)
   }
 
-  db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
-  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId);
+  db.transaction(() => {
+    db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId)
+    db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId)
+  })()
   await logActivity(req.session.userId, ActionTypes.CONSULT_CANCEL_ORG, [{ table: 'consultations', id: req.params.constId }]);
   return res.redirect('/student/dashboard?success=Consultation+cancelled+successfully');
 };
