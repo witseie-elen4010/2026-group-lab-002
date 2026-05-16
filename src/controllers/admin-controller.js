@@ -3,6 +3,7 @@ const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
 const { FK_DISPLAY, getInputType, friendlyError, buildSearchQuery } = require('../services/admin-helpers')
 const { logAdminAudit } = require('../services/admin-audit-service')
+const { getFailedLoginCount } = require('./admin-activity-log-controller')
 
 const PAGE_SIZE = 20
 // tables the admin UI can view but not modify
@@ -67,6 +68,7 @@ const showAdminDashboard = (req, res) => {
     search: '',
     fkOptions: {},
     inputTypes: {},
+    failedLoginCount: getFailedLoginCount(),
     error: null,
     success: null
   })
@@ -137,6 +139,7 @@ const showTable = (req, res) => {
     search,
     fkOptions,
     inputTypes,
+    failedLoginCount: getFailedLoginCount(),
     error: req.query.error || null,
     success: req.query.success || null
   })

@@ -4,6 +4,7 @@ const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
 const bcrypt = require('bcryptjs')
 const { sendVerificationEmail } = require('../services/email-service')
+const { validateName } = require('../services/input-validation')
 
 const showSignupPage = (req, res) => {
   res.render('sign-up', {
@@ -46,6 +47,11 @@ const registerUser = async (req, res) => {
       password,
       confirmPassword
     } = req.body
+
+    const nameError = validateName('Full name', fullName)
+    if (nameError) {
+      throw new Error(nameError)
+    }
 
     if (password === '') {
       throw new Error('Knock, knock! Who\'s there? Not your password, it seems. Please enter a password to continue')

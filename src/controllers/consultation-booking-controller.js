@@ -5,6 +5,7 @@ const ActionTypes = require('../services/action-types')
 const { computeBookableChunks, validateBookingRequest, getNextNWeekdays } = require('../services/booking-helpers')
 const { generateConstId } = require('../services/availability-helpers')
 const { getWitsWeather } = require('../services/weather-service')
+const { validateRequiredText, validateOptionalText, cleanText } = require('../services/input-validation')
 
 const getStudentUser = (req) => {
   if (!req.session || !req.session.userId) {
@@ -128,6 +129,23 @@ const createBooking = async (req, res) => {
     )
   }
 
+  const titleError = validateRequiredText('Title', title, 100)
+  if (titleError) {
+    return res.redirect(
+      `/consultations/new?staffNumber=${staff_number}&availabilityId=${availability_id}&date=${date}&error=${encodeURIComponent(titleError)}`
+    )
+  }
+
+  const descError = validateOptionalText('Description', description, 500)
+  if (descError) {
+    return res.redirect(
+      `/consultations/new?staffNumber=${staff_number}&availabilityId=${availability_id}&date=${date}&error=${encodeURIComponent(descError)}`
+    )
+  }
+
+  const cleanTitle = cleanText(title)
+  const cleanDescription = description ? cleanText(description) : null
+
   const window = db.prepare(
     'SELECT * FROM lecturer_availability WHERE availability_id = ? AND staff_number = ?'
   ).get(availability_id, staff_number)
@@ -175,7 +193,7 @@ const createBooking = async (req, res) => {
        lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Booked', ?)
   `).run(
-    constId, title, description || null, date, start_time,
+    constId, cleanTitle, cleanDescription, date, start_time,
     staff_number, user.id, availability_id,
     Number(duration_min), window.max_number_of_students, window.venue,
     allowJoinVal

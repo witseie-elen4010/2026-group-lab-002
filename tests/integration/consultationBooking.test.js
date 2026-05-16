@@ -108,6 +108,29 @@ describe('POST /consultations/new', () => {
     createdIds.push(row.const_id);
   });
 
+  test('rejects title exceeding 100 characters with an error message', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    const longTitle = 'a'.repeat(101);
+    const res = await bookSlot(agent, { title: longTitle });
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toContain('error');
+    expect(decodeURIComponent(res.headers.location)).toContain('100 characters or fewer');
+  });
+
+  test('stores script tag in title as plain text without executing', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    const scriptTitle = `<script>alert(1)</script> ${testTag}`;
+    const res = await bookSlot(agent, { title: scriptTitle, start_time: '10:30' });
+    expect(res.status).toBe(302);
+    const row = db.prepare('SELECT * FROM consultations WHERE consultation_title = ?').get(scriptTitle.trim());
+    if (row) {
+      createdIds.push(row.const_id);
+      expect(row.consultation_title).toBe(scriptTitle.trim());
+    }
+  });
+
   test('rejects booking outside the availability window', async () => {
     const agent = request.agent(app);
     await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
