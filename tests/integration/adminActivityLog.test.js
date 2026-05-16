@@ -7,7 +7,7 @@ const adminAgent = () => {
   return agent
     .post('/login')
     .type('form')
-    .send({ staffStudentNumber: 'ADMIN001', password: 'admin' })
+    .send({ staffStudentNumber: 'ADMIN001', password: 'Password01' })
     .then(() => agent);
 };
 
@@ -20,14 +20,14 @@ describe('GET /admin/activity-log', () => {
 
   test('returns 403 when authenticated as a student', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/admin/activity-log');
     expect(res.status).toBe(403);
   });
 
   test('returns 403 when authenticated as a lecturer', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000356', password: 'Password01' });
     const res = await agent.get('/admin/activity-log');
     expect(res.status).toBe(403);
   });

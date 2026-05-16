@@ -44,7 +44,7 @@ describe('GET /student/dashboard', () => {
 
   test('renders the Find a Consultation calendar section', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Find a Consultation');
@@ -53,7 +53,7 @@ describe('GET /student/dashboard', () => {
 
   test('calendar shows lecturer names from enrolled courses', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Clark Kent');
@@ -61,7 +61,7 @@ describe('GET /student/dashboard', () => {
 
   test('calendar renders Schedule buttons for available slots', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('data-testid="schedule-btn"');
@@ -69,7 +69,7 @@ describe('GET /student/dashboard', () => {
 
   test('course colour legend renders enrolled course codes', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('ELEN4010');
@@ -86,7 +86,7 @@ describe('GET /student/dashboard', () => {
     const firstWeekday = getFirstCalendarWeekday();
     getSAPublicHolidays.mockResolvedValueOnce([{ date: firstWeekday, localName: 'Test Holiday' }]);
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Public holiday');
@@ -114,7 +114,7 @@ describe('public holidays and weather integration', () => {
     getSAPublicHolidays.mockResolvedValueOnce([{ date: firstWeekday, localName: 'Test Holiday' }]);
     getWitsWeather.mockResolvedValueOnce({});
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.get('/student/dashboard?view=find');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Public holiday');
