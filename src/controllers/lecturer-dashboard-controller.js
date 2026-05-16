@@ -3,6 +3,9 @@ const { getSAPublicHolidays } = require('../services/public-holidays-service');
 const { getWitsWeather } = require('../services/weather-service');
 
 const showLecturerDashboard = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
   const user = {
     id:   req.session.userId,
     name: req.session.userName,

@@ -6,14 +6,13 @@ const { getWitsWeather } = require('../services/weather-service');
 const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const showStudentDashboard = async (req, res) => {
-  const user = req.session && req.session.userId ? {
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
+  const user ={ 
     id: req.session.userId,
     name: req.session.userName,
     role: req.session.userRole,
-  } : {
-    id: 1234567,
-    name: 'Test Student',
-    role: 'student',
   };
 
   try {

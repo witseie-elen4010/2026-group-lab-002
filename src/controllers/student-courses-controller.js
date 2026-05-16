@@ -7,7 +7,10 @@ const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
 
 const showStudentCourses = (req, res) => {
-  const studentNumber = req.session && req.session.userId ? req.session.userId : 1234567
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
+  const studentNumber = req.session.userId ;
 
   try {
     const student = db.prepare(`

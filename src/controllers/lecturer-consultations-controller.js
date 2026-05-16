@@ -3,6 +3,9 @@ const { logActivity } = require('../services/logging-service');
 const ActionTypes = require('../services/action-types');
 
 const showLecturerConsultations = (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
   const user = {
     id:   req.session.userId,
     name: req.session.userName,
