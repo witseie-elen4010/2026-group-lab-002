@@ -363,9 +363,41 @@ This increases write complexity and storage requirements.
 
 - Add integration tests for transactional logging.
 - Add unit tests for metadata parsing and dynamic CRUD generation.
-- Prevent audit infrastructure tables from being editable through the dashboard.
-- Add pagination and filtering for large audit datasets.
-- Add administrator-facing audit review pages.
-- Add role-based access validation for admin-only functionality.
+- ~~Prevent audit infrastructure tables from being editable through the dashboard.~~ **Done** — `activity_log`, `affected_records`, `actions`, and `admin_audit_log` added to `READ_ONLY_TABLES` in `admin-controller.js`.
+- ~~Add pagination and filtering for large audit datasets.~~ **Done** — server-side pagination (20 rows/page), full-text search, and category filter chips on the Activity Log page.
+- ~~Add administrator-facing audit review pages.~~ **Done** — see "Delivered: Unified Activity Log UI" below.
+- ~~Add role-based access validation for admin-only functionality.~~ **Done** — `requireRole('admin')` guard on all `/admin/*` routes.
 - Add rollback testing for failed transactional logging scenarios.
 - Ensure composite primary key tables are correctly editable through the dynamic admin interface.
+
+---
+
+## Delivered: Unified Activity Log UI (2026-05-16)
+
+
+
+### What Was Added
+
+A dedicated page at `/admin/activity-log` was built on top of the existing logging schema. The raw `/admin/table/activity_log` route remains accessible for diagnostic use.
+
+**New files:**
+- `src/controllers/admin-activity-log-controller.js` — `showActivityLog` handler with JOIN query, category/search filtering, and server-side pagination.
+- `src/services/activity-log-helpers.js` — maps `action_name` codes to readable event labels, category names, and status values. Single place to update when new action types are added.
+
+**Controller query:** joins `activity_log`, `actions`, `affected_records`, `students`, `staff`, and `admins` to resolve actor name and role alongside each log entry. For `ADMIN_USER_ADD`, `ADMIN_USER_EDIT`, and `ADMIN_USER_DELETE` entries, the detail modal correlates the closest-timestamp row from `admin_audit_log` to show before/after change data without duplicating snapshot columns into `activity_log`.
+
+**Admin sidebar:** the Security section now shows only the "Activity Log" link.
+
+### Logging Gaps Fixed
+
+Three `logActivity` calls were missing and were added:
+
+| Location | Fix |
+|---|---|
+| `auth-controller.js` | Admin login was logged as `USER_LOGIN`. Changed to `ADMIN_LOGIN` so admin sessions are correctly attributed. |
+| `lecturer-consultations-controller.js` | Lecturer-initiated cancellation had no log call. Added `CONSULT_CANCEL_LEC` with the affected consultation ID. |
+| `availability-controller.js` | The new `updateAvailability` handler adds `AVAIL_UPDATE` with the affected availability slot ID. |
+
+### `admin_audit_log` Added to Protected Tables
+
+`admin_audit_log` (introduced in ADR-013) was added to `READ_ONLY_TABLES`. The original ADR-012 protected list (`activity_log`, `affected_records`, `actions`) did not include it.
