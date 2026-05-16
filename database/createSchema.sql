@@ -142,6 +142,13 @@ CREATE TABLE lecturer_availability (
 
   CHECK (end_time > start_time),
 
+  CHECK (
+    max_booking_min <= (
+      (CAST(SUBSTR(end_time, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(end_time, 4, 2) AS INTEGER)) -
+      (CAST(SUBSTR(start_time, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(start_time, 4, 2) AS INTEGER))
+    )
+  ),
+
   FOREIGN KEY (staff_number) REFERENCES staff(staff_number) ON DELETE CASCADE
 );
 

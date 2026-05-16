@@ -131,6 +131,16 @@ describe('POST /consultations/new', () => {
     }
   });
 
+  test('rejects booking with duration_min exceeding max_booking_min', async () => {
+    const agent = request.agent(app);
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    // Availability 3: A000356, Wed 10:00-14:00, max_booking_min=180 — posting 181 min should be rejected
+    const res = await bookSlot(agent, { availability_id: '3', start_time: '10:00', duration_min: '181' });
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toContain('error');
+    expect(decodeURIComponent(res.headers.location)).toContain('maximum consultation duration');
+  });
+
   test('rejects booking outside the availability window', async () => {
     const agent = request.agent(app);
     await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });

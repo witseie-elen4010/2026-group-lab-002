@@ -32,4 +32,7 @@ const isOverlapping = (existingSlots, startTime, endTime) => {
   });
 };
 
-module.exports = { generateConstId, validateSlotFields, isBusinessHours, computeDuration, isOverlapping };
+const isMaxBookingValid = (startTime, endTime, maxBookingMin) =>
+  Number(maxBookingMin) <= toMinutes(endTime) - toMinutes(startTime);
+
+module.exports = { generateConstId, validateSlotFields, isBusinessHours, computeDuration, isOverlapping, isMaxBookingValid };

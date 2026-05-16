@@ -2,7 +2,7 @@ const db = require('../../database/db')
 const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
 
-const { validateSlotFields, isBusinessHours, isOverlapping } = require('../services/availability-helpers')
+const { validateSlotFields, isBusinessHours, isOverlapping, isMaxBookingValid, computeDuration } = require('../services/availability-helpers')
 const { validateRequiredText } = require('../services/input-validation')
 
 const getAvailability = (staffNumber) =>
@@ -56,6 +56,16 @@ const saveAvailability = async (req, res) => {
       user,
       availability: getAvailability(user.id),
       error: 'Slots must be between 08:00 and 18:00, with end time after start time.',
+      success: null
+    })
+  }
+
+  if (!isMaxBookingValid(start_time, end_time, max_booking_min)) {
+    const windowLength = computeDuration(start_time, end_time)
+    return res.render('availability', {
+      user,
+      availability: getAvailability(user.id),
+      error: `Max consultation duration (${Number(max_booking_min)} min) cannot exceed window length (${windowLength} min).`,
       success: null
     })
   }
@@ -132,6 +142,15 @@ const updateAvailability = async (req, res) => {
     return res.render('availability', {
       user, availability: getAvailability(user.id),
       error: 'Slots must be between 08:00 and 18:00, with end time after start time.', success: null
+    })
+  }
+
+  if (!isMaxBookingValid(start_time, end_time, max_booking_min)) {
+    const windowLength = computeDuration(start_time, end_time)
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: `Max consultation duration (${Number(max_booking_min)} min) cannot exceed window length (${windowLength} min).`,
+      success: null
     })
   }
 
