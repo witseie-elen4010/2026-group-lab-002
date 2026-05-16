@@ -11,7 +11,10 @@ const purgeE2ECancelRows = () => {
   }
 };
 
-test.beforeAll(purgeE2ECancelRows);
+test.beforeAll(() => {
+  purgeE2ECancelRows();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+});
 test.afterEach(purgeE2ECancelRows);
 
 test('organiser can cancel their own consultation', async ({ page }) => {
