@@ -54,10 +54,7 @@ const login = async (req, res) => {
     }
     if (staff.password === password) {
       if (!staff.email_verified) {
-        return res.render('login', {
-          error: 'Your email address has not been verified. Please check your inbox.',
-          success: null,
-        })
+        return res.redirect(`/verify-email?email=${encodeURIComponent(staff.email)}&fromLogin=1`)
       }
       db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
       req.session.userId = staff.staff_number
@@ -91,10 +88,7 @@ const login = async (req, res) => {
     }
     if (student.password === password) {
       if (!student.email_verified) {
-        return res.render('login', {
-          error: 'Your email address has not been verified. Please check your inbox.',
-          success: null,
-        })
+        return res.redirect(`/verify-email?email=${encodeURIComponent(student.email)}&fromLogin=1`)
       }
       db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
       req.session.userId = student.student_number

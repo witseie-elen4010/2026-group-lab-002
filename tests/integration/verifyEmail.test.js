@@ -105,7 +105,7 @@ describe('POST /verify-email/resend', () => {
 })
 
 describe('POST /login — email_verified guard', () => {
-  test('unverified account is denied login with correct password', async () => {
+  test('unverified account redirects to verify-email page on correct password', async () => {
     insertUnverified()
 
     const res = await request(app)
@@ -113,8 +113,9 @@ describe('POST /login — email_verified guard', () => {
       .type('form')
       .send({ staffStudentNumber: String(TEST_NUMBER), password: 'pass' })
 
-    expect(res.status).toBe(200)
-    expect(res.text).toContain('has not been verified')
+    expect(res.status).toBe(302)
+    expect(res.headers.location).toContain('/verify-email')
+    expect(res.headers.location).toContain('fromLogin=1')
   })
 
   test('verified account with correct password redirects to dashboard', async () => {

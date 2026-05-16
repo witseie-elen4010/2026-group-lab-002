@@ -14,9 +14,12 @@ const lookupByEmail = (email) => {
 
 const showVerifyPage = (req, res) => {
   const email = req.query.email || ''
-  const message = req.query.emailFailed
-    ? 'We had trouble sending your verification email. Use the Resend button below to try again.'
-    : null
+  let message = null
+  if (req.query.emailFailed) {
+    message = 'We had trouble sending your verification email. Use the Resend button below to try again.'
+  } else if (req.query.fromLogin) {
+    message = 'Your account is not yet verified. Enter the code from your email or request a new one below.'
+  }
   return res.render('verify-email', { email, error: null, message })
 }
 

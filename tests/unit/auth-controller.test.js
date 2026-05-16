@@ -155,7 +155,7 @@ describe('login', () => {
     })
   })
 
-  test('renders unverified error when staff password is correct but email not verified', async () => {
+  test('redirects unverified staff to verify-email page', async () => {
     const unverifiedStaff = { ...fakeStaff, email_verified: 0 }
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStaff) })
 
@@ -164,13 +164,12 @@ describe('login', () => {
 
     await login(req, res)
 
-    expect(res.render).toHaveBeenCalledWith('login', {
-      error: 'Your email address has not been verified. Please check your inbox.',
-      success: null,
-    })
+    expect(res.redirect).toHaveBeenCalledWith(
+      `/verify-email?email=${encodeURIComponent(fakeStaff.email)}&fromLogin=1`
+    )
   })
 
-  test('renders unverified error when student password is correct but email not verified', async () => {
+  test('redirects unverified student to verify-email page', async () => {
     const unverifiedStudent = { ...fakeStudent, email_verified: 0 }
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
@@ -181,10 +180,9 @@ describe('login', () => {
 
     await login(req, res)
 
-    expect(res.render).toHaveBeenCalledWith('login', {
-      error: 'Your email address has not been verified. Please check your inbox.',
-      success: null,
-    })
+    expect(res.redirect).toHaveBeenCalledWith(
+      `/verify-email?email=${encodeURIComponent(fakeStudent.email)}&fromLogin=1`
+    )
   })
 
   test('records failed attempt and shows remaining attempts when staff password wrong', async () => {
