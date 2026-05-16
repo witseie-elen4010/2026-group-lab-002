@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security verification — KnockKnock.prof</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    .auth-wrapper { min-height: calc(100vh - 75px); display: flex; align-items: center; justify-content: center; }
+    .auth-card    { width: 100%; max-width: 460px; }
+    .code-input   { font-size: 2rem; font-weight: 700; letter-spacing: 0.4em; text-align: center; }
+    .alert-icon   { font-size: 2.5rem; color: #b91c1c; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar p-3 d-flex justify-content-between align-items-center">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+      <div>
+        <div class="kk-brand-name">KnockKnock.prof</div>
+        <div class="kk-brand-tagline">Open the door to better consultations</div>
+      </div>
+    </a>
+  </header>
+
+  <main class="container-fluid p-4 auth-wrapper">
+    <div class="card p-4 auth-card border-danger-subtle">
+
+      <div class="text-center mb-4">
+        <i class="bi bi-shield-exclamation alert-icon"></i>
+        <h3 class="fw-bold mt-2">Security verification required</h3>
+        <p class="text-muted mb-0">
+          Multiple failed login attempts were detected on your account.
+          Check your email for a one-time PIN and enter it below.
+        </p>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+      <% } %>
+
+      <form action="/login/pin" method="POST">
+        <div class="mb-4">
+          <label for="pin" class="form-label fw-semibold">One-time PIN</label>
+          <input
+            type="text"
+            class="form-control code-input"
+            id="pin"
+            name="pin"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            placeholder="000000"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            required
+          >
+          <div class="form-text text-center">Enter the 6-digit PIN from your security alert email.</div>
+        </div>
+
+        <button type="submit" class="btn btn-danger w-100 py-2 mb-3">Verify PIN</button>
+      </form>
+
+      <div class="text-center">
+        <a href="/login" class="btn btn-link btn-sm p-0 text-decoration-none text-muted">
+          Back to login
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
