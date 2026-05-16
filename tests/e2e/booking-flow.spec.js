@@ -9,13 +9,16 @@ const purgeE2ERows = () => {
   }
 };
 
-test.beforeAll(purgeE2ERows);
+test.beforeAll(() => {
+  purgeE2ERows();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+});
 test.afterEach(purgeE2ERows);
 
 test('student can book a consultation via the 10-day calendar', async ({ page }) => {
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
 
   await page.waitForURL('**/student/dashboard**');
@@ -50,7 +53,7 @@ test('student can book a consultation via the 10-day calendar', async ({ page })
 test('booking with a past date redirects to dashboard with error', async ({ page }) => {
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
@@ -73,7 +76,7 @@ test('booking with a past date redirects to dashboard with error', async ({ page
 test('booking with missing required fields shows validation error', async ({ page }) => {
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
@@ -95,7 +98,7 @@ test('booking with missing required fields shows validation error', async ({ pag
 test('booking page body does not contain "undefined" or "null" strings', async ({ page }) => {
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
 
   await page.waitForURL('**/student/dashboard**');

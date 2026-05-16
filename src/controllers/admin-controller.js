@@ -6,7 +6,7 @@ const { logAdminAudit } = require('../services/admin-audit-service')
 
 const PAGE_SIZE = 20
 // tables the admin UI can view but not modify
-const READ_ONLY_TABLES = ['admin_audit_log', 'activity_log', 'affected_records', 'actions']
+const READ_ONLY_TABLES = ['admin_audit_log', 'activity_log', 'affected_records', 'actions', 'failed_login_log']
 
 const getAllTables = () =>
   db.prepare('SELECT name FROM sqlite_master WHERE type=\'table\' ORDER BY name').all().map(r => r.name)

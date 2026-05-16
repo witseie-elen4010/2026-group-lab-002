@@ -24,6 +24,7 @@ const insertConsultation = (constId, maxStudents = 5) => {
 };
 
 test.beforeEach(() => {
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
   insertConsultation(JOIN_ID, 5);
 });
 
@@ -39,7 +40,7 @@ test.describe('Student joins a consultation', () => {
   test('student can join an available consultation from the calendar', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'pass');
+    await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
     await expect(page).toHaveURL(/student/);
@@ -59,7 +60,7 @@ test.describe('Student joins a consultation', () => {
   test('join button is no longer shown after the student has already joined', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'pass');
+    await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
     await page.goto(`/consultations/${JOIN_ID}`);
@@ -73,7 +74,7 @@ test.describe('Student joins a consultation', () => {
   test('student appears in the attendees list after joining', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'pass');
+    await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
     await page.goto(`/consultations/${JOIN_ID}`);
@@ -87,12 +88,12 @@ test.describe('Student joins a consultation', () => {
   test('student cannot join a full consultation', async ({ page }) => {
     insertConsultation(FULL_ID, 1);
     db.prepare('INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES (8888888, ?, ?, ?, ?)')
-      .run('Other Student', 'other@students.wits.ac.za', 'pass', 'BSCENGINFO');
+      .run('Other Student', 'other@students.wits.ac.za', 'Password01', 'BSCENGINFO');
     db.prepare('INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, 8888888)').run(FULL_ID);
 
     await page.goto('/login');
     await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'pass');
+    await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
     await expect(page).toHaveURL(/student/);

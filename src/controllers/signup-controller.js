@@ -1,6 +1,9 @@
+const crypto = require('crypto')
 const db = require('../../database/db')
 const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
+const bcrypt = require('bcryptjs')
+const { sendVerificationEmail } = require('../services/email-service')
 
 const showSignupPage = (req, res) => {
   res.render('sign-up', {
@@ -11,6 +14,27 @@ const showSignupPage = (req, res) => {
     number: '',
     email: ''
   })
+}
+
+const _issueVerificationCode = async (email) => {
+  const code = String(Math.floor(100000 + Math.random() * 900000))
+  const token = crypto.createHash('sha256').update(code).digest('hex')
+  const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+
+  const inStaff = db.prepare('SELECT 1 FROM staff WHERE email = ?').get(email)
+  if (inStaff) {
+    db.prepare('UPDATE staff SET verification_token = ?, token_expiry = ?, resend_count = 0 WHERE email = ?').run(token, expiry, email)
+  } else {
+    db.prepare('UPDATE students SET verification_token = ?, token_expiry = ?, resend_count = 0 WHERE email = ?').run(token, expiry, email)
+  }
+
+  try {
+    await sendVerificationEmail(email, code)
+    return true
+  } catch (err) {
+    console.error('Verification email failed to send:', err)
+    return false
+  }
 }
 
 const registerUser = async (req, res) => {
@@ -24,7 +48,12 @@ const registerUser = async (req, res) => {
     } = req.body
 
     if (password === '') {
-      throw new Error('Bro, lock the door to this account with some kind of password. Bro, seriously')
+      throw new Error('Knock, knock! Who\'s there? Not your password, it seems. Please enter a password to continue')
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/
+    if (!passwordRegex.test(password)) {
+      throw new Error('Password must be at least 8 characters long, contain one uppercase letter, and one number')
     }
 
     if (password && password !== confirmPassword) {
@@ -66,6 +95,9 @@ const registerUser = async (req, res) => {
       }
     }
 
+    const saltRounds = 11
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
     // Database Insertion
     if (role === 'lecturer') {
       const db_number = db.prepare(`
@@ -86,22 +118,12 @@ const registerUser = async (req, res) => {
         INSERT INTO staff (staff_number, name, email, department, dept_code, password)
         VALUES (?, ?, ?, ?, ?, ?)
       `)
-      stmt.run(number, fullName, email, 'EIE', 'EIE', password)
+      stmt.run(number, fullName, email, 'EIE', 'EIE', hashedPassword)
 
-      req.session.userId = number
-      req.session.userName = fullName
-      req.session.userRole = 'lecturer'
-      req.session.showWelcome = true
-
-      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'staff', id: req.session.userId }])
-      return res.render('sign-up', {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/lecturer/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      })
+      await logActivity(number, ActionTypes.USER_SIGNUP, [{ table: 'staff', id: number }])
+      const staffEmailSent = await _issueVerificationCode(email)
+      const staffWarn = staffEmailSent ? '' : '&emailFailed=1'
+      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}${staffWarn}`)
     } else {
       const db_number = db.prepare(`
         SELECT student_number FROM students WHERE student_number = ?
@@ -121,22 +143,12 @@ const registerUser = async (req, res) => {
         INSERT INTO students (student_number, name, email, password, degree_code)
         VALUES (?, ?, ?, ?, ?)
       `)
-      stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO')
+      stmt.run(parseInt(number), fullName, email, hashedPassword, 'BSCENGINFO')
 
-      req.session.userId = parseInt(number)
-      req.session.userName = fullName
-      req.session.userRole = 'student'
-      req.session.showWelcome = true
-
-      await logActivity(req.session.userId, ActionTypes.USER_SIGNUP, [{ table: 'students', id: req.session.userId }])
-      return res.render('sign-up', {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/student/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      })
+      await logActivity(parseInt(number), ActionTypes.USER_SIGNUP, [{ table: 'students', id: parseInt(number) }])
+      const studentEmailSent = await _issueVerificationCode(email)
+      const studentWarn = studentEmailSent ? '' : '&emailFailed=1'
+      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}${studentWarn}`)
     }
   } catch (error) {
     console.error('Signup error:', error)
