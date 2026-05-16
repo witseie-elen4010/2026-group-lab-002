@@ -5,9 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "npm install && npm rebuild sqlite3 --build-from-source && npm run setup && npm run dependencies",
+    "build": "npm install && npm run setup",
     "setup": "node database/setup.js",
-    "dependencies": "npm install bcryptjs better-sqlite3 ejs express express-session",
     "test": "jest --coverage",
     "test:e2e": "playwright test"
   },
