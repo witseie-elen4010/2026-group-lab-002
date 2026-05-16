@@ -283,9 +283,9 @@ INSERT OR IGNORE INTO courses (course_code, course_name, year_level, dept_code) 
   ('PHYS1034', 'Applied Physics I',                          1, 'FEBE');
 
 -- ─── Staff ───────────────────────────────────────────────────────────────────
-INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
-  ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya'),
-  ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya');
+INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password , email_verified) VALUES
+  ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1),
+  ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 1);
 
 -- Staff data
 INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
@@ -299,8 +299,8 @@ INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
   ('A000357', 'ELEN4010');
 
 -- ─── Test student ─────────────────────────────────────────────────────────────
-INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES
-  (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 'BSCENGINFO');
+INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code, email_verified) VALUES
+  (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 'BSCENGINFO', 1);
 
 INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
   (1234567, 'ELEN4010'),

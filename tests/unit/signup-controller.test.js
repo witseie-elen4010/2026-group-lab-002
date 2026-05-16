@@ -9,8 +9,14 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+<<<<<<< HEAD
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('hashedPassword123')
+=======
+jest.mock('../../src/services/email-service', () => ({
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+  sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
+>>>>>>> main
 }))
 
 const db = require('../../database/db')
@@ -34,9 +40,11 @@ beforeEach(() => {
 describe('email domain validation', () => {
   test('accepts student email ending in @students.wits.ac.za', async () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
-      .mockReturnValueOnce({ run: jest.fn() })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // student_number check
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // email check
+      .mockReturnValueOnce({ run: jest.fn() })                            // INSERT
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })      // staff check in _issueVerificationCode
+      .mockReturnValueOnce({ run: jest.fn() })                            // UPDATE students token
 
     const req = mockReq({
       fullName: 'Test Student',
@@ -45,35 +53,23 @@ describe('email domain validation', () => {
       password: 'Password01',
       confirmPassword: 'Password01'
     })
-
     req.session = {}
     const res = mockRes()
-
     await registerUser(req, res)
 
-    expect(req.session.userId).toBe(1234567)
-    expect(req.session.userName).toBe('Test Student')
-    expect(req.session.userRole).toBe('student')
-    expect(req.session.showWelcome).toBe(true)
-
-    expect(res.render).toHaveBeenCalledWith(
-      'sign-up',
-      {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/student/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      }
+    expect(req.session.userId).toBeUndefined()
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/verify-email?email=student%40students.wits.ac.za'
     )
   })
 
   test('accepts lecturer email ending in @wits.ac.za', async () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
-      .mockReturnValueOnce({ run: jest.fn() })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // staff_number check
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // email check
+      .mockReturnValueOnce({ run: jest.fn() })                            // INSERT
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000999' }) }) // staff check in _issueVerificationCode
+      .mockReturnValueOnce({ run: jest.fn() })                            // UPDATE staff token
 
     const req = mockReq({
       fullName: 'Test Lecturer',
@@ -82,27 +78,13 @@ describe('email domain validation', () => {
       password: 'Password01',
       confirmPassword: 'Password01'
     })
-
     req.session = {}
     const res = mockRes()
-
     await registerUser(req, res)
 
-    expect(req.session.userId).toBe('A000999')
-    expect(req.session.userName).toBe('Test Lecturer')
-    expect(req.session.userRole).toBe('lecturer')
-    expect(req.session.showWelcome).toBe(true)
-
-    expect(res.render).toHaveBeenCalledWith(
-      'sign-up',
-      {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/lecturer/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      }
+    expect(req.session.userId).toBeUndefined()
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/verify-email?email=lecturer%40wits.ac.za'
     )
   })
 

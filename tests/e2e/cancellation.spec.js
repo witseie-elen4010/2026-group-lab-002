@@ -11,7 +11,10 @@ const purgeE2ECancelRows = () => {
   }
 };
 
-test.beforeAll(purgeE2ECancelRows);
+test.beforeAll(() => {
+  purgeE2ECancelRows();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+});
 test.afterEach(purgeE2ECancelRows);
 
 test('organiser can cancel their own consultation', async ({ page }) => {
@@ -97,6 +100,35 @@ test('non-organiser attendee can leave a consultation', async ({ page }) => {
   db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = 1234567').run(row.const_id);
 });
 
-test.skip('student can join a joinable consultation', async ({ page }) => {
-  // TODO: Enable once dashboard join link is updated to POST (PR pending)
+test('student can join a joinable consultation', async ({ page }) => {
+  const constId = 'E2E-CANCEL-JOIN-001';
+  const d = new Date(Date.now() + 2 * 60 * 60 * 1000);
+  d.setUTCDate(d.getUTCDate() + 1);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
+  const dateStr = d.toISOString().split('T')[0];
+
+  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId);
+  db.prepare('DELETE FROM consultations WHERE const_id = ?').run(constId);
+  db.prepare(`
+    INSERT INTO consultations
+      (const_id, consultation_title, consultation_date, consultation_time,
+       lecturer_id, duration_min, max_number_of_students, venue, status, allow_join)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(constId, 'E2E Cancel Test Join', dateStr, '10:00',
+         'A000356', 60, 5, 'Room 101', 'Booked', 1);
+
+  await page.goto('/login');
+  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="password"]', 'pass');
+  await page.click('button[type="submit"]');
+  await page.waitForURL('**/student/dashboard**');
+
+  await page.goto(`/consultations/${constId}`);
+  await page.getByRole('button', { name: 'Join Consultation' }).click();
+
+  await expect(page).toHaveURL(/student/);
+  await expect(page.locator('body')).toContainText('Successfully joined consultation');
+
+  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId);
+  db.prepare('DELETE FROM consultations WHERE const_id = ?').run(constId);
 });

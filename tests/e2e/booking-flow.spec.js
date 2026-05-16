@@ -9,7 +9,10 @@ const purgeE2ERows = () => {
   }
 };
 
-test.beforeAll(purgeE2ERows);
+test.beforeAll(() => {
+  purgeE2ERows();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+});
 test.afterEach(purgeE2ERows);
 
 test('student can book a consultation via the 10-day calendar', async ({ page }) => {
