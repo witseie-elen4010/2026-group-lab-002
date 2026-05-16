@@ -3,12 +3,12 @@ const request = require('supertest');
 const app = require('../../app');
 
 describe('GET /courses/:courseCode', () => {
-  test('redirects to dashboard with error when student is not logged in and default user not enrolled', async () => {
-    const res = await request(app).get('/courses/MECN2026');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain('/student/dashboard');
-    expect(res.headers.location).toContain('error');
-  });
+  test('redirects to login when a user is not authenticated', async () => {
+      const res = await request(app).get('/courses/MECN2026');
+      
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe('/login');
+    });
 
   test('renders course detail page for enrolled student', async () => {
     const agent = request.agent(app);

@@ -43,12 +43,12 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret',
+  secret: 'knockknock-secret-change-before-deploy',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'strict',
     maxAge: 1000 * 60 * 60 * 8
   }

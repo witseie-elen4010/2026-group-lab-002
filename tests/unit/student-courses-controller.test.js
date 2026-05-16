@@ -72,7 +72,7 @@ describe('showStudentCourses', () => {
   test('renders an error when student record is not found', async () => {
     // Arrange
     db.prepare.mockReturnValue({ get: jest.fn().mockReturnValue(null) })
-    const req = mockReq({ session: {} })
+    const req = mockReq({ session: { userId: 1234567 } })
     const res = mockRes()
 
     // Act
@@ -91,7 +91,7 @@ describe('showStudentCourses', () => {
       get: jest.fn().mockReturnValue(fakeStudent),
       all: jest.fn().mockReturnValue([])
     })
-    const req = mockReq({ session: {}, query: { success: 'true' } })
+    const req = mockReq({ session: { userId: 1234567 }, query: { success: 'true' } })
     const res = mockRes()
 
     // Act
@@ -110,7 +110,7 @@ describe('showStudentCourses', () => {
       get: jest.fn().mockReturnValue(fakeStudent),
       all: jest.fn().mockReturnValue([])
     })
-    const req = mockReq({ session: {}, query: { onboarding: 'true' } })
+    const req = mockReq({ session: { userId: 1234567 }, query: { onboarding: 'true' } })
     const res = mockRes()
 
     // Act

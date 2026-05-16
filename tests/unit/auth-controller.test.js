@@ -19,21 +19,41 @@ jest.mock('../../src/services/email-service', () => ({
   sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
 }))
 
+const res = {
+  redirect: jest.fn(),
+  render: jest.fn(),
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+  set: jest.fn(),        
+  clearCookie: jest.fn()  
+};
+
 const db = require('../../database/db')
 const { logActivity } = require('../../src/services/logging-service')
 const ActionTypes = require('../../src/services/action-types')
 
-const mockReq = (overrides = {}) => ({
-  session: {},
-  body: {},
-  query: {},
-  ...overrides
-})
+const mockReq = (overrides = {}) => {
+  const defaultSession = {
+    regenerate: jest.fn((cb) => { if (cb) cb(); }),
+    destroy: jest.fn((cb) => { if (cb) cb(); })
+  };
+  
+  return {
+    session: { ...defaultSession, ...(overrides.session || {}) },
+    body: overrides.body || {},
+    query: overrides.query || {},
+    ...overrides
+  };
+};
 
 const mockRes = () => {
   const res = {}
   res.render = jest.fn()
   res.redirect = jest.fn()
+  res.status = jest.fn().mockReturnValue(res)
+  res.send = jest.fn().mockReturnValue(res)
+  res.set = jest.fn()         
+  res.clearCookie = jest.fn() 
   return res
 }
 
@@ -41,9 +61,7 @@ beforeEach(() => {
   db.prepare.mockReset()
   logActivity.mockClear()
   
-  // THE MISSING PIECE: Safely intercept bcryptjs without hoisting bugs!
   jest.spyOn(bcryptjs, 'compare').mockImplementation(async (plainPassword) => {
-    // Return true for our good test password, false for 'wrongpass'
     return plainPassword !== 'wrongpass'
   })
 })
