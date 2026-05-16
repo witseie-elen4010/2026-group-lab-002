@@ -82,8 +82,8 @@ describe('showLogin', () => {
 })
 
 describe('login', () => {
-  const fakeStaff = { staff_number: 'A000356', name: 'Clark Kent', password: 'pass' }
-  const fakeStudent = { student_number: 1234567, name: 'Aditya', password: 'pass' }
+  const fakeStaff = { staff_number: 'A000356', name: 'Clark Kent', password: 'pass', email_verified: 1 }
+  const fakeStudent = { student_number: 1234567, name: 'Aditya', password: 'pass', email_verified: 1 }
 
   test('sets lecturer session and redirects to lecturer dashboard on valid staff credentials', async () => {
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })
@@ -147,6 +147,38 @@ describe('login', () => {
     expect(res.render).toHaveBeenCalledWith('login', {
       error: 'Invalid username or password.',
       success: null
+    })
+  })
+
+  test('renders unverified error when staff password is correct but email not verified', async () => {
+    const unverifiedStaff = { ...fakeStaff, email_verified: 0 }
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStaff) })
+
+    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'pass' } })
+    const res = mockRes()
+
+    await login(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('login', {
+      error: 'Your email address has not been verified. Please check your inbox.',
+      success: null,
+    })
+  })
+
+  test('renders unverified error when student password is correct but email not verified', async () => {
+    const unverifiedStudent = { ...fakeStudent, email_verified: 0 }
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStudent) })
+
+    const req = mockReq({ body: { staffStudentNumber: '1234567', password: 'pass' } })
+    const res = mockRes()
+
+    await login(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('login', {
+      error: 'Your email address has not been verified. Please check your inbox.',
+      success: null,
     })
   })
 

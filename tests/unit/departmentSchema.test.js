@@ -20,8 +20,8 @@ describe('Department schema constraints and relationships', () => {
     db.prepare(`INSERT INTO departments VALUES ('EIE', 'School of Electrical and Information Engineering', 'Engineering and the Built Environment')`).run()
     db.prepare(`INSERT INTO departments VALUES ('MIA', 'School of Mechanical, Industrial and Aeronautical Engineering', 'Engineering and the Built Environment')`).run()
     db.prepare(`INSERT INTO degrees VALUES ('BSCENGINFO', 'BSc Eng (Information)', 'EIE')`).run()
-    db.prepare(`INSERT INTO students VALUES (1000001, 'Test Student', 'student@wits.ac.za', 'pw', 'BSCENGINFO')`).run()
-    db.prepare(`INSERT INTO staff VALUES ('A000001', 'Dr Alpha', 'alpha@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
+    db.prepare(`INSERT INTO students (student_number, name, email, password, degree_code) VALUES (1000001, 'Test Student', 'student@wits.ac.za', 'pw', 'BSCENGINFO')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, dept_code, password) VALUES ('A000001', 'Dr Alpha', 'alpha@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
     db.prepare(`INSERT INTO courses VALUES ('ELEN4010', 'Software Development III', 4, 'EIE')`).run()
     db.prepare(`INSERT INTO courses VALUES ('MECN4020', 'Systems Management and Integration', 4, 'MIA')`).run()
   })
@@ -109,7 +109,7 @@ describe('Department schema constraints and relationships', () => {
   })
 
   test('removes course assignments when a staff member is deleted', () => {
-    db.prepare(`INSERT INTO staff VALUES ('A000099', 'Temp Staff', 'temp@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, dept_code, password) VALUES ('A000099', 'Temp Staff', 'temp@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
     db.prepare(`INSERT INTO staff_courses VALUES ('A000099', 'ELEN4010')`).run()
     db.prepare(`DELETE FROM staff WHERE staff_number = 'A000099'`).run()
     const rows = db.prepare(`SELECT * FROM staff_courses WHERE staff_number = 'A000099'`).all()

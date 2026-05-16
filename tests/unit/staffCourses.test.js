@@ -18,8 +18,8 @@ describe('Staff course assignments', () => {
 
     db.prepare(`INSERT INTO departments VALUES ('EIE', 'School of EIE', 'Engineering')`).run()
     db.prepare(`INSERT INTO degrees VALUES ('BSCENGINFO', 'BSc Eng (Information)', 'EIE')`).run()
-    db.prepare(`INSERT INTO staff VALUES ('A000001', 'Dr Alpha', 'alpha@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
-    db.prepare(`INSERT INTO staff VALUES ('A000002', 'Dr Beta',  'beta@wits.ac.za',  'EIE', 'EIE', 'pw')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, dept_code, password) VALUES ('A000001', 'Dr Alpha', 'alpha@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, dept_code, password) VALUES ('A000002', 'Dr Beta',  'beta@wits.ac.za',  'EIE', 'EIE', 'pw')`).run()
     db.prepare(`INSERT INTO courses VALUES ('ELEN4010', 'Software Development III', 4, 'EIE')`).run()
     db.prepare(`INSERT INTO courses VALUES ('ELEN3009', 'Digital Systems',           3, 'EIE')`).run()
     db.prepare(`INSERT INTO courses VALUES ('ELEN4020', 'Data Intensive Computing',  4, 'EIE')`).run()
@@ -60,7 +60,7 @@ describe('Staff course assignments', () => {
   })
 
   test('returns an empty list for a lecturer with no course assignments', () => {
-    db.prepare(`INSERT INTO staff VALUES ('A000003', 'Dr Gamma', 'gamma@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
+    db.prepare(`INSERT INTO staff (staff_number, name, email, department, dept_code, password) VALUES ('A000003', 'Dr Gamma', 'gamma@wits.ac.za', 'EIE', 'EIE', 'pw')`).run()
     const rows = db.prepare(`SELECT * FROM staff_courses WHERE staff_number = 'A000003'`).all()
     expect(rows).toHaveLength(0)
   })

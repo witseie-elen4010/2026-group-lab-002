@@ -9,6 +9,10 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+jest.mock('../../src/services/email-service', () => ({
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined)
+}))
+
 const { registerUser } = require('../../src/controllers/signup-controller')
 
 const mockReq = (body = {}) => ({ body })
@@ -25,19 +29,14 @@ beforeEach(() => {
   mockPrepare.mockReset()
 })
 
-describe('Sign Up greeting validation', () => {
-  // 3. Added async
-  test('student signup shows success greeting', async () => {
+describe('Sign Up — redirects to verify-email after account creation', () => {
+  test('student signup redirects to verify-email page', async () => {
     mockPrepare
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        run: jest.fn()
-      })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // check student_number
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) }) // check email
+      .mockReturnValueOnce({ run: jest.fn() })                            // INSERT student
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })      // SELECT 1 FROM staff (not staff)
+      .mockReturnValueOnce({ run: jest.fn() })                            // UPDATE students token
 
     const req = mockReq({
       fullName: 'Test Student',
@@ -52,35 +51,19 @@ describe('Sign Up greeting validation', () => {
 
     await registerUser(req, res)
 
-    expect(req.session.userId).toBe(2468101)
-    expect(req.session.userName).toBe('Test Student')
-    expect(req.session.userRole).toBe('student')
-    expect(req.session.showWelcome).toBe(true)
-
-    expect(res.render).toHaveBeenCalledWith(
-      'sign-up',
-      {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/student/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      }
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/verify-email?email=student%40students.wits.ac.za'
     )
+    expect(res.render).not.toHaveBeenCalled()
   })
 
-  test('lecturer signup shows success greeting', async () => {
+  test('lecturer signup redirects to verify-email page', async () => {
     mockPrepare
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        run: jest.fn()
-      })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })               // check staff_number
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })               // check email
+      .mockReturnValueOnce({ run: jest.fn() })                                          // INSERT staff
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000999' }) }) // SELECT 1 FROM staff (found)
+      .mockReturnValueOnce({ run: jest.fn() })                                          // UPDATE staff token
 
     const req = mockReq({
       fullName: 'Test Lecturer',
@@ -93,24 +76,11 @@ describe('Sign Up greeting validation', () => {
     req.session = {}
     const res = mockRes()
 
-    // 4. Added await
     await registerUser(req, res)
 
-    expect(req.session.userId).toBe('A000999')
-    expect(req.session.userName).toBe('Test Lecturer')
-    expect(req.session.userRole).toBe('lecturer')
-    expect(req.session.showWelcome).toBe(true)
-
-    expect(res.render).toHaveBeenCalledWith(
-      'sign-up',
-      {
-        message: 'Account created! Redirecting you to select your courses...',
-        error: null,
-        redirectTo: '/lecturer/courses',
-        fullName: '',
-        number: '',
-        email: ''
-      }
+    expect(res.redirect).toHaveBeenCalledWith(
+      '/verify-email?email=lecturer%40wits.ac.za'
     )
+    expect(res.render).not.toHaveBeenCalled()
   })
 })

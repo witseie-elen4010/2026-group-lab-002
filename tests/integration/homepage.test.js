@@ -6,14 +6,14 @@ const db = require('../../database/db')
 beforeAll(() => {
   db.prepare(`
     INSERT OR IGNORE INTO staff
-      (staff_number, name, email, department, dept_code, password)
-    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', 'testpass')
+      (staff_number, name, email, department, dept_code, password, email_verified)
+    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', 'testpass', 1)
   `).run()
 
   db.prepare(`
     INSERT OR IGNORE INTO students
-      (student_number, name, email, password, degree_code)
-    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', 'testpass', 'BSCENGINFO')
+      (student_number, name, email, password, degree_code, email_verified)
+    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', 'testpass', 'BSCENGINFO', 1)
   `).run()
 })
 
