@@ -11,6 +11,7 @@ jest.mock('../../src/services/logging-service', () => ({
 
 const db = require('../../database/db')
 const { logActivity } = require('../../src/services/logging-service')
+const ActionTypes = require('../../src/services/action-types')
 
 const mockReq = (overrides = {}) => ({
   session: {},
@@ -131,6 +132,19 @@ describe('login', () => {
     expect(req.session.userName).toBe('System Admin')
     expect(req.session.userRole).toBe('admin')
     expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard')
+  })
+
+  test('logs ADMIN_LOGIN (not USER_LOGIN) when admin credentials are valid', async () => {
+    const fakeAdmin = { admin_id: 'ADMIN001', name: 'System Admin', password: 'admin' }
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeAdmin) })
+
+    await login(mockReq({ body: { staffStudentNumber: 'ADMIN001', password: 'admin' } }), mockRes())
+
+    expect(logActivity).toHaveBeenCalledWith('ADMIN001', ActionTypes.ADMIN_LOGIN, [])
+    expect(logActivity).not.toHaveBeenCalledWith('ADMIN001', ActionTypes.USER_LOGIN, [])
   })
 
   test('renders error when no staff, student, or admin matches', async () => {

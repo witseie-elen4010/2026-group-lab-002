@@ -42,7 +42,7 @@ const login = async (req, res) => {
     req.session.userId = admin.admin_id
     req.session.userName = admin.name
     req.session.userRole = 'admin'
-    await logActivity(admin.admin_id, ActionTypes.USER_LOGIN, [])
+    await logActivity(admin.admin_id, ActionTypes.ADMIN_LOGIN, [])
     return res.redirect('/admin/dashboard')
   }
   await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])

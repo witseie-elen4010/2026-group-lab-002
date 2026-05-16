@@ -183,7 +183,7 @@ function formatCol(name) {
       <a href="/admin/table/lecturer_availability" class="table-link <%= activeTable === 'lecturer_availability' ? 'active' : '' %>"><i class="bi bi-clock-history me-1"></i>Lecturer Availability</a>
 
       <span class="adm-nav-label">Security</span>
-      <a href="/admin/table/admin_audit_log" class="table-link <%= activeTable === 'admin_audit_log' ? 'active' : '' %>"><i class="bi bi-shield-lock me-1"></i>Audit Log</a>
+      <a href="/admin/activity-log" class="table-link"><i class="bi bi-journal-check me-1"></i>Activity Log</a>
     </div>
 
     <!-- Main -->
@@ -262,7 +262,7 @@ function formatCol(name) {
                         data-row="<%= JSON.stringify(row) %>"
                         data-rowid="<%= row.rowid %>">Edit</button>
                       <button class="btn btn-outline-danger btn-sm delete-btn"
-                        data-rowid="<%= row.rowid %>">Del</button>
+                        data-rowid="<%= row.rowid %>">Delete</button>
                     </td>
                   </tr>
                 <% }); %>
@@ -280,7 +280,7 @@ function formatCol(name) {
         </div>
 
         <% } else { %>
-        <% const isReadOnlyTable = activeTable === 'admin_audit_log'; %>
+        <% const isReadOnlyTable = isReadOnly; %>
 
         <!-- ── Generic table ── -->
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -683,17 +683,18 @@ function formatCol(name) {
         const row = JSON.parse(btn.dataset.row);
         const fields = [
           ['ID',              row.const_id],
+          ['Status',          row.status],
+          ['Course',          row.course_info || '—'],
           ['Title',           row.consultation_title],
           ['Description',     row.consultation_description || '—'],
           ['Date',            row.consultation_date],
           ['Time',            row.consultation_time],
           ['Duration',        row.duration_min != null ? row.duration_min + ' min' : '—'],
           ['Venue',           row.venue],
-          ['Status',          row.status],
           ['Max Students',    row.max_number_of_students],
           ['Allow Join',      row.allow_join ? 'Yes' : 'No'],
-          ['Lecturer ID',     row.lecturer_id],
-          ['Organiser',       row.organiser],
+          ['Lecturer',        row.lecturer_name ? row.lecturer_name + ' (' + row.lecturer_id + ')' : row.lecturer_id],
+          ['Organiser',       row.organiser_name ? row.organiser_name + ' (' + row.organiser + ')' : row.organiser],
           ['Availability ID', row.availability_id],
         ];
         document.getElementById('viewDetailsBody').innerHTML =

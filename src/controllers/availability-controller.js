@@ -90,4 +90,63 @@ const deleteAvailability = async (req, res) => {
   })
 }
 
-module.exports = { showAvailability, saveAvailability, deleteAvailability }
+const updateAvailability = async (req, res) => {
+  const user = { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
+  const { id } = req.params
+  const { day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min } = req.body
+
+  if (!validateSlotFields({ day_of_week, start_time, end_time, venue, max_number_of_students, max_booking_min })) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'All fields are required.', success: null
+    })
+  }
+
+  if (Number(max_number_of_students) < 1 || Number(max_number_of_students) > 10) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'Max students must be between 1 and 10.', success: null
+    })
+  }
+
+  if (!isBusinessHours(start_time, end_time)) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'Slots must be between 08:00 and 18:00, with end time after start time.', success: null
+    })
+  }
+
+  const slot = db.prepare(
+    'SELECT * FROM lecturer_availability WHERE availability_id = ? AND staff_number = ?'
+  ).get(id, user.id)
+
+  if (!slot) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'Slot not found.', success: null
+    })
+  }
+
+  const otherSlots = db.prepare(
+    'SELECT * FROM lecturer_availability WHERE staff_number = ? AND day_of_week = ? AND availability_id != ?'
+  ).all(user.id, day_of_week, id)
+
+  if (isOverlapping(otherSlots, start_time, end_time)) {
+    return res.render('availability', {
+      user, availability: getAvailability(user.id),
+      error: 'This slot overlaps with an existing availability slot.', success: null
+    })
+  }
+
+  db.prepare(
+    'UPDATE lecturer_availability SET day_of_week = ?, start_time = ?, end_time = ?, venue = ?, max_number_of_students = ?, max_booking_min = ? WHERE availability_id = ? AND staff_number = ?'
+  ).run(day_of_week, start_time, end_time, venue, Number(max_number_of_students), Number(max_booking_min), id, user.id)
+
+  await logActivity(req.session.userId, ActionTypes.AVAIL_UPDATE, [{ table: 'lecturer_availability', id }])
+  return res.render('availability', {
+    user, availability: getAvailability(user.id),
+    error: null, success: 'Availability slot updated.'
+  })
+}
+
+module.exports = { showAvailability, saveAvailability, deleteAvailability, updateAvailability }

@@ -6,7 +6,7 @@ const { logAdminAudit } = require('../services/admin-audit-service')
 
 const PAGE_SIZE = 20
 // tables the admin UI can view but not modify
-const READ_ONLY_TABLES = ['admin_audit_log']
+const READ_ONLY_TABLES = ['admin_audit_log', 'activity_log', 'affected_records', 'actions']
 
 const getAllTables = () =>
   db.prepare('SELECT name FROM sqlite_master WHERE type=\'table\' ORDER BY name').all().map(r => r.name)
@@ -55,6 +55,7 @@ const showAdminDashboard = (req, res) => {
     tables,
     stats,
     activeTable: null,
+    isReadOnly: false,
     columns: [],
     rows: [],
     page: 1,
@@ -83,7 +84,33 @@ const showTable = (req, res) => {
   const inputTypes = getInputTypes(columns)
 
   let totalRows, rows
-  if (search) {
+  if (tableName === 'consultations') {
+    const consultFrom = `
+      FROM consultations c
+      LEFT JOIN staff     stf ON c.lecturer_id = stf.staff_number
+      LEFT JOIN students  st  ON c.organiser   = st.student_number
+    `
+    const courseInfo = `(
+      SELECT cr.course_code || ' — ' || cr.course_name
+      FROM courses cr
+      JOIN staff_courses sc ON sc.course_code = cr.course_code
+      JOIN enrollments   e  ON e.course_code  = cr.course_code
+      WHERE sc.staff_number = c.lecturer_id AND e.student_number = c.organiser
+      LIMIT 1
+    ) AS course_info`
+    const select = `SELECT c.*, c.rowid, stf.name AS lecturer_name, st.name AS organiser_name, ${courseInfo}`
+    if (search) {
+      const like = `%${search}%`
+      const searchWhere = `WHERE (c.consultation_title LIKE ? OR c.consultation_date LIKE ?
+        OR c.lecturer_id LIKE ? OR CAST(c.organiser AS TEXT) LIKE ? OR c.status LIKE ?)`
+      const sp = [like, like, like, like, like]
+      totalRows = db.prepare(`SELECT COUNT(*) as count ${consultFrom} ${searchWhere}`).get(...sp).count
+      rows = db.prepare(`${select} ${consultFrom} ${searchWhere} ORDER BY c.consultation_date DESC LIMIT ? OFFSET ?`).all(...sp, PAGE_SIZE, offset)
+    } else {
+      totalRows = db.prepare(`SELECT COUNT(*) as count FROM consultations`).get().count
+      rows = db.prepare(`${select} ${consultFrom} ORDER BY c.consultation_date DESC LIMIT ? OFFSET ?`).all(PAGE_SIZE, offset)
+    }
+  } else if (search) {
     const { whereClauses, params } = buildSearchQuery(columns, search)
     totalRows = db.prepare(`SELECT COUNT(*) as count FROM "${tableName}" WHERE ${whereClauses}`).get(...params).count
     rows = db.prepare(`SELECT *, rowid as rowid FROM "${tableName}" WHERE ${whereClauses} LIMIT ? OFFSET ?`).all(...params, PAGE_SIZE, offset)
@@ -98,6 +125,7 @@ const showTable = (req, res) => {
     user,
     tables,
     activeTable: tableName,
+    isReadOnly: READ_ONLY_TABLES.includes(tableName),
     columns,
     rows,
     page,
