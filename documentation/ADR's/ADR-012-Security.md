@@ -1,7 +1,7 @@
 # ADR-012: Security Decisions
 
 **Status:** Accepted — Living Document  
-**Date:** 2026-05-15  
+**Date:** 2026-05-17  
 **Relates to:** Epic #6 (Authenticate Securely)
 
 This ADR acts as a running record of security decisions made across the project.
@@ -92,3 +92,38 @@ The PIN is stored hashed (SHA-256) for the same reason as verification tokens in
 - Legitimate users who trigger the lockout (e.g., forgotten password) receive a clear email explaining what happened and how to regain access.
 - Administrators see all failed attempts and lockout events without needing to inspect raw logs.
 - Accepted trade-off: the lockout does not apply to admin accounts (which use a separate login path) and does not impose a time-based cooldown — once the PIN is issued, the account is unlocked as soon as the correct PIN is entered regardless of time elapsed.
+
+---
+
+<!-- Append new decisions below this line using the same structure -->
+
+## Decision 4 — User Password Hashing and Storage (2026-05-17)
+
+**Related to:** PR: Implement Secure Password Hashing & Strong Password Policies
+
+### Context
+
+The application previously stored user passwords in plaintext, a critical security vulnerability that would expose all user credentials in the event of a database breach. A modern, secure hashing mechanism was required to protect user passwords at rest. Additionally, a lack of password complexity requirements allowed users to create weak, easily guessable passwords.
+
+### Decision
+
+1. **Hashing Algorithm:** User passwords are now hashed using `bcryptjs`, an industry-standard implementation of the bcrypt algorithm. It was chosen over faster hashes (like SHA-256, used for tokens in Decision 2) because it is deliberately slow, includes an automatically generated salt per-password, and has a configurable work factor. This makes it highly resistant to brute-force, dictionary, and rainbow table attacks.
+
+2. **Implementation:**
+   - Passwords are hashed upon account creation for all user types (students, lecturers, admins).
+   - Authentication is performed using `bcryptjs.compare()` to securely verify a submitted password against the stored hash without ever needing to decrypt the hash.
+   - All seed data in the development database has been updated with pre-calculated bcrypt hashes to ensure test accounts remain accessible.
+
+3. **Strong Password Policy:** A password strength policy is now enforced on the backend at signup. The policy requires passwords to contain:
+   - A minimum of 8 characters.
+   - At least one uppercase letter.
+   - At least one number.
+   - This is complemented by a real-time validation checklist on the frontend to improve user experience.
+
+### Consequences
+
+- **Massive Security Improvement:** A database breach will no longer expose user passwords. An attacker would only obtain the salted hashes, which are computationally expensive and impractical to crack on a large scale.
+- **No Password Recovery:** Passwords are non-reversible. This means a "forgot password" feature must implement a secure *reset* flow (e.g., via email link) rather than retrieving the user's old password.
+- **Improved Credential Strength:** The new policy prevents users from setting weak passwords, reducing the risk of account compromise through guessing or common password lists.
+- **Minor Performance Impact:** A slight, acceptable performance overhead is introduced during signup and login due to bcrypt's computational cost. This is a necessary trade-off for robust security.
+- **New Dependency:** The `bcryptjs` package is now a required dependency for the application to run.
