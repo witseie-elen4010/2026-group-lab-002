@@ -91,3 +91,12 @@ Course cards on the student dashboard now have a hover state making them
 visually interactive. Calendar week labels changed from hardcoded
 "This week" / "Next week" to actual date ranges (e.g. "11 May – 15 May") so
 they are unambiguous regardless of the day of the week.
+
+**Calendar density fix (peer review 2026-05-16).**
+Peer review identified the "Find a Consultation" calendar as overwhelming — showing all slots across two full weeks simultaneously produced 50+ visible cards with no way to narrow them down. Two changes were made:
+
+1. *Course chips become active filters.* The coloured course badges above the calendar are now clickable buttons. Selecting a chip (e.g. ELEN3009) hides all slots for other courses and highlights only that course's availability. An "All" chip restores the unfiltered view. This is a pure client-side filter with no additional server requests.
+
+2. *Week 2 collapses by default.* The second week of the calendar is hidden on page load, replaced with a "Show next week" toggle button. The most relevant time window (the next 5 business days) is immediately visible without scrolling or cognitive overload. The toggle respects whatever course filter is active when expanded.
+
+These changes require no schema or controller modifications — only the EJS view and the inline JavaScript block were updated.

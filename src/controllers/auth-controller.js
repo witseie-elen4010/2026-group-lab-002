@@ -80,6 +80,8 @@ const login = async (req, res) => {
         req.session.userRole = 'lecturer'
         req.session.showWelcome = true
         await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
+        const hasLecturerCourses = db.prepare('SELECT 1 FROM staff_courses WHERE staff_number = ? LIMIT 1').get(staff.staff_number)
+        if (!hasLecturerCourses) return res.redirect('/lecturer/courses/edit?onboarding=true')
         return res.redirect('/lecturer/dashboard?welcome=1')
       }
 
@@ -129,6 +131,8 @@ const login = async (req, res) => {
         req.session.userRole = 'student'
         req.session.showWelcome = true
         await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
+        const hasEnrollments = db.prepare('SELECT 1 FROM enrollments WHERE student_number = ? LIMIT 1').get(student.student_number)
+        if (!hasEnrollments) return res.redirect('/student/courses?onboarding=true')
         return res.redirect('/student/dashboard?welcome=1')
       } 
       

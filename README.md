@@ -65,3 +65,27 @@ This script will
 - Seed the initial degrees and courses
 
 This is gitignored — each dev maintains their own local copy.
+
+## Email setup (local development)
+
+Emails (verification codes, login PINs, password resets) are sent via Gmail SMTP. To enable them locally, create a `.env` file in the project root:
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your.email@gmail.com
+SMTP_PASS=your-app-password
+EMAIL_FROM="KnockKnock.prof" <your.email@gmail.com>
+APP_URL=http://localhost:3000
+```
+
+**Getting a Gmail App Password:**
+
+Google does not allow regular passwords for SMTP. You need a 16-character App Password:
+
+1. Make sure your Google account has 2-Step Verification enabled
+2. Go to **Google Account → Security → App Passwords**
+3. Click **Create**, give it any name (e.g. "KnockKnock local")
+4. Copy the 16-character password shown and paste it as `SMTP_PASS` — no spaces
+
+Without a `.env` file the app still runs, but any action that triggers an email will log an error and silently continue.

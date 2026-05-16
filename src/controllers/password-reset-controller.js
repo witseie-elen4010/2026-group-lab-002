@@ -8,6 +8,14 @@ const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
 
 const hashToken = (raw) => crypto.createHash('sha256').update(raw).digest('hex')
 
+const lookupByEmail = (email) => {
+  const student = db.prepare('SELECT * FROM students WHERE email = ?').get(email)
+  if (student) return { user: student, table: 'students', idCol: 'student_number' }
+  const staff = db.prepare('SELECT * FROM staff WHERE email = ?').get(email)
+  if (staff) return { user: staff, table: 'staff', idCol: 'staff_number' }
+  return null
+}
+
 const lookupByIdentifier = (identifier) => {
   const student = db.prepare('SELECT * FROM students WHERE CAST(student_number AS TEXT) = ?').get(identifier)
   if (student) return { user: student, table: 'students', idCol: 'student_number' }

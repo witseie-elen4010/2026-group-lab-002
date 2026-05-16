@@ -48,12 +48,12 @@ describe('showForgotPassword', () => {
 })
 
 describe('requestPasswordReset', () => {
-  test('sends email and shows sent=true when email matches a student', async () => {
+  test('sends email and shows sent=true when student number matches', async () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) }) // SELECT students
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) }) // SELECT students by identifier
       .mockReturnValueOnce({ run: jest.fn() })                              // UPDATE reset_token
 
-    const req = mockReq({ body: { email: fakeStudent.email } })
+    const req = mockReq({ body: { identifier: String(fakeStudent.student_number) } })
     const res = mockRes()
     await requestPasswordReset(req, res)
 
@@ -61,12 +61,12 @@ describe('requestPasswordReset', () => {
     expect(res.render).toHaveBeenCalledWith('forgot-password', { sent: true, error: null })
   })
 
-  test('still shows sent=true when email is not found (no enumeration)', async () => {
+  test('still shows sent=true when identifier is not found (no enumeration)', async () => {
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) }) // students
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) }) // staff
 
-    const req = mockReq({ body: { email: 'nobody@wits.ac.za' } })
+    const req = mockReq({ body: { identifier: '9999999' } })
     const res = mockRes()
     await requestPasswordReset(req, res)
 
