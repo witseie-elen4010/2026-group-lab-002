@@ -38,11 +38,15 @@ CREATE TABLE degrees (
 );
 
 CREATE TABLE students (
-  student_number  INTEGER PRIMARY KEY,
-  name            TEXT NOT NULL,
-  email           TEXT NOT NULL UNIQUE,
-  password        TEXT NOT NULL,
-  degree_code     TEXT NOT NULL REFERENCES degrees(degree_code)
+  student_number     INTEGER PRIMARY KEY,
+  name               TEXT NOT NULL,
+  email              TEXT NOT NULL UNIQUE,
+  password           TEXT NOT NULL,
+  degree_code        TEXT NOT NULL REFERENCES degrees(degree_code),
+  email_verified     INTEGER NOT NULL DEFAULT 0,
+  verification_token TEXT,
+  token_expiry       TEXT,
+  resend_count       INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE courses (
@@ -61,12 +65,16 @@ CREATE TABLE enrollments (
 );
 
 CREATE TABLE staff (
-  staff_number TEXT PRIMARY KEY,
-  name         TEXT NOT NULL,
-  email        TEXT UNIQUE NOT NULL,
-  department   TEXT,
-  dept_code    TEXT REFERENCES departments(dept_code),
-  password     TEXT
+  staff_number       TEXT PRIMARY KEY,
+  name               TEXT NOT NULL,
+  email              TEXT UNIQUE NOT NULL,
+  department         TEXT,
+  dept_code          TEXT REFERENCES departments(dept_code),
+  password           TEXT,
+  email_verified     INTEGER NOT NULL DEFAULT 0,
+  verification_token TEXT,
+  token_expiry       TEXT,
+  resend_count       INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE staff_courses (

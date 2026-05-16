@@ -12,18 +12,18 @@
 -- ─── Demo Lecturers ──────────────────────────────────────────────────────────
 -- EIE (2 new + 2 existing: Clark Kent A000356, Lois Lane A000357)
 -- MIA, MINE, ARPL, CHMT, CIVN, FEBE (1-2 new each)
-INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
-  ('A000358', 'Bruce Wayne',      'bruce.wayne@wits.ac.za',      'EIE',  'EIE',  'pass'),
-  ('A000359', 'Diana Prince',     'diana.prince@wits.ac.za',     'EIE',  'EIE',  'pass'),
-  ('A000360', 'Tony Stark',       'tony.stark@wits.ac.za',       'MIA',  'MIA',  'pass'),
-  ('A000361', 'Natasha Romanoff', 'natasha.romanoff@wits.ac.za', 'CIVN', 'CIVN', 'pass'),
-  ('A000362', 'Steve Rogers',     'steve.rogers@wits.ac.za',     'CHMT', 'CHMT', 'pass'),
-  ('A000363', 'Peter Parker',     'peter.parker@wits.ac.za',     'MIA',  'MIA',  'pass'),
-  ('A000364', 'Thor Odinson',     'thor.odinson@wits.ac.za',     'MINE', 'MINE', 'pass'),
-  ('A000365', 'Wanda Maximoff',   'wanda.maximoff@wits.ac.za',   'ARPL', 'ARPL', 'pass'),
-  ('A000366', 'Nick Fury',        'nick.fury@wits.ac.za',        'CHMT', 'CHMT', 'pass'),
-  ('A000367', 'Sam Wilson',       'sam.wilson@wits.ac.za',       'CIVN', 'CIVN', 'pass'),
-  ('A000368', 'Maria Hill',       'maria.hill@wits.ac.za',       'FEBE', 'FEBE', 'pass');
+INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password, email_verified) VALUES
+  ('A000358', 'Bruce Wayne',      'bruce.wayne@wits.ac.za',      'EIE',  'EIE',  'pass', 1),
+  ('A000359', 'Diana Prince',     'diana.prince@wits.ac.za',     'EIE',  'EIE',  'pass', 1),
+  ('A000360', 'Tony Stark',       'tony.stark@wits.ac.za',       'MIA',  'MIA',  'pass', 1),
+  ('A000361', 'Natasha Romanoff', 'natasha.romanoff@wits.ac.za', 'CIVN', 'CIVN', 'pass', 1),
+  ('A000362', 'Steve Rogers',     'steve.rogers@wits.ac.za',     'CHMT', 'CHMT', 'pass', 1),
+  ('A000363', 'Peter Parker',     'peter.parker@wits.ac.za',     'MIA',  'MIA',  'pass', 1),
+  ('A000364', 'Thor Odinson',     'thor.odinson@wits.ac.za',     'MINE', 'MINE', 'pass', 1),
+  ('A000365', 'Wanda Maximoff',   'wanda.maximoff@wits.ac.za',   'ARPL', 'ARPL', 'pass', 1),
+  ('A000366', 'Nick Fury',        'nick.fury@wits.ac.za',        'CHMT', 'CHMT', 'pass', 1),
+  ('A000367', 'Sam Wilson',       'sam.wilson@wits.ac.za',       'CIVN', 'CIVN', 'pass', 1),
+  ('A000368', 'Maria Hill',       'maria.hill@wits.ac.za',       'FEBE', 'FEBE', 'pass', 1);
 
 -- ─── Staff Course Assignments ─────────────────────────────────────────────────
 -- Every course in every dept is assigned to at least one lecturer.
@@ -265,12 +265,12 @@ INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_
   (72, 'A000368', 'Fri', '10:00', '11:00', 60, 6, 'Lecture Hall B');
 
 -- ─── Demo Students ───────────────────────────────────────────────────────────
-INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES
-  (2345678, 'Thabo Nkosi',    'thabo.nkosi@students.wits.ac.za',    'pass', 'BSCENGELEC'),
-  (3456789, 'Priya Patel',    'priya.patel@students.wits.ac.za',    'pass', 'BSCENGINFO'),
-  (4567890, 'James Okafor',   'james.okafor@students.wits.ac.za',   'pass', 'BSCENGMECH'),
-  (5678901, 'Lerato Dlamini', 'lerato.dlamini@students.wits.ac.za', 'pass', 'BSCENGINFO'),
-  (6789012, 'Chen Wei',       'chen.wei@students.wits.ac.za',       'pass', 'BSCENGELEC');
+INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code, email_verified) VALUES
+  (2345678, 'Thabo Nkosi',    'thabo.nkosi@students.wits.ac.za',    'pass', 'BSCENGELEC', 1),
+  (3456789, 'Priya Patel',    'priya.patel@students.wits.ac.za',    'pass', 'BSCENGINFO', 1),
+  (4567890, 'James Okafor',   'james.okafor@students.wits.ac.za',   'pass', 'BSCENGMECH', 1),
+  (5678901, 'Lerato Dlamini', 'lerato.dlamini@students.wits.ac.za', 'pass', 'BSCENGINFO', 1),
+  (6789012, 'Chen Wei',       'chen.wei@students.wits.ac.za',       'pass', 'BSCENGELEC', 1);
 
 -- ─── Student Enrollments ─────────────────────────────────────────────────────
 -- Matched to lecturers' staff_courses so each student can see the correct availability
