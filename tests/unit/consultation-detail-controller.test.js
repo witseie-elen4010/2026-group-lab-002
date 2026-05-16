@@ -1,5 +1,5 @@
 /* eslint-env jest */
-jest.mock('../../database/db', () => ({ prepare: jest.fn() }))
+jest.mock('../../database/db', () => ({ prepare: jest.fn(), transaction: fn => fn }))
 jest.mock('../../src/services/logging-service', () => ({ logActivity: jest.fn().mockResolvedValue(true) }))
 jest.mock('../../src/services/consultation-join-service', () => ({ validateJoin: jest.fn() }))
 

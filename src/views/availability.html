@@ -92,6 +92,7 @@
                 <input type="number" class="form-control" id="max_booking_min" name="max_booking_min"
                   min="15" max="480" value="60" required>
                 <div class="form-text">How long each consultation can last within this window.</div>
+                <div data-testid="max-booking-hint" id="max-booking-hint" class="form-text mt-1"></div>
               </div>
 
               <div class="mb-3">
@@ -208,6 +209,7 @@
           <div class="mb-3">
             <label for="edit_max_booking_min" class="form-label fw-semibold">Max Consultation Duration (min)</label>
             <input type="number" class="form-control" id="edit_max_booking_min" name="max_booking_min" min="15" max="480" required>
+            <div data-testid="max-booking-hint-edit" id="max-booking-hint-edit" class="form-text mt-1"></div>
           </div>
 
           <div class="mb-3">
@@ -231,6 +233,32 @@
 </div>
 
 <script>
+  function updateMaxBookingHint(startId, endId, maxId, hintId) {
+    const start = document.getElementById(startId).value;
+    const end = document.getElementById(endId).value;
+    const max = Number(document.getElementById(maxId).value);
+    const hint = document.getElementById(hintId);
+    if (!start || !end) { hint.textContent = ''; return; }
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const windowLen = (eh * 60 + em) - (sh * 60 + sm);
+    if (windowLen <= 0) { hint.textContent = ''; return; }
+    hint.textContent = `Window length: ${windowLen} min. Max consultation duration must be ≤ ${windowLen} min.`;
+    hint.style.color = (max > windowLen) ? '#dc3545' : '#6c757d';
+  }
+
+  ['start_time', 'end_time', 'max_booking_min'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+      updateMaxBookingHint('start_time', 'end_time', 'max_booking_min', 'max-booking-hint');
+    });
+  });
+
+  ['edit_start_time', 'edit_end_time', 'edit_max_booking_min'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+      updateMaxBookingHint('edit_start_time', 'edit_end_time', 'edit_max_booking_min', 'max-booking-hint-edit');
+    });
+  });
+
   document.getElementById('editSlotModal').addEventListener('show.bs.modal', function (event) {
     const btn = event.relatedTarget;
     document.getElementById('editSlotForm').action = '/lecturer/availability/' + btn.dataset.id + '/edit';
@@ -240,6 +268,7 @@
     document.getElementById('edit_venue').value = btn.dataset.venue;
     document.getElementById('edit_max_booking_min').value = btn.dataset.duration;
     document.getElementById('edit_max_number_of_students').value = btn.dataset.students;
+    updateMaxBookingHint('edit_start_time', 'edit_end_time', 'edit_max_booking_min', 'max-booking-hint-edit');
   });
 </script>
 

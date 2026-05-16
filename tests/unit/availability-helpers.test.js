@@ -1,4 +1,4 @@
-const { generateConstId, validateSlotFields, isBusinessHours, computeDuration, isOverlapping } = require('../../src/services/availability-helpers');
+const { generateConstId, validateSlotFields, isBusinessHours, computeDuration, isOverlapping, isMaxBookingValid } = require('../../src/services/availability-helpers');
 
 describe('generateConstId()', () => {
   test('generates correct ID for first slot on a date', () => {
@@ -116,5 +116,27 @@ describe('isOverlapping()', () => {
 
   test('returns false when there are no existing slots', () => {
     expect(isOverlapping([], '09:00', '10:00')).toBe(false);
+  });
+});
+
+describe('isMaxBookingValid()', () => {
+  test('returns true when max equals window length exactly (09:00-10:00, max=60)', () => {
+    expect(isMaxBookingValid('09:00', '10:00', 60)).toBe(true);
+  });
+
+  test('returns true when max is less than window length (09:00-11:00, max=60)', () => {
+    expect(isMaxBookingValid('09:00', '11:00', 60)).toBe(true);
+  });
+
+  test('returns false when max exceeds window length (09:00-10:00, max=120)', () => {
+    expect(isMaxBookingValid('09:00', '10:00', 120)).toBe(false);
+  });
+
+  test('returns false when max exceeds a 90-min window (09:00-10:30, max=180)', () => {
+    expect(isMaxBookingValid('09:00', '10:30', 180)).toBe(false);
+  });
+
+  test('edge case: max exactly equals window length is accepted', () => {
+    expect(isMaxBookingValid('10:00', '11:30', 90)).toBe(true);
   });
 });

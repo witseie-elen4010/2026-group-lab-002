@@ -103,6 +103,16 @@ const validateBookingRequest = ({ date, start_time, duration_min, window, bookin
     return { valid: false, reason: 'Booking time does not fit within the availability window.' };
   }
 
+  if (Number(duration_min) > window.max_booking_min) {
+    return { valid: false, reason: `Booking duration exceeds the lecturer's maximum consultation duration of ${window.max_booking_min} minutes.` };
+  }
+
+  const chunks = computeBookableChunks(window, bookingsOnDay);
+  const chunkForSlot = chunks.find(c => toMin(c.start_time) <= bookingStart && bookingStart < toMin(c.end_time));
+  if (chunkForSlot && bookingEnd > toMin(chunkForSlot.end_time)) {
+    return { valid: false, reason: 'Booking duration exceeds the available time in this slot.' };
+  }
+
   if (date === todayStr && currentTimeStr) {
     if (bookingStart <= toMin(currentTimeStr)) {
       return { valid: false, reason: 'Booking start time must be in the future.' };
