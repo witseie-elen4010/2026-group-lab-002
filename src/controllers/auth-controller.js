@@ -118,14 +118,6 @@ const login = async (req, res) => {
         }
         
         db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
-        req.session.regenerate((err) => {
-        if (err) {
-          return res.status(500).render('login', {
-            error: 'Session error'
-          })
-        }})
-        
-
         req.session.userId = student.student_number
         req.session.userName = student.name
         req.session.userRole = 'student'

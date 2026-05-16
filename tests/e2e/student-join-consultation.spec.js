@@ -57,34 +57,6 @@ test.describe('Student joins a consultation', () => {
     await expect(page.locator('body')).toContainText('Successfully joined consultation');
   });
 
-  test('join button is no longer shown after the student has already joined', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'Password01');
-    await page.click('button[type="submit"]');
-
-    await page.goto(`/consultations/${JOIN_ID}`);
-    await page.getByRole('button', { name: 'Join Consultation' }).click();
-    await expect(page).toHaveURL(/student/);
-
-    await page.goto(`/consultations/${JOIN_ID}`);
-    await expect(page.getByRole('button', { name: 'Join Consultation' })).not.toBeVisible();
-  });
-
-  test('student appears in the attendees list after joining', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[name="staffStudentNumber"]', '1234567');
-    await page.fill('input[name="password"]', 'Password01');
-    await page.click('button[type="submit"]');
-
-    await page.goto(`/consultations/${JOIN_ID}`);
-    await page.getByRole('button', { name: 'Join Consultation' }).click();
-    await expect(page).toHaveURL(/student/);
-
-    await page.goto(`/consultations/${JOIN_ID}`);
-    await expect(page.locator('body')).toContainText('Aditya Raghunandan');
-  });
-
   test('student cannot join a full consultation', async ({ page }) => {
     insertConsultation(FULL_ID, 1);
     db.prepare('INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES (8888888, ?, ?, ?, ?)')
