@@ -1,5 +1,9 @@
 /* eslint-env jest */
 const { showLogin, login, logout } = require('../../src/controllers/auth-controller')
+const bcryptjs = require('bcryptjs')
+
+const VALID_PASSWORD = 'Password01'
+const VALID_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya' 
 
 jest.mock('../../database/db', () => ({
   prepare: jest.fn()
@@ -82,13 +86,14 @@ describe('showLogin', () => {
 })
 
 describe('login', () => {
-  const fakeStaff = { staff_number: 'A000356', name: 'Clark Kent', password: 'pass' }
-  const fakeStudent = { student_number: 1234567, name: 'Aditya', password: 'pass' }
+  const fakeStaff = { staff_number: 'A000356', name: 'Clark Kent', password: VALID_HASH }
+  const fakeStudent = { student_number: 1234567, name: 'Aditya', password: VALID_HASH }
+  const fakeAdmin = { admin_id: 'ADMIN001', name: 'System Admin', password: VALID_HASH }
 
   test('sets lecturer session and redirects to lecturer dashboard on valid staff credentials', async () => {
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })
 
-    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'pass' } })
+    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -104,7 +109,7 @@ describe('login', () => {
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) })
 
-    const req = mockReq({ body: { staffStudentNumber: '1234567', password: 'pass' } })
+    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -116,13 +121,12 @@ describe('login', () => {
   })
 
   test('sets admin session and redirects to admin dashboard on valid admin credentials', async () => {
-    const fakeAdmin = { admin_id: 'ADMIN001', name: 'System Admin', password: 'admin' }
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeAdmin) })
 
-    const req = mockReq({ body: { staffStudentNumber: 'ADMIN001', password: 'admin' } })
+    const req = mockReq({ body: { staffStudentNumber: 'ADMIN001', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -145,7 +149,7 @@ describe('login', () => {
     await login(req, res)
 
     expect(res.render).toHaveBeenCalledWith('login', {
-      error: 'Invalid username or password.',
+      error: 'Invalid user number.',
       success: null
     })
   })
@@ -162,7 +166,7 @@ describe('login', () => {
     await login(req, res)
 
     expect(res.render).toHaveBeenCalledWith('login', {
-      error: 'Invalid username or password.',
+      error: 'Invalid password.',
       success: null
     })
   })

@@ -1,7 +1,7 @@
 const db = require('../../database/db')
 const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
-const bcryptjs = require('bcryptjs') // Don't forget to import this!
+const bcryptjs = require('bcryptjs')
 
 const showLogin = (req, res) => {
   if (req.session && req.session.userId) {
@@ -17,9 +17,14 @@ const login = async (req, res) => {
   try {
     const { staffStudentNumber, password } = req.body
 
+    if (!staffStudentNumber || !password) {
+      return res.render('login', { error: 'Please enter both your user number and password.', success: null })
+    }
+
     let user = null
     let role = null
     let idField = null
+
     const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
     if (staff) {
       user = staff
@@ -46,7 +51,7 @@ const login = async (req, res) => {
 
     if (!user) {
       await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
-      return res.render('login', { error: 'Invalid user number', success: null })
+      return res.render('login', { error: 'Invalid user number.', success: null })
     }
 
     const isMatch = await bcryptjs.compare(password, user.password)
@@ -68,6 +73,7 @@ const login = async (req, res) => {
 
     const redirectUrl = role === 'admin' ? '/admin/dashboard' : `/${role}/dashboard?welcome=1`
     return res.redirect(redirectUrl)
+
   } catch (error) {
     return res.render('login', { error: 'An unexpected error occurred during login.', success: null })
   }

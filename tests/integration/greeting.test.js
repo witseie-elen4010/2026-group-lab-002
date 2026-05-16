@@ -1,24 +1,26 @@
 /* eslint-env jest */
-// supertest lets us make HTTP requests to the Express app in tests
-// without needing to start a real server on a port
 const request = require('supertest');
 const app = require('../../app');
 const db = require('../../database/db');
+
+// The plaintext password and its corresponding seeded bcrypt hash
+const PLAINTEXT_PASSWORD = 'Password01';
+const BCRYPT_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya';
 
 beforeAll(() => {
   db.prepare(`
     INSERT OR IGNORE INTO staff
       (staff_number, name, email, department, dept_code, password)
     VALUES
-      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', 'testpass')
-  `).run();
+      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', ?)
+  `).run(BCRYPT_HASH);
 
   db.prepare(`
     INSERT OR IGNORE INTO students
       (student_number, name, email, password, degree_code)
     VALUES
-      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', 'testpass', 'BSCENGINFO')
-  `).run();
+      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', ?, 'BSCENGINFO')
+  `).run(BCRYPT_HASH);
 });
 
 afterAll(() => {
@@ -33,7 +35,7 @@ describe('Login greeting message (Issue #64)', () => {
     const res = await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: 'A999001', password: 'testpass' });
+      .send({ staffStudentNumber: 'A999001', password: PLAINTEXT_PASSWORD });
 
     expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/lecturer/dashboard?welcome=1');
@@ -44,7 +46,7 @@ describe('Login greeting message (Issue #64)', () => {
     const res = await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: '9999001', password: 'testpass' });
+      .send({ staffStudentNumber: '9999001', password: PLAINTEXT_PASSWORD });
 
     expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/student/dashboard?welcome=1');
@@ -55,7 +57,7 @@ describe('Login greeting message (Issue #64)', () => {
     await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: 'A999001', password: 'testpass' });
+      .send({ staffStudentNumber: 'A999001', password: PLAINTEXT_PASSWORD });
 
     const res = await agent.get('/lecturer/dashboard');
     expect(res.status).toBe(200);
@@ -67,7 +69,7 @@ describe('Login greeting message (Issue #64)', () => {
     await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: '9999001', password: 'testpass' });
+      .send({ staffStudentNumber: '9999001', password: PLAINTEXT_PASSWORD });
 
     const res = await agent.get('/student/dashboard');
     expect(res.status).toBe(200);
@@ -80,7 +82,7 @@ describe('Login greeting message (Issue #64)', () => {
     await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: 'A999001', password: 'testpass' });
+      .send({ staffStudentNumber: 'A999001', password: PLAINTEXT_PASSWORD });
 
     await agent.get('/lecturer/dashboard');
     const secondLoad = await agent.get('/lecturer/dashboard');
@@ -93,7 +95,7 @@ describe('Login greeting message (Issue #64)', () => {
     await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: 'A999001', password: 'testpass' });
+      .send({ staffStudentNumber: 'A999001', password: PLAINTEXT_PASSWORD });
 
     const res = await agent.get('/lecturer/dashboard');
     expect(res.text).toContain('Test Lecturer');
@@ -104,7 +106,7 @@ describe('Login greeting message (Issue #64)', () => {
     await agent
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: 'A999001', password: 'testpass' });
+      .send({ staffStudentNumber: 'A999001', password: PLAINTEXT_PASSWORD });
 
     const res = await agent.get('/lecturer/dashboard');
     expect(res.text).toContain("Today's Consultations");
