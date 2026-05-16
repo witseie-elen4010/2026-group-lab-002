@@ -8,16 +8,16 @@ const db = require('../../database/db');
 beforeAll(() => {
   db.prepare(`
     INSERT OR IGNORE INTO staff
-      (staff_number, name, email, department, dept_code, password)
+      (staff_number, name, email, department, dept_code, password, email_verified)
     VALUES
-      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', 'testpass')
+      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', 'testpass', 1)
   `).run();
 
   db.prepare(`
     INSERT OR IGNORE INTO students
-      (student_number, name, email, password, degree_code)
+      (student_number, name, email, password, degree_code, email_verified)
     VALUES
-      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', 'testpass', 'BSCENGINFO')
+      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', 'testpass', 'BSCENGINFO', 1)
   `).run();
 });
 

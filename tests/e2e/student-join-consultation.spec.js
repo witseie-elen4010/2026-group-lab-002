@@ -24,6 +24,7 @@ const insertConsultation = (constId, maxStudents = 5) => {
 };
 
 test.beforeEach(() => {
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
   insertConsultation(JOIN_ID, 5);
 });
 

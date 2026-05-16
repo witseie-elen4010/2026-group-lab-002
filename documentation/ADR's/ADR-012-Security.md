@@ -9,35 +9,86 @@ New entries are appended as security-relevant choices arise.
 
 ---
 
-## Decision 1 — Generic Login Error Message (2026-05-15)
+## Decision 1 — Login Error Messages (2026-05-15, revised 2026-05-16)
 
 **Related to:** Issue #62
 
 ### Context
 
-Story #62 specified distinct error messages for login failures: "No account found with this email" vs "Incorrect password". During implementation review this was identified as a **user enumeration vulnerability**.
+Story #62 originally specified distinct error messages for login failures ("No account found" vs "Incorrect password"). During initial implementation review this was flagged as a potential user enumeration risk. The first implementation used a generic message for all failures.
 
-Returning different messages for "account not found" vs "wrong password" allows an attacker to silently determine whether any given student or staff number is registered — no successful authentication required. This is covered by the OWASP Authentication Cheat Sheet: *"Do not tell the user which part of the authentication data was incorrect."*
-
-Specific risks for this application:
-- **Student/staff number enumeration:** Wits student numbers (7-digit integers) and staff numbers (`A######`) follow predictable formats. An automated script could probe sequential values and build a confirmed list of registered users.
-- **Credential stuffing amplification:** Knowing which IDs exist lets an attacker focus brute-force attempts only on confirmed accounts.
-- **Privacy leak:** Confirming a student number is registered reveals that person uses this system, which may not be intended to be public.
+Following user research and team review, it was found that generic errors caused significant confusion for legitimate users — particularly students who mistype their student number and receive no guidance on which field is wrong. The UX cost was judged to outweigh the security benefit in this context, where student and staff numbers are not secret (they appear on ID cards and are shared openly within the university).
 
 ### Decision
 
-The login endpoint returns a single generic message for all authentication failures:
+The login endpoint returns specific messages distinguishing "account not found" from "incorrect password", prioritising user clarity and reducing failed legitimate logins. This is acceptable given that:
 
-> **"Invalid username or password."**
-
-This message is returned regardless of whether the identifier was not found or the password was incorrect. All other acceptance criteria from story #62 are satisfied: empty fields are caught by HTML5 `required` attributes, errors display immediately inline, no sensitive data is revealed, and the user stays on the login page.
+- Wits student numbers (7-digit integers) and staff numbers (`A######`) are semi-public within the university context — they appear on ID cards and are routinely shared.
+- The information leaked ("this number is registered") is low-sensitivity in an academic setting.
+- The compensating control in Decision 3 (failed-attempt lockout with one-time PIN) directly addresses the brute-force risk that enumeration would otherwise amplify.
 
 ### Consequences
 
-- User enumeration is prevented; attackers cannot distinguish a missing account from a wrong password.
-- Credential stuffing is harder without a way to confirm valid IDs.
-- Legitimate users who mistype their ID cannot distinguish it from a wrong password — accepted trade-off standard to all secure login systems.
+- Legitimate users get actionable feedback when they mistype their ID vs their password.
+- Account existence can technically be confirmed by probing — mitigated by the rate-limiting in Decision 3.
+- This is a deliberate, documented trade-off, not an oversight.
 
 ---
 
 <!-- Append new decisions below this line using the same structure -->
+
+## Decision 2 — Email Verification Token Storage (2026-05-16)
+
+**Related to:** Issue #50 (parent), Story #109
+
+### Context
+
+Email verification requires generating a one-time code and storing it temporarily against the user's account until they confirm their inbox. A naive implementation would store the raw 6-digit code in the database. If the database were exposed, an attacker could read unverified tokens and activate arbitrary accounts.
+
+### Decision
+
+The verification code is never stored in plaintext. On generation, the code is hashed with SHA-256 and only the hex digest is persisted in `verification_token`. On submission, the user's input is hashed identically and the digests are compared. The raw code exists only in memory during generation and in the email body in transit.
+
+A 30-minute expiry (`token_expiry`) is enforced server-side. After successful verification, `verification_token` and `token_expiry` are set to NULL. Resend attempts are capped at 3 per account (`resend_count`) to limit code-farming.
+
+The post-password-check placement of the `email_verified` guard preserves the generic error message policy from Decision 1 — an unverified account is only reachable after a correct password, so no account existence information is leaked.
+
+### Consequences
+
+- Token exposure from a database leak does not allow an attacker to verify accounts — the hash is useless without the original code.
+- Expiry limits the window of a stolen code.
+- Resend cap prevents abuse of the email sending endpoint.
+- Accepted trade-off: SHA-256 is not a password hashing algorithm (no salt, fast to compute), but for a short-lived 6-digit code this is acceptable — the code's entropy is the binding constraint, not the hash strength.
+
+---
+
+<!-- Append new decisions below this line using the same structure -->
+
+## Decision 3 — Failed Login Lockout with One-Time PIN (2026-05-16)
+
+**Related to:** Decision 1 (compensating control for specific error messages)
+
+### Context
+
+With specific error messages now returned on login failure (Decision 1 revision), an attacker who confirms a valid account ID could attempt sustained brute-force attacks against that account's password. A compensating control is needed to rate-limit repeated failures against confirmed accounts.
+
+### Decision
+
+After 4 consecutive failed password attempts on a valid account:
+
+1. The server generates a cryptographically random 6-digit PIN, hashes it with SHA-256, and stores the hash in `login_pin` on the user's row.
+2. A security alert email is sent to the account's registered email address containing the raw PIN and a warning about the failed attempts.
+3. The event is logged to `failed_login_log` with `pin_triggered = 1` for admin visibility.
+4. On the next successful password entry, the user is redirected to `/login/pin` where they must enter the PIN before their session is established.
+5. Correct PIN entry clears `login_pin` and resets `failed_attempts` to 0.
+
+Each login failure (whether or not it triggers the lockout) is recorded in `failed_login_log`, giving administrators a real-time view of attack attempts under the Security → Failed Logins panel in the admin dashboard.
+
+The PIN is stored hashed (SHA-256) for the same reason as verification tokens in Decision 2 — database exposure does not reveal the active PIN.
+
+### Consequences
+
+- Sustained brute-force attacks against a known account are blocked after 4 attempts; the attacker cannot proceed without also compromising the target's email inbox.
+- Legitimate users who trigger the lockout (e.g., forgotten password) receive a clear email explaining what happened and how to regain access.
+- Administrators see all failed attempts and lockout events without needing to inspect raw logs.
+- Accepted trade-off: the lockout does not apply to admin accounts (which use a separate login path) and does not impose a time-based cooldown — once the PIN is issued, the account is unlocked as soon as the correct PIN is entered regardless of time elapsed.
