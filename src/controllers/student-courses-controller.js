@@ -83,6 +83,10 @@ const updateStudentCourses = async (req, res) => {
     ? (Array.isArray(courses) ? courses : [courses])
     : []
 
+  if (courseList.length === 0) {
+    return res.redirect('/student/courses?error=Please+select+at+least+one+course+before+saving.')
+  }
+
   for (const code of courseList) {
     const course = db.prepare(
       'SELECT course_code FROM courses WHERE course_code = ?'

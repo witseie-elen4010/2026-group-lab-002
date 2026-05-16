@@ -114,6 +114,12 @@ const cancelConsultation = async (req, res) => {
     return res.redirect(`/consultations/${constId}?error=Consultation+is+already+cancelled`)
   }
 
+  const consultationStart = new Date(`${consultation.consultation_date}T${consultation.consultation_time}:00`)
+  const twoHoursFromNow = new Date(Date.now() + 2 * 60 * 60 * 1000)
+  if (consultationStart <= twoHoursFromNow) {
+    return res.redirect(`/consultations/${constId}?error=Consultations+cannot+be+cancelled+within+2+hours+of+the+start+time`)
+  }
+
   db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
   db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId);
   await logActivity(req.session.userId, ActionTypes.CONSULT_CANCEL_ORG, [{ table: 'consultations', id: req.params.constId }]);

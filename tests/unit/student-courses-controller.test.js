@@ -159,8 +159,7 @@ describe('updateStudentCourses', () => {
     expect(res.redirect).toHaveBeenCalledWith('/student/courses?error=Invalid+degree+selected.')
   })
 
-  test('handles zero courses selected (no courses key in body)', async () => {
-    // Arrange
+  test('rejects save with zero courses and redirects with error', async () => {
     db.prepare.mockReturnValue({
       get: jest.fn().mockReturnValue({ degree_code: 'BSCENGINFO' }),
       run: jest.fn()
@@ -171,11 +170,9 @@ describe('updateStudentCourses', () => {
     })
     const res = mockRes()
 
-    // Act
     await updateStudentCourses(req, res)
 
-    // Assert
-    expect(res.redirect).toHaveBeenCalledWith('/student/dashboard?success=true')
+    expect(res.redirect).toHaveBeenCalledWith('/student/courses?error=Please+select+at+least+one+course+before+saving.')
   })
 
   test('handles a single course submitted as a string', async () => {

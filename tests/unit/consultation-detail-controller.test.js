@@ -48,9 +48,21 @@ describe('cancelConsultation', () => {
     expect(res.redirect).toHaveBeenCalledWith('/consultations/42?error=Consultation+is+already+cancelled')
   })
 
+  test('blocks cancellation within 2 hours of start time', async () => {
+    const soonDate = new Date(Date.now() + 30 * 60 * 1000)
+    const soonDateStr = soonDate.toISOString().slice(0, 10)
+    const soonTime = soonDate.toISOString().slice(11, 16)
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Open', consultation_date: soonDateStr, consultation_time: soonTime }) })
+    const res = mockRes()
+    await cancelConsultation(mockReq(), res)
+    expect(res.redirect).toHaveBeenCalledWith('/consultations/42?error=Consultations+cannot+be+cancelled+within+2+hours+of+the+start+time')
+  })
+
   test('cancels and redirects to dashboard on success', async () => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    const futureDateStr = futureDate.toISOString().slice(0, 10)
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Open' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Open', consultation_date: futureDateStr, consultation_time: '10:00' }) })
       .mockReturnValueOnce({ run: jest.fn() })
       .mockReturnValueOnce({ run: jest.fn() })
     const res = mockRes()
