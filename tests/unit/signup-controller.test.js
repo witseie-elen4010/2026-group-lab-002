@@ -35,6 +35,44 @@ beforeEach(() => {
   jest.clearAllMocks() 
 })
 
+describe('name validation', () => {
+  test('rejects a name exceeding 100 characters', async () => {
+    const req = mockReq({
+      fullName: 'a'.repeat(101),
+      number: '1234567',
+      email: 'student@students.wits.ac.za',
+      password: 'Password01',
+      confirmPassword: 'Password01'
+    })
+    req.session = {}
+    const res = mockRes()
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining('100 characters or fewer')
+    }))
+  })
+
+  test('rejects an empty name', async () => {
+    const req = mockReq({
+      fullName: '',
+      number: '1234567',
+      email: 'student@students.wits.ac.za',
+      password: 'Password01',
+      confirmPassword: 'Password01'
+    })
+    req.session = {}
+    const res = mockRes()
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining('required')
+    }))
+  })
+})
+
 describe('email domain validation', () => {
   test('accepts student email ending in @students.wits.ac.za', async () => {
     db.prepare

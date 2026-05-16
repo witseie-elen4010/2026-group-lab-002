@@ -136,15 +136,18 @@
       <a href="/admin/table/lecturer_availability" class="table-link"><i class="bi bi-clock-history me-1"></i>Lecturer Availability</a>
 
       <span class="adm-nav-label">Security</span>
-      <a href="/admin/activity-log" class="table-link active"><i class="bi bi-journal-check me-1"></i>Activity Log</a>
+      <a href="/admin/activity-log" class="table-link <%= pageTitle === 'Activity Log' ? 'active' : '' %>"><i class="bi bi-journal-check me-1"></i>Activity Log</a>
+      <% if (failedLoginCount > 0) { %>
+        <a href="/admin/failed-logins" class="table-link <%= pageTitle === 'Failed Logins' ? 'active' : '' %>"><i class="bi bi-exclamation-triangle me-1"></i>Failed Logins</a>
+      <% } %>
     </div>
 
     <!-- Main -->
     <div class="flex-grow-1 p-4 adm-main" style="min-width:0;">
 
       <div class="mb-3">
-        <h3 class="adm-heading-green fw-bold mb-1">Activity Log</h3>
-        <p class="text-muted small mb-0">System-wide record of all user actions across students, lecturers, and administrators.</p>
+        <h3 class="adm-heading-green fw-bold mb-1"><%= pageTitle %></h3>
+        <p class="text-muted small mb-0"><%= pageSubtitle %></p>
       </div>
 
       <% if (error) { %>
@@ -156,16 +159,19 @@
 
       <!-- Search + Filter bar -->
       <div class="card p-3 mb-3">
-        <form method="GET" action="/admin/activity-log" class="d-flex flex-wrap gap-2 align-items-center">
+        <form method="GET" action="<%= formAction %>" class="d-flex flex-wrap gap-2 align-items-center">
           <input type="text" name="search" class="form-control form-control-sm" style="max-width:260px;"
             placeholder="Search user, action, page..." value="<%= search %>">
-          <input type="hidden" name="category" value="<%= categoryFilter %>">
+          <% if (showCategoryFilter) { %>
+            <input type="hidden" name="category" value="<%= categoryFilter %>">
+          <% } %>
           <button type="submit" class="btn btn-sm btn-primary">Search</button>
           <% if (search || categoryFilter) { %>
-            <a href="/admin/activity-log" class="btn btn-sm btn-outline-secondary">Clear</a>
+            <a href="<%= formAction %>" class="btn btn-sm btn-outline-secondary">Clear</a>
           <% } %>
         </form>
 
+        <% if (showCategoryFilter) { %>
         <div class="d-flex flex-wrap gap-2 mt-2">
           <a href="/admin/activity-log<%= search ? '?search=' + encodeURIComponent(search) : '' %>"
              class="filter-btn <%= !categoryFilter ? 'active' : '' %>">All</a>
@@ -174,6 +180,7 @@
                class="filter-btn <%= categoryFilter === cat ? 'active' : '' %>"><%= cat %></a>
           <% }); %>
         </div>
+        <% } %>
       </div>
 
       <!-- Results summary -->
