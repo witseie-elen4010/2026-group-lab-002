@@ -41,3 +41,26 @@ This message is returned regardless of whether the identifier was not found or t
 ---
 
 <!-- Append new decisions below this line using the same structure -->
+
+## Decision 2 — Email Verification Token Storage (2026-05-16)
+
+**Related to:** Issue #50 (parent), Story #109
+
+### Context
+
+Email verification requires generating a one-time code and storing it temporarily against the user's account until they confirm their inbox. A naive implementation would store the raw 6-digit code in the database. If the database were exposed, an attacker could read unverified tokens and activate arbitrary accounts.
+
+### Decision
+
+The verification code is never stored in plaintext. On generation, the code is hashed with SHA-256 and only the hex digest is persisted in `verification_token`. On submission, the user's input is hashed identically and the digests are compared. The raw code exists only in memory during generation and in the email body in transit.
+
+A 30-minute expiry (`token_expiry`) is enforced server-side. After successful verification, `verification_token` and `token_expiry` are set to NULL. Resend attempts are capped at 3 per account (`resend_count`) to limit code-farming.
+
+The post-password-check placement of the `email_verified` guard preserves the generic error message policy from Decision 1 — an unverified account is only reachable after a correct password, so no account existence information is leaked.
+
+### Consequences
+
+- Token exposure from a database leak does not allow an attacker to verify accounts — the hash is useless without the original code.
+- Expiry limits the window of a stolen code.
+- Resend cap prevents abuse of the email sending endpoint.
+- Accepted trade-off: SHA-256 is not a password hashing algorithm (no salt, fast to compute), but for a short-lived 6-digit code this is acceptable — the code's entropy is the binding constraint, not the hash strength.

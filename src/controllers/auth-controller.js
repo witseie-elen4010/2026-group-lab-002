@@ -17,6 +17,12 @@ const login = async (req, res) => {
 
   const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
   if (staff && staff.password === password) {
+    if (!staff.email_verified) {
+      return res.render('login', {
+        error: 'Your email address has not been verified. Please check your inbox.',
+        success: null,
+      })
+    }
     req.session.userId = staff.staff_number
     req.session.userName = staff.name
     req.session.userRole = 'lecturer'
@@ -27,11 +33,16 @@ const login = async (req, res) => {
 
   const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
   if (student && student.password === password) {
+    if (!student.email_verified) {
+      return res.render('login', {
+        error: 'Your email address has not been verified. Please check your inbox.',
+        success: null,
+      })
+    }
     req.session.userId = student.student_number
     req.session.userName = student.name
     req.session.userRole = 'student'
     req.session.showWelcome = true
-
     await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
     return res.redirect('/student/dashboard?welcome=1')
   }
