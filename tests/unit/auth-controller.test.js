@@ -187,7 +187,7 @@ describe('login', () => {
     })
   })
 
-  test('records failed attempt and renders error when staff found but password wrong', async () => {
+  test('records failed attempt and shows remaining attempts when staff password wrong', async () => {
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })                          // SELECT staff
       .mockReturnValueOnce({ run: jest.fn() })                                                     // UPDATE failed_attempts++
@@ -200,16 +200,16 @@ describe('login', () => {
     await login(req, res)
 
     expect(res.render).toHaveBeenCalledWith('login', {
-      error: 'Invalid username or password.',
+      error: 'Invalid username or password. 3 attempts remaining before account lockout.',
       success: null
     })
   })
 
-  test('redirects to /login/pin when staff has correct password but login_pin is set', async () => {
+  test('redirects to /login/pin when login_pin is set regardless of password', async () => {
     const lockedStaff = { ...fakeStaff, login_pin: 'somehash' }
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(lockedStaff) })
 
-    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'pass' } })
+    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'wrongpass' } })
     const res = mockRes()
 
     await login(req, res)
@@ -219,7 +219,7 @@ describe('login', () => {
     expect(res.redirect).toHaveBeenCalledWith('/login/pin')
   })
 
-  test('sends warning email and stores PIN on 4th failed attempt', async () => {
+  test('sends warning email and shows lockout message on 4th failed attempt', async () => {
     const { sendLoginWarningEmail } = require('../../src/services/email-service')
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })                                              // SELECT staff
@@ -234,7 +234,10 @@ describe('login', () => {
     await login(req, res)
 
     expect(sendLoginWarningEmail).toHaveBeenCalledWith(fakeStaff.email, expect.any(String))
-    expect(res.render).toHaveBeenCalledWith('login', { error: 'Invalid username or password.', success: null })
+    expect(res.render).toHaveBeenCalledWith('login', {
+      error: 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.',
+      success: null
+    })
   })
 })
 

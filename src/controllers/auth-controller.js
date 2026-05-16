@@ -24,18 +24,21 @@ const _recordFailedAttempt = async (userId, table, email) => {
   const pinTriggered = attempts === 4 ? 1 : 0
   db.prepare('INSERT INTO failed_login_log (identifier, pin_triggered) VALUES (?, ?)').run(String(userId), pinTriggered)
 
+  let pinSent = false
   if (attempts === 4) {
     const pin = String(Math.floor(100000 + Math.random() * 900000))
     const pinHash = crypto.createHash('sha256').update(pin).digest('hex')
     db.prepare(`UPDATE ${table} SET login_pin = ? WHERE ${idCol} = ?`).run(pinHash, userId)
     try {
       await sendLoginWarningEmail(email, pin)
+      pinSent = true
     } catch (err) {
       console.error('Login warning email failed to send:', err)
     }
   }
 
   await logActivity(String(userId), ActionTypes.AUTH_FAILED_LOGIN, [])
+  return { attempts, pinSent }
 }
 
 const login = async (req, res) => {
@@ -43,18 +46,18 @@ const login = async (req, res) => {
 
   const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
   if (staff) {
+    if (staff.login_pin) {
+      req.session.pendingUserId = staff.staff_number
+      req.session.pendingUserRole = 'lecturer'
+      req.session.pendingUserName = staff.name
+      return res.redirect('/login/pin')
+    }
     if (staff.password === password) {
       if (!staff.email_verified) {
         return res.render('login', {
           error: 'Your email address has not been verified. Please check your inbox.',
           success: null,
         })
-      }
-      if (staff.login_pin) {
-        req.session.pendingUserId = staff.staff_number
-        req.session.pendingUserRole = 'lecturer'
-        req.session.pendingUserName = staff.name
-        return res.redirect('/login/pin')
       }
       db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
       req.session.userId = staff.staff_number
@@ -64,24 +67,34 @@ const login = async (req, res) => {
       await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
       return res.redirect('/lecturer/dashboard?welcome=1')
     }
-    await _recordFailedAttempt(staff.staff_number, 'staff', staff.email)
-    return res.render('login', { error: 'Invalid username or password.', success: null })
+    const { attempts, pinSent } = await _recordFailedAttempt(staff.staff_number, 'staff', staff.email)
+    if (attempts >= 4) {
+      const msg = pinSent
+        ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
+        : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
+      return res.render('login', { error: msg, success: null })
+    }
+    const remaining = 4 - attempts
+    return res.render('login', {
+      error: `Invalid username or password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
+      success: null
+    })
   }
 
   const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
   if (student) {
+    if (student.login_pin) {
+      req.session.pendingUserId = student.student_number
+      req.session.pendingUserRole = 'student'
+      req.session.pendingUserName = student.name
+      return res.redirect('/login/pin')
+    }
     if (student.password === password) {
       if (!student.email_verified) {
         return res.render('login', {
           error: 'Your email address has not been verified. Please check your inbox.',
           success: null,
         })
-      }
-      if (student.login_pin) {
-        req.session.pendingUserId = student.student_number
-        req.session.pendingUserRole = 'student'
-        req.session.pendingUserName = student.name
-        return res.redirect('/login/pin')
       }
       db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
       req.session.userId = student.student_number
@@ -91,8 +104,18 @@ const login = async (req, res) => {
       await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
       return res.redirect('/student/dashboard?welcome=1')
     }
-    await _recordFailedAttempt(student.student_number, 'students', student.email)
-    return res.render('login', { error: 'Invalid username or password.', success: null })
+    const { attempts, pinSent } = await _recordFailedAttempt(student.student_number, 'students', student.email)
+    if (attempts >= 4) {
+      const msg = pinSent
+        ? 'Too many failed attempts. A security PIN has been sent to your email — you will need it to log in.'
+        : 'Too many failed attempts. A security PIN was already sent to your email. Check your inbox.'
+      return res.render('login', { error: msg, success: null })
+    }
+    const remaining = 4 - attempts
+    return res.render('login', {
+      error: `Invalid username or password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`,
+      success: null
+    })
   }
 
   let admin = null
