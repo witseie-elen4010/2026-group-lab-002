@@ -157,3 +157,31 @@ The response to step 1 is always "if an account exists, a link has been sent" �
 - A database breach does not expose reset tokens (only SHA-256 hashes are stored).
 - The 1-hour expiry and one-time-use token limit the window of a stolen link.
 - Email addresses are not enumerable through this endpoint.
+
+---
+
+## Decision 6 — Server-Side Input Validation and Output Encoding (2026-05-17)
+
+**Related to:** Epic #6 (Authenticate Securely), user story: input validation and XSS protection
+
+### Context
+
+The application accepts user-supplied input through signup, consultation booking, and lecturer availability forms. Client-side validation (HTML `maxlength`, `required`) improves user experience but cannot be trusted — users can bypass the browser and send requests directly to the server.
+
+### Decision
+
+User-controlled fields are validated on the server before any database write, using a shared `src/services/input-validation.js` helper:
+
+- Consultation title: required, max 100 characters.
+- Consultation description: optional, max 500 characters.
+- Availability venue: required, max 100 characters.
+- Signup full name: required, max 100 characters.
+
+All user-supplied output is rendered through EJS escaped output (`<%= %>`). Unescaped output (`<%- %>`) is only used for server-constructed JSON payloads (schema metadata, course lists) that do not contain raw user input. Database access uses `better-sqlite3` prepared statements with bound parameters throughout — no string interpolation in SQL values.
+
+### Consequences
+
+- Stored XSS risk is reduced: script tags submitted in form fields are stored as plain text and rendered escaped, so they never execute in the browser.
+- Oversized input is rejected with a clear message before reaching the database.
+- SQL injection via prepared statements was already in place; this decision documents and confirms that coverage.
+- Client-side `maxlength` attributes remain for UX but are no longer the sole enforcement point.
