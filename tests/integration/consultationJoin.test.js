@@ -37,7 +37,7 @@ describe('POST /consultations/:constId/join', () => {
 
   test('rejects join when student is already an attendee', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error');
@@ -47,7 +47,7 @@ describe('POST /consultations/:constId/join', () => {
     db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = ?').run(constId, 1234567);
 
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');
@@ -70,7 +70,7 @@ describe('POST /consultations/:constId/join', () => {
     // capacity check fires before already-attending check → correct rejection reason
 
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error');

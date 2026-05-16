@@ -1,4 +1,6 @@
 const db = require('../../database/db');
+const { logActivity } = require('../services/logging-service');
+const ActionTypes = require('../services/action-types');
 
 const showLecturerConsultations = (req, res) => {
   const user = {
@@ -53,7 +55,7 @@ const showLecturerConsultations = (req, res) => {
   }
 };
 
-const cancelLecturerConsultation = (req, res) => {
+const cancelLecturerConsultation = async (req, res) => {
   const lecturerId = req.session.userId;
   const { constId } = req.params;
 
@@ -80,6 +82,7 @@ const cancelLecturerConsultation = (req, res) => {
     }
 
     db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId);
+    await logActivity(lecturerId, ActionTypes.CONSULT_CANCEL_LEC, [{ table: 'consultations', id: constId }]);
 
     return res.redirect('/lecturer/consultations?success=Consultation+cancelled+successfully');
   } catch (err) {
