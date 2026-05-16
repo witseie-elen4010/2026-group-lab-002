@@ -57,6 +57,44 @@ describe('showLecturerCourses', () => {
   })
 })
 
+describe('showLecturerCoursesEdit', () => {
+  test('renders edit view with courses and departments', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ dept_code: 'EIE' }) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([{ department_code: 'EIE', department_name: 'EIE', dept_code: 'EIE' }]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([{ course_code: 'ELEN4010', course_name: 'Lab', year_level: 4, dept_code: 'EIE' }]) })
+      .mockReturnValueOnce({ all: jest.fn().mockReturnValue([{ course_code: 'ELEN4010' }]) })
+
+    const req = mockReq()
+    const res = mockRes()
+    await showLecturerCoursesEdit(req, res)
+    expect(res.render).toHaveBeenCalledWith('lecturer-courses-edit', expect.objectContaining({
+      lecturerDeptCode: 'EIE',
+      error: null
+    }))
+  })
+
+  test('renders error view when staff record not found', async () => {
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    const req = mockReq()
+    const res = mockRes()
+    await showLecturerCoursesEdit(req, res)
+    expect(res.render).toHaveBeenCalledWith('lecturer-courses-edit', expect.objectContaining({
+      error: 'Staff record not found.'
+    }))
+  })
+
+  test('renders error view when DB throws', async () => {
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockImplementation(() => { throw new Error('DB error') }) })
+    const req = mockReq()
+    const res = mockRes()
+    await showLecturerCoursesEdit(req, res)
+    expect(res.render).toHaveBeenCalledWith('lecturer-courses-edit', expect.objectContaining({
+      error: 'Could not load course data. Please try again.'
+    }))
+  })
+})
+
 describe('updateLecturerCourses', () => {
   test('redirects to dashboard on valid submission', async () => {
     const req = mockReq({ body: { department_code: 'EIE', courses: ['ELEN4010', 'ELEN3009'] } })
@@ -77,5 +115,34 @@ describe('updateLecturerCourses', () => {
     const res = mockRes()
     await updateLecturerCourses(req, res)
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?success=true')
+  })
+
+  test('redirects with error when staff record not found', async () => {
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    const req = mockReq({ body: { department_code: 'EIE', courses: ['ELEN4010'] } })
+    const res = mockRes()
+    await updateLecturerCourses(req, res)
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/courses/edit?error=Staff+record+not+found.')
+  })
+
+  test('redirects with error when department is invalid', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    const req = mockReq({ body: { department_code: 'FAKE', courses: [] } })
+    const res = mockRes()
+    await updateLecturerCourses(req, res)
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/courses/edit?error=Invalid+department+selected.')
+  })
+
+  test('redirects with error when a course code is invalid', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ dept_code: 'EIE' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
+    const req = mockReq({ body: { department_code: 'EIE', courses: ['FAKE9999'] } })
+    const res = mockRes()
+    await updateLecturerCourses(req, res)
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/courses/edit?error=Invalid+course+selected.')
   })
 })

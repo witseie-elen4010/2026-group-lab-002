@@ -109,8 +109,9 @@ describe('showLogin', () => {
 describe('login', () => {
   test('sets lecturer session and redirects to lecturer dashboard on valid staff credentials', async () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) }) // SELECT staff
-      .mockReturnValueOnce({ run: jest.fn() })                            // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) })              // SELECT staff
+      .mockReturnValueOnce({ run: jest.fn() })                                         // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ staff_number: 'A000356' }) }) // SELECT staff_courses
 
     const req = mockReq({ body: { staffStudentNumber: 'A000356', password: VALID_PASSWORD } })
     const res = mockRes()
@@ -123,11 +124,26 @@ describe('login', () => {
     expect(res.redirect).toHaveBeenCalledWith('/lecturer/dashboard?welcome=1')
   })
 
+  test('redirects new lecturer with no courses to course setup', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) }) // SELECT staff
+      .mockReturnValueOnce({ run: jest.fn() })                            // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })      // SELECT staff_courses (none)
+
+    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: VALID_PASSWORD } })
+    const res = mockRes()
+
+    await login(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/lecturer/courses/edit?onboarding=true')
+  })
+
   test('sets student session and redirects to student dashboard on valid student credentials', async () => {
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })        // SELECT staff (not found)
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) }) // SELECT student
-      .mockReturnValueOnce({ run: jest.fn() })                              // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })                        // SELECT staff (not found)
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) })                 // SELECT student
+      .mockReturnValueOnce({ run: jest.fn() })                                              // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 1234567 }) }) // SELECT enrollments
 
     const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
     const res = mockRes()
@@ -138,6 +154,21 @@ describe('login', () => {
     expect(req.session.userName).toBe('Aditya')
     expect(req.session.userRole).toBe('student')
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard?welcome=1')
+  })
+
+  test('redirects new student with no courses to course setup', async () => {
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })        // SELECT staff (not found)
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) }) // SELECT student
+      .mockReturnValueOnce({ run: jest.fn() })                              // UPDATE failed_attempts = 0
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })        // SELECT enrollments (none)
+
+    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
+    const res = mockRes()
+
+    await login(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith('/student/courses?onboarding=true')
   })
 
   test('sets admin session and redirects to admin dashboard on valid admin credentials', async () => {

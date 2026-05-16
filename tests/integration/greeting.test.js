@@ -14,17 +14,23 @@ beforeAll(() => {
       ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', ?, 1)
   `).run(BCRYPT_HASH);
 
+  db.prepare(`INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES ('A999001', 'ELEN4010')`).run();
+
   db.prepare(`
     INSERT OR IGNORE INTO students
       (student_number, name, email, password, degree_code, email_verified)
     VALUES
       (9999001, 'Test Student', 'teststudent@students.wits.ac.za', ?, 'BSCENGINFO', 1)
   `).run(BCRYPT_HASH);
+
+  db.prepare(`INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES (9999001, 'ELEN4010')`).run();
 });
 
 afterAll(() => {
-  db.prepare(`DELETE FROM staff    WHERE staff_number   = 'A999001'`).run();
-  db.prepare(`DELETE FROM students WHERE student_number = 9999001`).run();
+  db.prepare(`DELETE FROM staff_courses WHERE staff_number   = 'A999001'`).run();
+  db.prepare(`DELETE FROM enrollments   WHERE student_number = 9999001`).run();
+  db.prepare(`DELETE FROM staff         WHERE staff_number   = 'A999001'`).run();
+  db.prepare(`DELETE FROM students      WHERE student_number = 9999001`).run();
 });
 
 describe('Login greeting message (Issue #64)', () => {
