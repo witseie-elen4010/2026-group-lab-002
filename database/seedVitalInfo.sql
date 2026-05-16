@@ -5,7 +5,6 @@
 -- note courses like ELEN3020 are elen courses offered to other degrees outside engineering
 -- they are included here as they fall part of department offerings and may be relevant for staff teaching them
 
-
 INSERT OR IGNORE INTO departments (dept_code, dept_name, faculty_name) VALUES
   ('EIE',  'School of Electrical and Information Engineering',              'Engineering and the Built Environment'),
   ('MIA',  'School of Mechanical, Industrial and Aeronautical Engineering', 'Engineering and the Built Environment'),
@@ -285,13 +284,13 @@ INSERT OR IGNORE INTO courses (course_code, course_name, year_level, dept_code) 
 
 -- ─── Staff ───────────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
-  ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', 'pass'),
-  ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', 'pass');
+  ('A000356', 'Clark Kent', 'clark.kent@wits.ac.za', 'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya'),
+  ('A000357', 'Lois Lane',  'lois.lane@wits.ac.za',  'EIE', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya');
 
 -- Staff data
 INSERT OR IGNORE INTO staff (staff_number, name, email, department, dept_code, password) VALUES
-  ('A000356', 'John Doe', 'john.doe@wits.ac.za', 'Electrical Engineering', 'EIE', '$2b$10$dummyhashedpassword'),
-  ('A000357', 'Jane Smith', 'jane.smith@wits.ac.za', 'Mechanical Engineering', 'MIA', '$2b$10$dummyhashedpassword');
+  ('A000356', 'John Doe', 'john.doe@wits.ac.za', 'Electrical Engineering', 'EIE', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya'),
+  ('A000357', 'Jane Smith', 'jane.smith@wits.ac.za', 'Mechanical Engineering', 'MIA', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya');
 
 INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
   ('A000356', 'ELEN4010'),
@@ -301,7 +300,7 @@ INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
 
 -- ─── Test student ─────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code) VALUES
-  (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', 'pass', 'BSCENGINFO');
+  (1234567, 'Aditya Raghunandan', 'aditya@students.wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 'BSCENGINFO');
 
 INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
   (1234567, 'ELEN4010'),
@@ -310,7 +309,7 @@ INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
 
 -- ─── Admin ────────────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO admins (admin_id, name, email, password) VALUES
-  ('ADMIN001', 'System Admin', 'admin@wits.ac.za', 'admin');
+  ('ADMIN001', 'System Admin', 'admin@wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya');
 
 INSERT OR IGNORE INTO lecturer_availability (availability_id, staff_number, day_of_week, start_time, end_time, max_booking_min, max_number_of_students, venue) VALUES
   ('1', 'A000356', 'Mon', '10:00', '11:00', 60, 5, 'Room 101'),

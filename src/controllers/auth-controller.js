@@ -1,6 +1,7 @@
 const db = require('../../database/db')
 const { logActivity } = require('../services/logging-service')
 const ActionTypes = require('../services/action-types')
+const bcryptjs = require('bcryptjs') // Don't forget to import this!
 
 const showLogin = (req, res) => {
   if (req.session && req.session.userId) {
@@ -13,44 +14,70 @@ const showLogin = (req, res) => {
 }
 
 const login = async (req, res) => {
-  const { staffStudentNumber, password } = req.body
+  try {
+    const { staffStudentNumber, password } = req.body
 
-  const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
-  if (staff && staff.password === password) {
-    req.session.userId = staff.staff_number
-    req.session.userName = staff.name
-    req.session.userRole = 'lecturer'
-    req.session.showWelcome = true
-    await logActivity(staff.staff_number, ActionTypes.USER_LOGIN, [])
-    return res.redirect('/lecturer/dashboard?welcome=1')
+    let user = null
+    let role = null
+    let idField = null
+    const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
+    if (staff) {
+      user = staff
+      role = 'lecturer'
+      idField = 'staff_number'
+    } else {
+      const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
+      if (student) {
+        user = student
+        role = 'student'
+        idField = 'student_number'
+      } else {
+        try {
+          const admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber)
+          if (admin) {
+            user = admin
+            role = 'admin'
+            idField = 'admin_id'
+          }
+        } catch (_) {
+        }
+      }
+    }
+
+    if (!user) {
+      await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
+      return res.render('login', { error: 'Invalid user number', success: null })
+    }
+
+    const isMatch = await bcryptjs.compare(password, user.password)
+
+    if (!isMatch) {
+      await logActivity(staffStudentNumber, ActionTypes.AUTH_FAILED_LOGIN, [])
+      return res.render('login', { error: 'Invalid password.', success: null })
+    }
+
+    req.session.userId = user[idField]
+    req.session.userName = user.name
+    req.session.userRole = role
+
+    if (role !== 'admin') {
+      req.session.showWelcome = true
+    }
+
+    await logActivity(user[idField], ActionTypes.USER_LOGIN, [])
+
+    const redirectUrl = role === 'admin' ? '/admin/dashboard' : `/${role}/dashboard?welcome=1`
+    return res.redirect(redirectUrl)
+  } catch (error) {
+    return res.render('login', { error: 'An unexpected error occurred during login.', success: null })
   }
-
-  const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
-  if (student && student.password === password) {
-    req.session.userId = student.student_number
-    req.session.userName = student.name
-    req.session.userRole = 'student'
-    req.session.showWelcome = true
-
-    await logActivity(student.student_number, ActionTypes.USER_LOGIN, [])
-    return res.redirect('/student/dashboard?welcome=1')
-  }
-
-  let admin = null
-  try { admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber) } catch (_) {}
-  if (admin && admin.password === password) {
-    req.session.userId = admin.admin_id
-    req.session.userName = admin.name
-    req.session.userRole = 'admin'
-    await logActivity(admin.admin_id, ActionTypes.USER_LOGIN, [])
-    return res.redirect('/admin/dashboard')
-  }
-  await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
-  return res.render('login', { error: 'Invalid username or password.', success: null })
 }
 
 const logout = async (req, res) => {
-  await logActivity(req.session.userId, ActionTypes.USER_LOGOUT, [])
+  if (req.session && req.session.userId) {
+    await logActivity(req.session.userId, ActionTypes.USER_LOGOUT, [])
+  }
+
   req.session.destroy(() => {
     res.redirect('/')
   })

@@ -13,6 +13,18 @@
     .custom-alert { margin: 20px auto; padding: 15px; width: 75%; text-align: center; border-radius: 8px; font-weight: bold; }
     .success { background-color: var(--kk-green-light); color: var(--kk-green); }
     .error   { background-color: #fde8e8; color: #c0392b; }
+    
+
+    /* Custom classes for the password validation */
+.pwd-valid { 
+  color: var(--kk-green);
+  transition: color 0.3s ease-in-out;
+}
+
+.pwd-invalid { 
+  color:var(--kk-orange) ;
+  transition: color 0.3s ease-in-out;
+}
   </style>
 </head>
 <body>
@@ -47,11 +59,6 @@
         <p class="text-muted">Sign up to manage your consultations.</p>
       </div>
 
-      
-      <% if (typeof message !== 'undefined' && message) { %>
-        <div class="alert alert-success"><%= message %></div>
-      <% } %>
-
       <form action="/sign/up" method="POST" novalidate>
         <div class="mb-3">
             <label for="fullName" class="form-label fw-semibold">Full Name</label>
@@ -69,10 +76,19 @@
             <div class="form-text" id="emailHint">Enter your Wits email address.</div>
         </div>
 
-
         <div class="mb-3">
             <label for="password" class="form-label fw-semibold">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="input-group">
+                <input type="password" class="form-control" id="password" name="password" required>
+                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            <ul class="mt-2 list-unstyled password-criteria" id="passwordCriteria">
+                <li id="reqLength" class="pwd-invalid"><i class="bi bi-x-circle"></i> At least 8 characters</li>
+                <li id="reqUpper" class="pwd-invalid"><i class="bi bi-x-circle"></i> At least 1 uppercase letter</li>
+                <li id="reqNum" class="pwd-invalid"><i class="bi bi-x-circle"></i> At least 1 number</li>
+            </ul>
         </div>
 
         <div class="mb-4">
@@ -109,7 +125,6 @@
       }
     });
 
-
     const redirectTo = "<%= redirectTo || '' %>";
     const errorMessage = document.getElementById("error-message");
     const successMessage = document.getElementById("success-message");
@@ -122,29 +137,61 @@
 
     if (redirectTo) {
       const msg = document.getElementById("success-message");
-
-      // Disable form to prevent resubmission
       const form = document.querySelector("form");
       if (form) {
         form.style.pointerEvents = "none";
         form.style.opacity = "0.6";
       }
-
-      // Fade out message
       if (msg) {
-        setTimeout(() => {
-          msg.style.opacity = "0";
-        }, 3000);
+        setTimeout(() => { msg.style.opacity = "0"; }, 3000);
       }
-
-      // Redirect
-      setTimeout(() => {
-        window.location.href = redirectTo;
-      }, 2000);
+      setTimeout(() => { window.location.href = redirectTo; }, 2000);
     }
-  </script>
 
+    const passwordInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePassword');
+    const reqLength = document.getElementById('reqLength');
+    const reqUpper = document.getElementById('reqUpper');
+    const reqNum = document.getElementById('reqNum');
+
+    toggleBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle the Bootstrap icon
+        const icon = toggleBtn.querySelector('i');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+
+        // Helper function to update UI for a specific criteria
+        const updateCriteria = (element, isValid, text) => {
+            if (isValid) {
+                // Swap invalid for valid
+                element.classList.remove('pwd-invalid');
+                element.classList.add('pwd-valid');
+                element.innerHTML = `<i class="bi bi-check-circle"></i> ${text}`;
+            } else {
+                // Swap valid for invalid
+                element.classList.remove('pwd-valid');
+                element.classList.add('pwd-invalid');
+                element.innerHTML = `<i class="bi bi-x-circle"></i> ${text}`;
+            }
+        };
+
+        // Check Length (>= 8)
+        updateCriteria(reqLength, val.length >= 8, 'At least 8 characters');
+        
+        // Check Uppercase (at least one A-Z)
+        updateCriteria(reqUpper, /[A-Z]/.test(val), 'At least 1 uppercase letter');
+        
+        // Check Number (at least one 0-9)
+        updateCriteria(reqNum, /[0-9]/.test(val), 'At least 1 number');
+    });
+  </script>
 
 </body>
 </html>
-
