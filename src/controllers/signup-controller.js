@@ -29,8 +29,10 @@ const _issueVerificationCode = async (email) => {
 
   try {
     await sendVerificationEmail(email, code)
+    return true
   } catch (err) {
     console.error('Verification email failed to send:', err)
+    return false
   }
 }
 
@@ -110,8 +112,9 @@ const registerUser = async (req, res) => {
       stmt.run(number, fullName, email, 'EIE', 'EIE', password)
 
       await logActivity(number, ActionTypes.USER_SIGNUP, [{ table: 'staff', id: number }])
-      await _issueVerificationCode(email)
-      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}`)
+      const staffEmailSent = await _issueVerificationCode(email)
+      const staffWarn = staffEmailSent ? '' : '&emailFailed=1'
+      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}${staffWarn}`)
     } else {
       const db_number = db.prepare(`
         SELECT student_number FROM students WHERE student_number = ?
@@ -134,8 +137,9 @@ const registerUser = async (req, res) => {
       stmt.run(parseInt(number), fullName, email, password, 'BSCENGINFO')
 
       await logActivity(parseInt(number), ActionTypes.USER_SIGNUP, [{ table: 'students', id: parseInt(number) }])
-      await _issueVerificationCode(email)
-      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}`)
+      const studentEmailSent = await _issueVerificationCode(email)
+      const studentWarn = studentEmailSent ? '' : '&emailFailed=1'
+      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}${studentWarn}`)
     }
   } catch (error) {
     console.error('Signup error:', error)

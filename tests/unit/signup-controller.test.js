@@ -10,7 +10,8 @@ jest.mock('../../src/services/logging-service', () => ({
 }))
 
 jest.mock('../../src/services/email-service', () => ({
-  sendVerificationEmail: jest.fn().mockResolvedValue(undefined)
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+  sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
 }))
 
 const db = require('../../database/db')

@@ -14,7 +14,10 @@ const lookupByEmail = (email) => {
 
 const showVerifyPage = (req, res) => {
   const email = req.query.email || ''
-  return res.render('verify-email', { email, error: null, message: null })
+  const message = req.query.emailFailed
+    ? 'We had trouble sending your verification email. Use the Resend button below to try again.'
+    : null
+  return res.render('verify-email', { email, error: null, message })
 }
 
 const verifyEmail = (req, res) => {
@@ -96,6 +99,11 @@ const resendCode = async (req, res) => {
     await sendVerificationEmail(email, code)
   } catch (err) {
     console.error('Resend email failed:', err)
+    return res.render('verify-email', {
+      email,
+      error: 'We could not send the email. Please try again later or contact support if the problem persists.',
+      message: null,
+    })
   }
 
   return res.render('verify-email', {

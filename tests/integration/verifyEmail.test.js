@@ -5,7 +5,8 @@ const app = require('../../app')
 const db = require('../../database/db')
 
 jest.mock('../../src/services/email-service', () => ({
-  sendVerificationEmail: jest.fn().mockResolvedValue(undefined)
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+  sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
 }))
 
 const hash = (code) => crypto.createHash('sha256').update(code).digest('hex')
