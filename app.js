@@ -3,7 +3,6 @@ const express = require('express')
 const session = require('express-session')
 const path = require('path')
 
-
 const authRoutes = require('./src/routes/auth-routes')
 const dashboardRoutes = require('./src/routes/dashboard-routes')
 const signupRoutes = require('./src/routes/signup-routes')
@@ -37,8 +36,6 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 8
   }
 }))
-
-
 
 app.use('/', authRoutes)
 app.use('/', dashboardRoutes)

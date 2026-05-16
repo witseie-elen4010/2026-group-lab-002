@@ -3,6 +3,8 @@ const request = require('supertest');
 const db = require('../../database/db');
 const app = require('../../app');
 
+const VALID_PLAINTEXT_PASSWORD = 'Password01';
+
 const getNextWeekday = (dowTarget) => {
   const DOW = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
   const target = DOW[dowTarget];
@@ -36,7 +38,7 @@ describe('GET /consultations/:constId', () => {
 
   test('renders detail page with correct title and attendees for enrolled student', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get(`/consultations/${constId}`);
     expect(res.status).toBe(200);
     expect(res.text).toContain('Detail Test Consultation');
@@ -45,7 +47,7 @@ describe('GET /consultations/:constId', () => {
 
   test('shows organiser badge for the consultation creator', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get(`/consultations/${constId}`);
     expect(res.status).toBe(200);
     expect(res.text).toContain('Organiser');
@@ -53,14 +55,14 @@ describe('GET /consultations/:constId', () => {
 
   test('returns 403 for a user not enrolled and not an attendee', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000357', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'A000357', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get(`/consultations/${constId}`);
     expect(res.status).toBe(403);
   });
 
   test('redirects to dashboard when consultation does not exist', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'pass' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get('/consultations/nonexistent-id');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');

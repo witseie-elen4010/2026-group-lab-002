@@ -3,18 +3,21 @@ const request = require('supertest')
 const app = require('../../app')
 const db = require('../../database/db')
 
+const CORRECT_PASSWORD = 'Password01'
+const BCRYPT_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya'
+
 beforeAll(() => {
   db.prepare(`
     INSERT OR IGNORE INTO staff
       (staff_number, name, email, department, dept_code, password, email_verified)
-    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', 'testpass', 1)
-  `).run()
+    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', ?, 1)
+  `).run(BCRYPT_HASH)
 
   db.prepare(`
     INSERT OR IGNORE INTO students
       (student_number, name, email, password, degree_code, email_verified)
-    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', 'testpass', 'BSCENGINFO', 1)
-  `).run()
+    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', ?, 'BSCENGINFO', 1)
+  `).run(BCRYPT_HASH)
 })
 
 afterAll(() => {
@@ -42,7 +45,7 @@ describe('Homepage — logged-in student (AC1)', () => {
 
   beforeEach(async () => {
     agent = request.agent(app)
-    await agent.post('/login').type('form').send({ staffStudentNumber: '8888001', password: 'testpass' })
+    await agent.post('/login').type('form').send({ staffStudentNumber: '8888001', password: CORRECT_PASSWORD })
   })
 
   test('shows how-it-works section', async () => {
@@ -78,7 +81,7 @@ describe('Homepage — logged-in lecturer without availability (AC2)', () => {
 
   beforeEach(async () => {
     agent = request.agent(app)
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'HP999001', password: 'testpass' })
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'HP999001', password: CORRECT_PASSWORD })
   })
 
   test('shows Go to Dashboard button', async () => {
@@ -116,7 +119,7 @@ describe('Homepage — logged-in lecturer with availability (AC2)', () => {
 
   beforeEach(async () => {
     agent = request.agent(app)
-    await agent.post('/login').type('form').send({ staffStudentNumber: 'HP999001', password: 'testpass' })
+    await agent.post('/login').type('form').send({ staffStudentNumber: 'HP999001', password: CORRECT_PASSWORD })
   })
 
   test('shows Go to Dashboard when availability is set', async () => {

@@ -13,6 +13,7 @@ const hash = (code) => crypto.createHash('sha256').update(code).digest('hex')
 
 const TEST_EMAIL = 'verify.test@students.wits.ac.za'
 const TEST_NUMBER = 9000001
+const BCRYPT_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya'
 
 const cleanup = () => {
   db.prepare('DELETE FROM students WHERE student_number = ?').run(TEST_NUMBER)
@@ -26,7 +27,7 @@ const insertUnverified = (token = null, expiry = null, resendCount = 0) => {
     INSERT OR REPLACE INTO students
       (student_number, name, email, password, degree_code, email_verified, verification_token, token_expiry, resend_count)
     VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
-  `).run(TEST_NUMBER, 'Verify Test', TEST_EMAIL, 'pass', 'BSCENGINFO', token, expiry, resendCount)
+  `).run(TEST_NUMBER, 'Verify Test', TEST_EMAIL, BCRYPT_HASH, 'BSCENGINFO', token, expiry, resendCount)
 }
 
 const futureExpiry = () => new Date(Date.now() + 10 * 60 * 1000).toISOString()
@@ -111,7 +112,7 @@ describe('POST /login — email_verified guard', () => {
     const res = await request(app)
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: String(TEST_NUMBER), password: 'pass' })
+      .send({ staffStudentNumber: String(TEST_NUMBER), password: 'Password01' })
 
     expect(res.status).toBe(302)
     expect(res.headers.location).toContain('/verify-email')
@@ -122,7 +123,7 @@ describe('POST /login — email_verified guard', () => {
     const res = await request(app)
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: '1234567', password: 'pass' })
+      .send({ staffStudentNumber: '1234567', password: 'Password01' })
 
     expect(res.status).toBe(302)
     expect(res.headers.location).toContain('/student/dashboard')

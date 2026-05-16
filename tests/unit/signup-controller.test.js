@@ -9,13 +9,16 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword123')
+}))
 jest.mock('../../src/services/email-service', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
   sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
 }))
 
 const db = require('../../database/db')
-const { logActivity } = require('../../src/services/logging-service')
+const bcrypt = require('bcryptjs') 
 
 const mockReq = (body = {}) => ({ body })
 
@@ -29,7 +32,7 @@ const mockRes = () => {
 
 beforeEach(() => {
   db.prepare.mockReset()
-  logActivity.mockClear()
+  jest.clearAllMocks() 
 })
 
 describe('email domain validation', () => {
@@ -45,11 +48,10 @@ describe('email domain validation', () => {
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
     req.session = {}
-
     const res = mockRes()
     await registerUser(req, res)
 
@@ -71,11 +73,10 @@ describe('email domain validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
     req.session = {}
-
     const res = mockRes()
     await registerUser(req, res)
 
@@ -90,12 +91,11 @@ describe('email domain validation', () => {
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -120,12 +120,11 @@ describe('email domain validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -150,12 +149,11 @@ describe('email domain validation', () => {
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -180,12 +178,11 @@ describe('email domain validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -203,5 +200,102 @@ describe('email domain validation', () => {
     )
 
     expect(db.prepare).not.toHaveBeenCalled()
+  })
+})
+
+describe('Password Validation & Hashing', () => {
+  test('hashes the password with exactly 11 salt rounds before saving to database', async () => {
+    const runMock = jest.fn()
+    db.prepare
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ run: runMock })
+
+    const req = mockReq({
+      fullName: 'Test Student',
+      number: '1234567',
+      email: 'student@students.wits.ac.za',
+      password: 'ValidPassword01',
+      confirmPassword: 'ValidPassword01'
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(bcrypt.hash).toHaveBeenCalledTimes(1)
+    expect(bcrypt.hash).toHaveBeenCalledWith('ValidPassword01', 11)
+    
+    expect(runMock).toHaveBeenCalledWith(
+      1234567, 
+      'Test Student', 
+      'student@students.wits.ac.za', 
+      'hashedPassword123', 
+      'BSCENGINFO'
+    )
+  })
+
+  test('rejects registration and renders error if password is empty', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: '', confirmPassword: '' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Not your password, it seems")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if password does not meet criteria (missing number)', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'InvalidPassword', confirmPassword: 'InvalidPassword' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Password must be at least 8 characters long")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if password does not meet criteria (missing uppercase)', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'invalidpassword01', confirmPassword: 'invalidpassword01' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("contain one uppercase letter")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
+  })
+
+  test('rejects registration if passwords do not match', async () => {
+    const req = mockReq({ 
+      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      password: 'ValidPassword01', confirmPassword: 'ValidPassword02' 
+    })
+    const res = mockRes()
+    req.session = {}
+
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('sign-up', expect.objectContaining({
+      error: expect.stringContaining("Passwords do not match")
+    }))
+    expect(bcrypt.hash).not.toHaveBeenCalled()
   })
 })
