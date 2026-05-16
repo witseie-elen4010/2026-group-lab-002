@@ -40,7 +40,7 @@ A consultation booking is a confirmed arrangement between a student and a lectur
 
 **Clarification:** A cancel button already exists on the consultation detail page. The reviewer may not have encountered it during testing. It prompts for confirmation before cancelling.
 
-**Enhancement planned:** We will add a time-based restriction so that cancellations are blocked within 2 hours of the scheduled start, with a clear message explaining why. A reschedule flow is out of scope for this sprint but noted for backlog.
+**Enhancement implemented:** Cancellations are now blocked within 2 hours of the scheduled start time, with a clear error message explaining why. A reschedule flow is out of scope for this sprint but noted for backlog.
 
 ---
 
@@ -48,7 +48,7 @@ A consultation booking is a confirmed arrangement between a student and a lectur
 
 **Reviewer concern:** Showing all time slots for the full week across all courses is too much information at once.
 
-**Resolution:** Redesigned. The course filter chips at the top of the page now act as active filters — clicking a course badge shows only that course's slots. The view also defaults to showing today's slots only, with a "Show full week" toggle for users who want the broader view. This reduces the default visible content by approximately 80% and makes the purpose of the page (find one slot, book it) much clearer.
+**Resolution:** Redesigned. The course filter chips at the top of the page now act as active filters — clicking a course badge shows only that course's slots, hiding all others. The second week of the calendar is collapsed by default behind a "Show next week" toggle, so users see only the next 5 business days on load. Together these changes reduce the default visible content significantly and make the purpose of the page (find one slot, book it) much clearer.
 
 ---
 
@@ -75,7 +75,7 @@ A consultation booking is a confirmed arrangement between a student and a lectur
 | 1 | Zero courses required | Not enforced — justified above. Validation message added for zero-course save. |
 | 2 | False success on no-op edit | Fixed — zero-course validation blocks the save. |
 | 3 | Bookings persist after course drop | Intentional — bookings are confirmed arrangements. UI note planned. |
-| 4 | No cancel/reschedule button | Cancel exists. Time-based restriction to be added. |
+| 4 | No cancel/reschedule button | Cancel exists. 2-hour restriction implemented. Reschedule in backlog. |
 | 5 | Overwhelming consultation view | Redesigned with course filters and today-first default. |
 | 6 | Logo goes to landing page | Intentional — universal web convention. |
 | 7 | No logout confirmation | Fixed — confirmation dialog added. |
