@@ -16,7 +16,7 @@ test.afterEach(purgeE2ESlots);
 test('lecturer can add a new availability slot and it appears in the table', async ({ page }) => {
   await page.goto('/login');
   await page.fill('[name="staffStudentNumber"]', 'A000358');
-  await page.fill('[name="password"]', 'pass');
+  await page.fill('[name="password"]', 'Password01');
   await page.click('[type="submit"]');
   await page.waitForURL('**/lecturer/dashboard**');
 
@@ -44,7 +44,7 @@ test('lecturer can delete an availability slot', async ({ page }) => {
 
   await page.goto('/login');
   await page.fill('[name="staffStudentNumber"]', 'A000358');
-  await page.fill('[name="password"]', 'pass');
+  await page.fill('[name="password"]', 'Password01');
   await page.click('[type="submit"]');
   await page.waitForURL('**/lecturer/dashboard**');
 

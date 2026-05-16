@@ -20,7 +20,7 @@ test.afterEach(purgeE2ECancelRows);
 test('organiser can cancel their own consultation', async ({ page }) => {
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
@@ -64,7 +64,7 @@ test('non-organiser cannot cancel a consultation', async ({ page }) => {
 
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
@@ -86,7 +86,7 @@ test('non-organiser attendee can leave a consultation', async ({ page }) => {
 
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
@@ -119,7 +119,7 @@ test('student can join a joinable consultation', async ({ page }) => {
 
   await page.goto('/login');
   await page.fill('input[name="staffStudentNumber"]', '1234567');
-  await page.fill('input[name="password"]', 'pass');
+  await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
 
