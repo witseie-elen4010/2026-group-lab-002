@@ -4,7 +4,10 @@ const { getNextNWeekdays } = require('../services/booking-helpers');
 const DOW_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const showCourseDetail = (req, res) => {
-  const studentNumber = req.session && req.session.userId ? req.session.userId : 1234567;
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
+  const studentNumber = req.session.userId;
   const { courseCode } = req.params;
 
   const enrollment = db.prepare(

@@ -68,6 +68,13 @@ const login = async (req, res) => {
         }
 
         db.prepare('UPDATE staff SET failed_attempts = 0 WHERE staff_number = ?').run(staff.staff_number)
+        req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).render('login', {
+            error: 'Session error'
+          })
+        }})
+
         req.session.userId = staff.staff_number
         req.session.userName = staff.name
         req.session.userRole = 'lecturer'
@@ -111,6 +118,14 @@ const login = async (req, res) => {
         }
         
         db.prepare('UPDATE students SET failed_attempts = 0 WHERE student_number = ?').run(student.student_number)
+        req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).render('login', {
+            error: 'Session error'
+          })
+        }})
+        
+
         req.session.userId = student.student_number
         req.session.userName = student.name
         req.session.userRole = 'student'
@@ -239,9 +254,17 @@ const logout = async (req, res) => {
     await logActivity(req.session.userId, ActionTypes.USER_LOGOUT, [])
   }
 
-  req.session.destroy(() => {
-    res.redirect('/')
-  })
+  req.session.destroy((err) => {
+  if (err) {
+    console.error('Session destruction error:', err);
+  }
+
+  res.clearCookie('connect.sid');
+  res.set('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.redirect('/');
+});
 }
 
 module.exports = { showLogin, login, logout, showLoginPin, resendLoginPin, verifyLoginPin }

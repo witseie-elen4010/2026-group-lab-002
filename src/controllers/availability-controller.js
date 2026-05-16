@@ -15,6 +15,9 @@ const getAvailability = (staffNumber) =>
   `).all(staffNumber)
 
 const showAvailability = (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
   const user = { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
   res.render('availability', { user, availability: getAvailability(user.id), error: null, success: null })
 }

@@ -1,10 +1,12 @@
 require('dns').setDefaultResultOrder('ipv4first')
 require('dotenv').config()
+
 const express = require('express')
 const session = require('express-session')
 const path = require('path')
 
-const authRoutes = require('./src/routes/auth-routes')
+const { router: authRoutes } = require('./src/routes/auth-routes') 
+
 const dashboardRoutes = require('./src/routes/dashboard-routes')
 const signupRoutes = require('./src/routes/signup-routes')
 const availabilityRoutes = require('./src/routes/availability-routes')
@@ -16,6 +18,20 @@ const consultationRoutes = require('./src/routes/consultation-routes')
 const { showHomepage } = require('./src/controllers/homepage-controller')
 
 const app = express()
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  next()
+})
+
+const noCache = (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  next()
+}
+
 const PORT = process.env.PORT || 3000
 
 app.engine('html', require('ejs').renderFile)
@@ -38,7 +54,7 @@ app.use(session({
   }
 }))
 
-app.use('/', authRoutes)
+app.use('/', authRoutes) 
 app.use('/', dashboardRoutes)
 app.use('/', signupRoutes)
 app.use('/', availabilityRoutes)
@@ -48,7 +64,23 @@ app.use('/', adminRoutes)
 app.use('/', courseRoutes)
 app.use('/', consultationRoutes)
 
+app.use('/student', noCache)
+app.use('/lecturer', noCache)
+app.use('/admin', noCache)
+app.use('/courses', noCache)
+app.use('/consultations', noCache)
+
 app.get('/', showHomepage)
+
+app.use((req, res, next) => {
+  res.status(404).send(`
+    <div style="text-align: center; margin-top: 50px; font-family: sans-serif;">
+      <h1>404 - Page Not Found</h1>
+      <p>Knock, knock! Who's there? Not this page unfortunately! We couldn't find the page you were looking for.</p>
+      <a href="/">Go back home</a>
+    </div>
+  `);
+});
 
 if (require.main === module) {
   app.listen(PORT, () => {

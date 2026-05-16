@@ -53,6 +53,9 @@ const buildWhere = (search, categoryFilter) => {
 };
 
 const showActivityLog = (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
   const user           = { id: req.session.userId, name: req.session.userName };
   const page           = Math.max(1, parseInt(req.query.page) || 1);
   const offset         = (page - 1) * PAGE_SIZE;
