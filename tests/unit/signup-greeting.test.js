@@ -9,6 +9,10 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword123')
+}))
+
 const { registerUser } = require('../../src/controllers/signup-controller')
 
 const mockReq = (body = {}) => ({ body })
@@ -26,7 +30,6 @@ beforeEach(() => {
 })
 
 describe('Sign Up greeting validation', () => {
-  // 3. Added async
   test('student signup shows success greeting', async () => {
     mockPrepare
       .mockReturnValueOnce({
@@ -43,8 +46,8 @@ describe('Sign Up greeting validation', () => {
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
@@ -65,7 +68,9 @@ describe('Sign Up greeting validation', () => {
         redirectTo: '/student/courses',
         fullName: '',
         number: '',
-        email: ''
+        email: ''//,
+        // password: 'Password01',
+        // confirmPassword: 'Password01'
       }
     )
   })
@@ -86,14 +91,13 @@ describe('Sign Up greeting validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
     const res = mockRes()
 
-    // 4. Added await
     await registerUser(req, res)
 
     expect(req.session.userId).toBe('A000999')
@@ -109,7 +113,9 @@ describe('Sign Up greeting validation', () => {
         redirectTo: '/lecturer/courses',
         fullName: '',
         number: '',
-        email: ''
+        email: ''//,
+        // password: 'Password01',
+        // confirmPassword: 'Password01'
       }
     )
   })

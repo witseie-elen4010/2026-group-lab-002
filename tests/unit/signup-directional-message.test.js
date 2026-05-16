@@ -4,7 +4,12 @@ jest.mock('../../database/db', () => ({
   prepare: mockPrepare
 }))
 
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword123')
+}))
+
 const { registerUser } = require('../../src/controllers/signup-controller')
+jest.mock('../../src/services/logging-service', () => ({ logActivity: jest.fn().mockResolvedValue(true) }))
 
 const mockReq = (body = {}) => ({ body })
 
@@ -21,7 +26,7 @@ beforeEach(() => {
 })
 
 describe('Sign Up error message validation', () => {
-  test('rejects empty password', () => {
+  test('rejects empty password', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '2468101',
@@ -32,12 +37,13 @@ describe('Sign Up error message validation', () => {
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up', {
         message: null,
-        error: 'Registration error: Bro, lock the door to this account with some kind of password. Bro, seriously.',
+        // UPDATED: Matches the actual string in your controller code
+        error: 'Registration error: Knock, knock! Who\'s there? Not your password, it seems. Please enter a password to continue.',
         redirectTo: null,
         fullName: req.body.fullName || '',
         number: req.body.number || '',
@@ -45,18 +51,40 @@ describe('Sign Up error message validation', () => {
       })
   })
 
-  test('rejects mismatched passwords', () => {
+  // NEW: Added a test to verify your new password strength regex!
+  test('rejects weak passwords missing uppercase or numbers', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@students.wits.ac.za',
-      password: 'pass1',
-      confirmPassword: 'pass2'
+      password: 'weakpassword',
+      confirmPassword: 'weakpassword'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'sign-up',
+      expect.objectContaining({
+        error: 'Registration error: Password must be at least 8 characters long, contain one uppercase letter, and one number.'
+      })
+    )
+  })
+
+  test('rejects mismatched passwords', async () => {
+    const req = mockReq({
+      fullName: 'Test Student',
+      number: '2468101',
+      email: 'student@students.wits.ac.za',
+      password: 'Password01',
+      confirmPassword: 'Password02'
+    })
+
+    const res = mockRes()
+
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -66,18 +94,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects invalid lecturer staff number', () => {
+  test('rejects invalid lecturer staff number', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A123',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -87,18 +115,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects invalid student number', () => {
+  test('rejects invalid student number', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '0123456',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -108,18 +136,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects lecturer using student email', () => {
+  test('rejects lecturer using student email', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -129,18 +157,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects invalid lecturer email domain', () => {
+  test('rejects invalid lecturer email domain', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -150,18 +178,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects student using lecturer email', () => {
+  test('rejects student using lecturer email', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -171,18 +199,18 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects invalid student email domain', () => {
+  test('rejects invalid student email domain', async () => {
     const req = mockReq({
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -192,7 +220,7 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects duplicate lecturer staff number', () => {
+  test('rejects duplicate lecturer staff number', async () => {
     mockPrepare.mockReturnValueOnce({
       get: jest.fn().mockReturnValue({ staff_number: 'A000999' })
     })
@@ -201,13 +229,13 @@ describe('Sign Up error message validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -217,7 +245,7 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects duplicate lecturer email', () => {
+  test('rejects duplicate lecturer email', async () => {
     mockPrepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -230,13 +258,13 @@ describe('Sign Up error message validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -246,7 +274,7 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects duplicate student number', () => {
+  test('rejects duplicate student number', async () => {
     mockPrepare.mockReturnValueOnce({
       get: jest.fn().mockReturnValue({ student_number: '2468101' })
     })
@@ -255,13 +283,13 @@ describe('Sign Up error message validation', () => {
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
@@ -271,7 +299,7 @@ describe('Sign Up error message validation', () => {
     )
   })
 
-  test('rejects duplicate student email', () => {
+  test('rejects duplicate student email', async () => {
     mockPrepare
       .mockReturnValueOnce({
         get: jest.fn().mockReturnValue(undefined)
@@ -284,13 +312,13 @@ describe('Sign Up error message validation', () => {
       fullName: 'Test Student',
       number: '2468101',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     const res = mockRes()
 
-    registerUser(req, res)
+    await registerUser(req, res)
 
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',

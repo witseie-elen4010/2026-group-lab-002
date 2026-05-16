@@ -9,8 +9,12 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
+// NEW: Mock bcrypt so the tests don't try to actually hash passwords
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword123')
+}))
+
 const db = require('../../database/db')
-const { logActivity } = require('../../src/services/logging-service')
 
 const mockReq = (body = {}) => ({ body })
 
@@ -24,35 +28,27 @@ const mockRes = () => {
 
 beforeEach(() => {
   db.prepare.mockReset()
-  logActivity.mockClear()
 })
 
 describe('email domain validation', () => {
   test('accepts student email ending in @students.wits.ac.za', async () => {
     db.prepare
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        run: jest.fn()
-      })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ run: jest.fn() })
 
     const req = mockReq({
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
-    await registerUser(req, res) // Await the controller
+    await registerUser(req, res)
 
     expect(req.session.userId).toBe(1234567)
     expect(req.session.userName).toBe('Test Student')
@@ -67,36 +63,29 @@ describe('email domain validation', () => {
         redirectTo: '/student/courses',
         fullName: '',
         number: '',
-        email: ''
+        email: '' // Removed password & confirmPassword expectations here
       }
     )
   })
 
   test('accepts lecturer email ending in @wits.ac.za', async () => {
     db.prepare
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        get: jest.fn().mockReturnValue(undefined)
-      })
-      .mockReturnValueOnce({
-        run: jest.fn()
-      })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue(undefined) })
+      .mockReturnValueOnce({ run: jest.fn() })
 
     const req = mockReq({
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
-    await registerUser(req, res) // Await the controller
+    await registerUser(req, res)
 
     expect(req.session.userId).toBe('A000999')
     expect(req.session.userName).toBe('Test Lecturer')
@@ -121,12 +110,11 @@ describe('email domain validation', () => {
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -151,12 +139,11 @@ describe('email domain validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@gmail.com',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -181,12 +168,11 @@ describe('email domain validation', () => {
       fullName: 'Test Student',
       number: '1234567',
       email: 'student@wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
@@ -211,12 +197,11 @@ describe('email domain validation', () => {
       fullName: 'Test Lecturer',
       number: 'A000999',
       email: 'lecturer@students.wits.ac.za',
-      password: 'pass',
-      confirmPassword: 'pass'
+      password: 'Password01',
+      confirmPassword: 'Password01'
     })
 
     req.session = {}
-
     const res = mockRes()
 
     await registerUser(req, res)
