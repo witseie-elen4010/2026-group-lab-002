@@ -9,14 +9,12 @@ jest.mock('../../src/services/logging-service', () => ({
   logActivity: jest.fn().mockResolvedValue(true)
 }))
 
-<<<<<<< HEAD
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('hashedPassword123')
-=======
+}))
 jest.mock('../../src/services/email-service', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
   sendLoginWarningEmail: jest.fn().mockResolvedValue(undefined)
->>>>>>> main
 }))
 
 const db = require('../../database/db')

@@ -3,7 +3,6 @@ const request = require('supertest');
 const app = require('../../app');
 const db = require('../../database/db');
 
-// The plaintext password and its corresponding seeded bcrypt hash
 const PLAINTEXT_PASSWORD = 'Password01';
 const BCRYPT_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya';
 
@@ -12,14 +11,14 @@ beforeAll(() => {
     INSERT OR IGNORE INTO staff
       (staff_number, name, email, department, dept_code, password, email_verified)
     VALUES
-      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', ?)
+      ('A999001', 'Test Lecturer', 'testlecturer@wits.ac.za', 'EIE', 'EIE', ?, 1)
   `).run(BCRYPT_HASH);
 
   db.prepare(`
     INSERT OR IGNORE INTO students
       (student_number, name, email, password, degree_code, email_verified)
     VALUES
-      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', ?, 'BSCENGINFO')
+      (9999001, 'Test Student', 'teststudent@students.wits.ac.za', ?, 'BSCENGINFO', 1)
   `).run(BCRYPT_HASH);
 });
 

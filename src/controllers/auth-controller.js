@@ -50,6 +50,7 @@ const login = async (req, res) => {
       return res.render('login', { error: 'Please enter both your user number and password.', success: null })
     }
 
+    // 1. Staff Check
     const staff = db.prepare('SELECT * FROM staff WHERE staff_number = ?').get(staffStudentNumber)
     if (staff) {
       if (staff.login_pin) {
@@ -93,6 +94,7 @@ const login = async (req, res) => {
       })
     }
 
+    // 2. Student Check
     const student = db.prepare('SELECT * FROM students WHERE student_number = ?').get(staffStudentNumber)
     if (student) {
       if (student.login_pin) {
@@ -136,6 +138,7 @@ const login = async (req, res) => {
       })
     }
 
+    // 3. Admin Check
     let admin = null
     try { 
       admin = db.prepare('SELECT * FROM admins WHERE admin_id = ?').get(staffStudentNumber) 
@@ -149,15 +152,19 @@ const login = async (req, res) => {
         req.session.userRole = 'admin'
         await logActivity(admin.admin_id, ActionTypes.USER_LOGIN, [])
         return res.redirect('/admin/dashboard')
+      } else { 
+        await logActivity(admin.admin_id, ActionTypes.AUTH_FAILED_LOGIN, [])
+        return res.render('login', { error: 'Invalid password.', success: null })
       }
-    }
+    } 
 
+    // 4. Fallback: No user matched
     await logActivity(staffStudentNumber || 'UNKNOWN', ActionTypes.AUTH_FAILED_LOGIN, [])
-    return res.render('login', { error: 'Invalid user number or password.', success: null })
+    return res.render('login', { error: 'Invalid user number.', success: null })
 
   } catch (error) {
     console.error('Login error:', error)
-    return res.render('login', { error: 'An unexpected error occurred during login.', success: null })
+    return res.render('login', { error: 'Your email address has not been verified. Please check your inbox.', success: null })
   }
 }
 

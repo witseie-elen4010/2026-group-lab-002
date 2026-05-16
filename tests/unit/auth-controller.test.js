@@ -1,9 +1,10 @@
 /* eslint-env jest */
 const { showLogin, login, logout, showLoginPin, resendLoginPin, verifyLoginPin } = require('../../src/controllers/auth-controller')
 const bcryptjs = require('bcryptjs')
+const crypto = require('crypto')
 
 const VALID_PASSWORD = 'Password01'
-const VALID_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya' 
+const VALID_HASH = 'dummy_hash' 
 
 jest.mock('../../database/db', () => ({
   prepare: jest.fn()
@@ -38,17 +39,30 @@ const mockRes = () => {
 beforeEach(() => {
   db.prepare.mockReset()
   logActivity.mockClear()
+  
+  // THE MISSING PIECE: Safely intercept bcryptjs without hoisting bugs!
+  jest.spyOn(bcryptjs, 'compare').mockImplementation(async (plainPassword) => {
+    // Return true for our good test password, false for 'wrongpass'
+    return plainPassword !== 'wrongpass'
+  })
+})
+
+afterEach(() => {
+  jest.restoreAllMocks()
 })
 
 const fakeStaff = {
-  staff_number: 'A000356', name: 'Clark Kent', password: 'pass',
+  staff_number: 'A000356', name: 'Clark Kent', password: VALID_HASH,
   email: 'clark.kent@wits.ac.za', email_verified: 1,
   failed_attempts: 0, login_pin: null
 }
 const fakeStudent = {
-  student_number: 1234567, name: 'Aditya', password: 'pass',
+  student_number: 1234567, name: 'Aditya', password: VALID_HASH,
   email: 'aditya@students.wits.ac.za', email_verified: 1,
   failed_attempts: 0, login_pin: null
+}
+const fakeAdmin = { 
+  admin_id: 'ADMIN001', name: 'System Admin', password: VALID_HASH 
 }
 
 describe('showLogin', () => {
@@ -92,10 +106,6 @@ describe('showLogin', () => {
 })
 
 describe('login', () => {
-  const fakeStaff = { staff_number: 'A000356', name: 'Clark Kent', password: VALID_HASH }
-  const fakeStudent = { student_number: 1234567, name: 'Aditya', password: VALID_HASH }
-  const fakeAdmin = { admin_id: 'ADMIN001', name: 'System Admin', password: VALID_HASH }
-
   test('sets lecturer session and redirects to lecturer dashboard on valid staff credentials', async () => {
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStaff) }) // SELECT staff
@@ -166,7 +176,7 @@ describe('login', () => {
     const unverifiedStaff = { ...fakeStaff, email_verified: 0 }
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStaff) })
 
-    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: 'pass' } })
+    const req = mockReq({ body: { staffStudentNumber: 'A000356', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -183,7 +193,7 @@ describe('login', () => {
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStudent) })
 
-    const req = mockReq({ body: { staffStudentNumber: '1234567', password: 'pass' } })
+    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -302,7 +312,7 @@ describe('verifyLoginPin', () => {
   })
 
   test('renders error on incorrect PIN', async () => {
-    const correctHash = require('crypto').createHash('sha256').update('999999').digest('hex')
+    const correctHash = crypto.createHash('sha256').update('999999').digest('hex')
     db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ login_pin: correctHash }) })
 
     const req = mockReq({
@@ -318,7 +328,7 @@ describe('verifyLoginPin', () => {
 
   test('clears lockout and sets session on correct PIN for lecturer', async () => {
     const pin = '482910'
-    const pinHash = require('crypto').createHash('sha256').update(pin).digest('hex')
+    const pinHash = crypto.createHash('sha256').update(pin).digest('hex')
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ login_pin: pinHash }) }) // SELECT login_pin
       .mockReturnValueOnce({ run: jest.fn() })                                         // UPDATE clear pin
@@ -338,7 +348,7 @@ describe('verifyLoginPin', () => {
 
   test('clears lockout and sets session on correct PIN for student', async () => {
     const pin = '111222'
-    const pinHash = require('crypto').createHash('sha256').update(pin).digest('hex')
+    const pinHash = crypto.createHash('sha256').update(pin).digest('hex')
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ login_pin: pinHash }) }) // SELECT login_pin
       .mockReturnValueOnce({ run: jest.fn() })                                         // UPDATE clear pin

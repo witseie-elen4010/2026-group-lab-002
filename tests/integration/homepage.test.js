@@ -9,14 +9,14 @@ const BCRYPT_HASH = '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Y
 beforeAll(() => {
   db.prepare(`
     INSERT OR IGNORE INTO staff
-      (staff_number, name, email, department, dept_code, password)
-    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', ?)
+      (staff_number, name, email, department, dept_code, password, email_verified)
+    VALUES ('HP999001', 'HP Lecturer', 'hplecturer@wits.ac.za', 'EIE', 'EIE', ?, 1)
   `).run(BCRYPT_HASH)
 
   db.prepare(`
     INSERT OR IGNORE INTO students
-      (student_number, name, email, password, degree_code)
-    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', ?, 'BSCENGINFO')
+      (student_number, name, email, password, degree_code, email_verified)
+    VALUES (8888001, 'HP Student', 'hpstudent@students.wits.ac.za', ?, 'BSCENGINFO', 1)
   `).run(BCRYPT_HASH)
 })
 
