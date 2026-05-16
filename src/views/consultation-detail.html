@@ -39,7 +39,7 @@
 
     <div class="card p-4 mb-4">
       <div class="d-flex justify-content-between align-items-start mb-3">
-        <h3 class="mb-0"><%= consultation.consultation_title %></h3>
+        <h3 class="mb-0" style="overflow-wrap:break-word;word-break:break-word;min-width:0;"><%= consultation.consultation_title %></h3>
         <span class="badge <%=
           consultation.status === 'Booked'  ? 'bg-primary' :
           consultation.status === 'Ongoing' ? 'bg-success' : 'bg-secondary'
