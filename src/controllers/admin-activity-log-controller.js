@@ -86,7 +86,12 @@ const showActivityLog = (req, res) => {
           WHEN adm.admin_id      IS NOT NULL THEN 'Admin'
           ELSE 'Unknown'
         END AS actor_role,
-        GROUP_CONCAT(ar.table_affected || ':' || ar.record_id, ' | ') AS affected_summary
+        GROUP_CONCAT(ar.table_affected || ':' || ar.record_id, ' | ') AS affected_summary,
+        COALESCE((
+          SELECT MAX(fll.pin_triggered) FROM failed_login_log fll
+          WHERE fll.identifier = al.user_id
+            AND ABS(strftime('%s', fll.attempted_at) - strftime('%s', al.created_at)) <= 2
+        ), 0) AS pin_triggered
       ${BASE_FROM}
       ${where}
       GROUP BY al.log_id
@@ -101,6 +106,7 @@ const showActivityLog = (req, res) => {
         category:   getCategory(row.action_name),
         status:     getStatus(row.action_name),
         actorName:  row.actor_name || resolveActorFallback(row.user_id, row.actor_role),
+        pinTriggered: row.pin_triggered === 1,
         old_data:   null,
         new_data:   null,
       };
@@ -183,7 +189,15 @@ const showFailedLogins = (req, res) => {
           WHEN adm.admin_id      IS NOT NULL THEN 'Admin'
           ELSE 'Unknown'
         END AS actor_role,
-        GROUP_CONCAT(ar.table_affected || ':' || ar.record_id, ' | ') AS affected_summary
+        GROUP_CONCAT(ar.table_affected || ':' || ar.record_id, ' | ') AS affected_summary,
+        -- Surface the PIN lockout flag from failed_login_log. The auth
+        -- controller writes both rows back-to-back, so they share a
+        -- timestamp; we tolerate a 2-second skew for safety.
+        COALESCE((
+          SELECT MAX(fll.pin_triggered) FROM failed_login_log fll
+          WHERE fll.identifier = al.user_id
+            AND ABS(strftime('%s', fll.attempted_at) - strftime('%s', al.created_at)) <= 2
+        ), 0) AS pin_triggered
       ${BASE_FROM} ${where}
       GROUP BY al.log_id
       ORDER BY al.created_at DESC
@@ -196,6 +210,7 @@ const showFailedLogins = (req, res) => {
       category:   getCategory(row.action_name),
       status:     getStatus(row.action_name),
       actorName:  row.actor_name || resolveActorFallback(row.user_id, row.actor_role),
+      pinTriggered: row.pin_triggered === 1,
       old_data:   null,
       new_data:   null,
     }));

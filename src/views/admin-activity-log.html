@@ -228,7 +228,12 @@
                   <td style="font-size:0.88rem;"><%= row.eventLabel %></td>
                   <td class="text-muted" style="font-size:0.8rem;"><%= row.description %></td>
                   <td><span class="cat-chip cat-<%= row.category %>"><%= row.category %></span></td>
-                  <td><span class="status-chip status-<%= row.status %>"><%= row.status %></span></td>
+                  <td>
+                    <span class="status-chip status-<%= row.status %>"><%= row.status %></span>
+                    <% if (row.pinTriggered) { %>
+                      <span class="status-chip status-Failed ms-1" title="4th consecutive failure — one-time PIN was generated and emailed to the user."><i class="bi bi-shield-lock-fill me-1"></i>PIN lockout</span>
+                    <% } %>
+                  </td>
                   <td class="pe-3">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
                       data-bs-toggle="modal"
