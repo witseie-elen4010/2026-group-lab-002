@@ -516,3 +516,32 @@ VALUES
 INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES
   ('2026-05-21-00099', 2434427),
   ('2026-05-21-00099', 3456789);
+
+-- ─── Demo failed-login activity ──────────────────────────────────────────────
+-- Surfaces the admin "Failed Logins" sidebar link (only renders when at least
+-- one AUTH_FAILED_LOGIN row exists). Mix of genuine forgot-password attempts
+-- on real accounts and unknown-identifier attempts that look like probing.
+-- action_id 14 == AUTH_FAILED_LOGIN per seedVitalInfo.sql line 329.
+INSERT OR IGNORE INTO activity_log (user_id, action_id, created_at) VALUES
+  ('2434427', 14, '2026-05-14 08:42:11'),  -- demo student, single fat-finger
+  ('3456789', 14, '2026-05-15 19:03:55'),  -- another student, single
+  ('A000358', 14, '2026-05-15 21:18:02'),  -- lecturer, single
+  ('9999999', 14, '2026-05-16 02:14:37'),  -- unknown identifier, looks like probing
+  ('9999999', 14, '2026-05-16 02:14:48'),  -- repeat from same identifier
+  ('2345678', 14, '2026-05-16 16:50:21'),  -- attempt 1 of 4
+  ('2345678', 14, '2026-05-16 16:50:34'),  -- attempt 2 of 4
+  ('2345678', 14, '2026-05-16 16:50:46'),  -- attempt 3 of 4
+  ('2345678', 14, '2026-05-16 16:51:02');  -- attempt 4 of 4 (PIN lockout)
+
+-- Mirror entries in failed_login_log so the two log paths stay consistent.
+-- The 4th attempt for 2345678 triggers the PIN lockout (pin_triggered = 1).
+INSERT OR IGNORE INTO failed_login_log (identifier, attempted_at, pin_triggered) VALUES
+  ('2434427', '2026-05-14 08:42:11', 0),
+  ('3456789', '2026-05-15 19:03:55', 0),
+  ('A000358', '2026-05-15 21:18:02', 0),
+  ('9999999', '2026-05-16 02:14:37', 0),
+  ('9999999', '2026-05-16 02:14:48', 0),
+  ('2345678', '2026-05-16 16:50:21', 0),
+  ('2345678', '2026-05-16 16:50:34', 0),
+  ('2345678', '2026-05-16 16:50:46', 0),
+  ('2345678', '2026-05-16 16:51:02', 1);
