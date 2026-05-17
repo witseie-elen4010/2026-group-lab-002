@@ -24,7 +24,7 @@ const getNextWeekday = (dowTarget) => {
 describe('GET /consultations/new', () => {
   test('redirects to dashboard when staffNumber param is missing', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/consultations/new?availabilityId=1&date=2026-05-12');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');
@@ -32,7 +32,7 @@ describe('GET /consultations/new', () => {
 
   test('redirects when student is not enrolled in any course taught by that lecturer', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const date = getNextWeekday('Mon');
     const res = await agent.get(`/consultations/new?staffNumber=STAFF_NOBODY&availabilityId=1&date=${date}`);
     expect(res.status).toBe(302);
@@ -41,7 +41,7 @@ describe('GET /consultations/new', () => {
 
   test('renders booking page for enrolled student with valid params', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const date = getNextWeekday('Mon');
     const res = await agent.get(`/consultations/new?staffNumber=A000356&availabilityId=1&date=${date}`);
     expect(res.status).toBe(200);
@@ -76,7 +76,7 @@ describe('POST /consultations/new', () => {
 
   test('creates consultation and attendee row on valid booking', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await bookSlot(agent, { title: `Valid Booking ${testTag}`, allow_join: '1' });
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');
@@ -89,13 +89,13 @@ describe('POST /consultations/new', () => {
     createdIds.push(consultation.const_id);
 
     const attendee = db.prepare('SELECT * FROM consultation_attendees WHERE const_id = ? AND student_number = ?')
-      .get(consultation.const_id, 1234567);
+      .get(consultation.const_id, 2434427);
     expect(attendee).toBeTruthy();
   });
 
   test('stores allow_join=0 when checkbox is not sent', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const body = {
       staff_number: 'A000356', availability_id: '3', date,
       start_time: '10:15', duration_min: '15', title: `No Join ${testTag}`,
@@ -110,7 +110,7 @@ describe('POST /consultations/new', () => {
 
   test('rejects title exceeding 100 characters with an error message', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const longTitle = 'a'.repeat(101);
     const res = await bookSlot(agent, { title: longTitle });
     expect(res.status).toBe(302);
@@ -120,7 +120,7 @@ describe('POST /consultations/new', () => {
 
   test('stores script tag in title as plain text without executing', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const scriptTitle = `<script>alert(1)</script> ${testTag}`;
     const res = await bookSlot(agent, { title: scriptTitle, start_time: '10:30' });
     expect(res.status).toBe(302);
@@ -133,7 +133,7 @@ describe('POST /consultations/new', () => {
 
   test('rejects booking with duration_min exceeding max_booking_min', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     // Availability 3: A000356, Wed 10:00-14:00, max_booking_min=180 — posting 181 min should be rejected
     const res = await bookSlot(agent, { availability_id: '3', start_time: '10:00', duration_min: '181' });
     expect(res.status).toBe(302);
@@ -143,7 +143,7 @@ describe('POST /consultations/new', () => {
 
   test('rejects booking outside the availability window', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await bookSlot(agent, { start_time: '08:00', title: 'Outside window booking' });
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error');
@@ -151,7 +151,7 @@ describe('POST /consultations/new', () => {
 
   test('rejects booking that overlaps an existing non-joinable consultation', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
 
     const firstBody = {
       staff_number: 'A000356', availability_id: '3', date,
@@ -181,7 +181,7 @@ describe('weather on booking page', () => {
   test('booking page renders with status 200 when weather service throws', async () => {
     getWitsWeather.mockRejectedValueOnce(new Error('Weather service unavailable'));
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const date = getNextWeekday('Mon');
     const res = await agent.get(`/consultations/new?staffNumber=A000356&availabilityId=1&date=${date}`);
     expect(res.status).toBe(200);
@@ -194,7 +194,7 @@ describe('weather on booking page', () => {
       [date]: { condition: 'rainy', icon: '🌧️', maxTemp: 18, message: 'Rain expected' },
     });
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get(`/consultations/new?staffNumber=A000356&availabilityId=1&date=${date}`);
     expect(res.status).toBe(200);
     expect(res.text).toContain('Rain is expected');

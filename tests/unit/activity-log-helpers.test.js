@@ -96,7 +96,7 @@ describe('getStatus', () => {
 
 describe('resolveActorFallback', () => {
   test('returns Unknown Student when actor_role is Student', () => {
-    expect(resolveActorFallback('1234567', 'Student')).toBe('Unknown Student');
+    expect(resolveActorFallback('2434427', 'Student')).toBe('Unknown Student');
   });
 
   test('returns Unknown Lecturer when actor_role is Lecturer', () => {

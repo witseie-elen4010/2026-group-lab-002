@@ -50,7 +50,7 @@ describe('showStudentCourses', () => {
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(fakeCourses) })
       .mockReturnValueOnce({ all: jest.fn().mockReturnValue(fakeEnrollments) })
 
-    const req = mockReq({ session: { userId: 1234567 }, query: {} })
+    const req = mockReq({ session: { userId: 2434427 }, query: {} })
     const res = mockRes()
 
     // Act
@@ -72,7 +72,7 @@ describe('showStudentCourses', () => {
   test('renders an error when student record is not found', async () => {
     // Arrange
     db.prepare.mockReturnValue({ get: jest.fn().mockReturnValue(null) })
-    const req = mockReq({ session: { userId: 1234567 } })
+    const req = mockReq({ session: { userId: 2434427 } })
     const res = mockRes()
 
     // Act
@@ -91,7 +91,7 @@ describe('showStudentCourses', () => {
       get: jest.fn().mockReturnValue(fakeStudent),
       all: jest.fn().mockReturnValue([])
     })
-    const req = mockReq({ session: { userId: 1234567 }, query: { success: 'true' } })
+    const req = mockReq({ session: { userId: 2434427 }, query: { success: 'true' } })
     const res = mockRes()
 
     // Act
@@ -110,7 +110,7 @@ describe('showStudentCourses', () => {
       get: jest.fn().mockReturnValue(fakeStudent),
       all: jest.fn().mockReturnValue([])
     })
-    const req = mockReq({ session: { userId: 1234567 }, query: { onboarding: 'true' } })
+    const req = mockReq({ session: { userId: 2434427 }, query: { onboarding: 'true' } })
     const res = mockRes()
 
     // Act
@@ -131,7 +131,7 @@ describe('updateStudentCourses', () => {
       run: jest.fn()
     })
     const req = mockReq({
-      session: { userId: 1234567 },
+      session: { userId: 2434427 },
       body: { degree_code: 'BSCENGINFO', courses: ['ELEN4010', 'ELEN3009'] }
     })
     const res = mockRes()
@@ -147,7 +147,7 @@ describe('updateStudentCourses', () => {
     // Arrange
     db.prepare.mockReturnValue({ get: jest.fn().mockReturnValue(null) })
     const req = mockReq({
-      session: { userId: 1234567 },
+      session: { userId: 2434427 },
       body: { degree_code: 'INVALID' }
     })
     const res = mockRes()
@@ -165,7 +165,7 @@ describe('updateStudentCourses', () => {
       run: jest.fn()
     })
     const req = mockReq({
-      session: { userId: 1234567 },
+      session: { userId: 2434427 },
       body: { degree_code: 'BSCENGINFO' }
     })
     const res = mockRes()
@@ -182,7 +182,7 @@ describe('updateStudentCourses', () => {
       run: jest.fn()
     })
     const req = mockReq({
-      session: { userId: 1234567 },
+      session: { userId: 2434427 },
       body: { degree_code: 'BSCENGINFO', courses: 'ELEN4010' }
     })
     const res = mockRes()
@@ -201,7 +201,7 @@ describe('updateStudentCourses', () => {
       run: jest.fn()
     })
     const req = mockReq({
-      session: { userId: 1234567 },
+      session: { userId: 2434427 },
       body: { degree_code: 'BSCENGINFO', courses: ['ELEN4010', 'ELEN3009', 'ELEN4020'] }
     })
     const res = mockRes()

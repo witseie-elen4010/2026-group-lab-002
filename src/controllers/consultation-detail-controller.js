@@ -4,9 +4,11 @@ const ActionTypes = require('../services/action-types')
 
 const { validateJoin } = require('../services/consultation-join-service')
 
-const getStudentUser = (req) => req.session && req.session.userId
-  ? { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
-  : { id: 1234567, name: 'Test Student', role: 'student' }
+const getStudentUser = (req) => ({
+  id: req.session.userId,
+  name: req.session.userName,
+  role: req.session.userRole,
+})
 
 const showConsultationDetail = (req, res) => {
   const user = getStudentUser(req)
@@ -107,9 +109,6 @@ const joinConsultation = async (req, res) => {
   return res.redirect('/student/dashboard?success=Successfully+joined+consultation')
 }
 
-// const cancelConsultationTodo = async (req, res) => {
-//   return res.redirect(`/consultations/${req.params.constId}?error=Cancel+not+yet+implemented`)
-// }
 const cancelConsultation = async (req, res) => {
   const user = getStudentUser(req)
   const { constId } = req.params
@@ -134,10 +133,9 @@ const cancelConsultation = async (req, res) => {
     return res.redirect(`/consultations/${constId}?error=Consultations+cannot+be+cancelled+within+2+hours+of+the+start+time`)
   }
 
-  db.transaction(() => {
-    db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId)
-    db.prepare('DELETE FROM consultation_attendees WHERE const_id = ?').run(constId)
-  })()
+  // Mark as cancelled but keep attendees attached so they can be notified
+  // via the in-app cancellation banner on their dashboard (dismissable).
+  db.prepare(`UPDATE consultations SET status = 'Cancelled' WHERE const_id = ?`).run(constId)
   await logActivity(req.session.userId, ActionTypes.CONSULT_CANCEL_ORG, [{ table: 'consultations', id: req.params.constId }]);
   return res.redirect('/student/dashboard?success=Consultation+cancelled+successfully');
 };
@@ -168,4 +166,22 @@ const leaveConsultation = async (req, res) => {
   return res.redirect('/student/dashboard?success=You+have+left+the+consultation');
 };
 
-module.exports = { showConsultationDetail, joinConsultation, cancelConsultation, leaveConsultation };
+// Marks a cancellation notice as dismissed for the current student.
+// Idempotent: safe to call repeatedly. Used by the dashboard banner's "X" button.
+const dismissCancellation = (req, res) => {
+  const user = getStudentUser(req)
+  const { constId } = req.params
+  db.prepare(`
+    INSERT OR IGNORE INTO dismissed_cancellations (student_number, const_id)
+    VALUES (?, ?)
+  `).run(user.id, constId)
+  return res.redirect('/student/dashboard')
+}
+
+module.exports = {
+  showConsultationDetail,
+  joinConsultation,
+  cancelConsultation,
+  leaveConsultation,
+  dismissCancellation,
+};

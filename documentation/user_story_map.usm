@@ -13,6 +13,7 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
                     Session security (3 pts)
                     Password hashing with bcrypt (3 pts)
                     Input validation and output encoding (3 pts)
+                    Require auth on consultation routes (2 pts)
     Manage lecturer availability
         Set max students per consultation (1 pts)
         Set consultation duration (1 pts)
@@ -56,6 +57,10 @@ KnockKnock.prof User Story Map: |{"bg":"#266B9A"}
                 10-day consultation discovery calendar (10 pts)
                 Weather and public holidays API (5 pts)
                     Filter by department and lecturer (3 pts)
+                    In-app cancellation banner for attendees (3 pts)
+                    Mobile-responsive sidebar (offcanvas drawer) (3 pts)
+                    Surface lecturer max-duration in booking flow (1 pts)
+                    Settings page contact admin email (1 pts)
     Audit activity
         N/A
             N/A

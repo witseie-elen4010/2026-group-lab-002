@@ -19,7 +19,7 @@ describe('POST /login', () => {
     const res = await request(app)
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: '1234567', password: CORRECT_PASSWORD });
+      .send({ staffStudentNumber: '2434427', password: CORRECT_PASSWORD });
 
     expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/student/dashboard?welcome=1');

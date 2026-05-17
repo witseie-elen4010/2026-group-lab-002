@@ -76,7 +76,7 @@ const fakeStaff = {
   failed_attempts: 0, login_pin: null
 }
 const fakeStudent = {
-  student_number: 1234567, name: 'Aditya', password: VALID_HASH,
+  student_number: 2434427, name: 'Aditya', password: VALID_HASH,
   email: 'aditya@students.wits.ac.za', email_verified: 1,
   failed_attempts: 0, login_pin: null
 }
@@ -110,7 +110,7 @@ describe('showLogin', () => {
   })
 
   test('redirects logged-in student to student dashboard', () => {
-    const req = mockReq({ session: { userId: 1234567, userRole: 'student' } })
+    const req = mockReq({ session: { userId: 2434427, userRole: 'student' } })
     const res = mockRes()
     showLogin(req, res)
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard')
@@ -161,14 +161,14 @@ describe('login', () => {
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })                        // SELECT staff (not found)
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(fakeStudent) })                 // SELECT student
       .mockReturnValueOnce({ run: jest.fn() })                                              // UPDATE failed_attempts = 0
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 1234567 }) }) // SELECT enrollments
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 2434427 }) }) // SELECT enrollments
 
-    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
+    const req = mockReq({ body: { staffStudentNumber: '2434427', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
 
-    expect(req.session.userId).toBe(1234567)
+    expect(req.session.userId).toBe(2434427)
     expect(req.session.userName).toBe('Aditya')
     expect(req.session.userRole).toBe('student')
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard?welcome=1')
@@ -181,7 +181,7 @@ describe('login', () => {
       .mockReturnValueOnce({ run: jest.fn() })                              // UPDATE failed_attempts = 0
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })        // SELECT enrollments (none)
 
-    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
+    const req = mockReq({ body: { staffStudentNumber: '2434427', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -255,7 +255,7 @@ describe('login', () => {
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(null) })
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue(unverifiedStudent) })
 
-    const req = mockReq({ body: { staffStudentNumber: '1234567', password: VALID_PASSWORD } })
+    const req = mockReq({ body: { staffStudentNumber: '2434427', password: VALID_PASSWORD } })
     const res = mockRes()
 
     await login(req, res)
@@ -415,14 +415,14 @@ describe('verifyLoginPin', () => {
       .mockReturnValueOnce({ run: jest.fn() })                                         // UPDATE clear pin
 
     const req = mockReq({
-      session: { pendingUserId: 1234567, pendingUserRole: 'student', pendingUserName: 'Aditya' },
+      session: { pendingUserId: 2434427, pendingUserRole: 'student', pendingUserName: 'Aditya' },
       body: { pin }
     })
     const res = mockRes()
 
     await verifyLoginPin(req, res)
 
-    expect(req.session.userId).toBe(1234567)
+    expect(req.session.userId).toBe(2434427)
     expect(req.session.userRole).toBe('student')
     expect(res.redirect).toHaveBeenCalledWith('/student/dashboard?welcome=1')
   })
@@ -431,7 +431,7 @@ describe('verifyLoginPin', () => {
 describe('logout', () => {
   test('destroys session and redirects to homepage', async () => {
     const req = mockReq({
-      session: { userId: '1234567', destroy: jest.fn((cb) => cb()) }
+      session: { userId: '2434427', destroy: jest.fn((cb) => cb()) }
     })
     const res = mockRes()
 

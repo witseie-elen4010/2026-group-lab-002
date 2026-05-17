@@ -28,7 +28,7 @@ const FUTURE_EXPIRY = new Date(Date.now() + 60 * 60 * 1000).toISOString()
 const PAST_EXPIRY = new Date(Date.now() - 1000).toISOString()
 
 const fakeStudent = {
-  student_number: 1234567,
+  student_number: 2434427,
   email: 'aditya@students.wits.ac.za',
   reset_token: VALID_HASH,
   reset_token_expiry: FUTURE_EXPIRY

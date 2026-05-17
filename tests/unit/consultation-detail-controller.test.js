@@ -8,7 +8,7 @@ const { validateJoin } = require('../../src/services/consultation-join-service')
 const { cancelConsultation, leaveConsultation, joinConsultation } = require('../../src/controllers/consultation-detail-controller')
 
 const mockReq = (overrides = {}) => ({
-  session: { userId: 1234567, userName: 'Test Student', userRole: 'student' },
+  session: { userId: 2434427, userName: 'Test Student', userRole: 'student' },
   params: { constId: '42' },
   query: {},
   ...overrides
@@ -42,7 +42,7 @@ describe('cancelConsultation', () => {
   })
 
   test('redirects with error when consultation is already cancelled', async () => {
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Cancelled' }) })
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 2434427, status: 'Cancelled' }) })
     const res = mockRes()
     await cancelConsultation(mockReq(), res)
     expect(res.redirect).toHaveBeenCalledWith('/consultations/42?error=Consultation+is+already+cancelled')
@@ -52,7 +52,7 @@ describe('cancelConsultation', () => {
     const soonDate = new Date(Date.now() + 30 * 60 * 1000)
     const soonDateStr = soonDate.toISOString().slice(0, 10)
     const soonTime = soonDate.toISOString().slice(11, 16)
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Open', consultation_date: soonDateStr, consultation_time: soonTime }) })
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 2434427, status: 'Open', consultation_date: soonDateStr, consultation_time: soonTime }) })
     const res = mockRes()
     await cancelConsultation(mockReq(), res)
     expect(res.redirect).toHaveBeenCalledWith('/consultations/42?error=Consultations+cannot+be+cancelled+within+2+hours+of+the+start+time')
@@ -62,7 +62,7 @@ describe('cancelConsultation', () => {
     const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
     const futureDateStr = futureDate.toISOString().slice(0, 10)
     db.prepare
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567, status: 'Open', consultation_date: futureDateStr, consultation_time: '10:00' }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 2434427, status: 'Open', consultation_date: futureDateStr, consultation_time: '10:00' }) })
       .mockReturnValueOnce({ run: jest.fn() })
       .mockReturnValueOnce({ run: jest.fn() })
     const res = mockRes()
@@ -80,7 +80,7 @@ describe('leaveConsultation', () => {
   })
 
   test('redirects with error when user is the organiser', async () => {
-    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 1234567 }) })
+    db.prepare.mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 2434427 }) })
     const res = mockRes()
     await leaveConsultation(mockReq(), res)
     expect(res.redirect).toHaveBeenCalledWith('/consultations/42?error=Organisers+must+cancel+not+leave')
@@ -98,7 +98,7 @@ describe('leaveConsultation', () => {
   test('removes attendee and redirects to dashboard on success', async () => {
     db.prepare
       .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ organiser: 9999999 }) })
-      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 1234567 }) })
+      .mockReturnValueOnce({ get: jest.fn().mockReturnValue({ student_number: 2434427 }) })
       .mockReturnValueOnce({ run: jest.fn() })
     const res = mockRes()
     await leaveConsultation(mockReq(), res)

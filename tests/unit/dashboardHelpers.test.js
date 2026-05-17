@@ -8,7 +8,7 @@ describe('parseAttendees()', () => {
   });
 
   test('returns correct attendeeCount for populated array', () => {
-    const result = parseAttendees({ attendees: '[1234567, 2345678, 3456789]' });
+    const result = parseAttendees({ attendees: '[2434427, 2345678, 3456789]' });
     expect(result.attendeeCount).toBe(3);
   });
 

@@ -39,7 +39,7 @@ describe('name validation', () => {
   test('rejects a name exceeding 100 characters', async () => {
     const req = mockReq({
       fullName: 'a'.repeat(101),
-      number: '1234567',
+      number: '2434427',
       email: 'student@students.wits.ac.za',
       password: 'Password01',
       confirmPassword: 'Password01'
@@ -57,7 +57,7 @@ describe('name validation', () => {
   test('rejects an empty name', async () => {
     const req = mockReq({
       fullName: '',
-      number: '1234567',
+      number: '2434427',
       email: 'student@students.wits.ac.za',
       password: 'Password01',
       confirmPassword: 'Password01'
@@ -84,7 +84,7 @@ describe('email domain validation', () => {
 
     const req = mockReq({
       fullName: 'Test Student',
-      number: '1234567',
+      number: '2434427',
       email: 'student@students.wits.ac.za',
       password: 'Password01',
       confirmPassword: 'Password01'
@@ -127,7 +127,7 @@ describe('email domain validation', () => {
   test('rejects student email not ending in @students.wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Student',
-      number: '1234567',
+      number: '2434427',
       email: 'student@gmail.com',
       password: 'Password01',
       confirmPassword: 'Password01'
@@ -145,7 +145,7 @@ describe('email domain validation', () => {
         error: 'Registration error: Use Wits email address ending in @students.wits.ac.za.',
         redirectTo: null,
         fullName: 'Test Student',
-        number: '1234567',
+        number: '2434427',
         email: 'student@gmail.com'
       }
     )
@@ -185,7 +185,7 @@ describe('email domain validation', () => {
   test('rejects student email using @wits.ac.za instead of @students.wits.ac.za', async () => {
     const req = mockReq({
       fullName: 'Test Student',
-      number: '1234567',
+      number: '2434427',
       email: 'student@wits.ac.za',
       password: 'Password01',
       confirmPassword: 'Password01'
@@ -203,7 +203,7 @@ describe('email domain validation', () => {
         error: 'Registration error: Wrong email type: students must use @students.wits.ac.za, not a staff email.',
         redirectTo: null,
         fullName: 'Test Student',
-        number: '1234567',
+        number: '2434427',
         email: 'student@wits.ac.za'
       }
     )
@@ -251,7 +251,7 @@ describe('Password Validation & Hashing', () => {
 
     const req = mockReq({
       fullName: 'Test Student',
-      number: '1234567',
+      number: '2434427',
       email: 'student@students.wits.ac.za',
       password: 'ValidPassword01',
       confirmPassword: 'ValidPassword01'
@@ -265,7 +265,7 @@ describe('Password Validation & Hashing', () => {
     expect(bcrypt.hash).toHaveBeenCalledWith('ValidPassword01', 11)
     
     expect(runMock).toHaveBeenCalledWith(
-      1234567, 
+      2434427, 
       'Test Student', 
       'student@students.wits.ac.za', 
       'hashedPassword123', 
@@ -275,7 +275,7 @@ describe('Password Validation & Hashing', () => {
 
   test('rejects registration and renders error if password is empty', async () => {
     const req = mockReq({ 
-      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      fullName: 'Test Student', number: '2434427', email: 'student@students.wits.ac.za',
       password: '', confirmPassword: '' 
     })
     const res = mockRes()
@@ -291,7 +291,7 @@ describe('Password Validation & Hashing', () => {
 
   test('rejects registration if password does not meet criteria (missing number)', async () => {
     const req = mockReq({ 
-      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      fullName: 'Test Student', number: '2434427', email: 'student@students.wits.ac.za',
       password: 'InvalidPassword', confirmPassword: 'InvalidPassword' 
     })
     const res = mockRes()
@@ -307,7 +307,7 @@ describe('Password Validation & Hashing', () => {
 
   test('rejects registration if password does not meet criteria (missing uppercase)', async () => {
     const req = mockReq({ 
-      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      fullName: 'Test Student', number: '2434427', email: 'student@students.wits.ac.za',
       password: 'invalidpassword01', confirmPassword: 'invalidpassword01' 
     })
     const res = mockRes()
@@ -323,7 +323,7 @@ describe('Password Validation & Hashing', () => {
 
   test('rejects registration if passwords do not match', async () => {
     const req = mockReq({ 
-      fullName: 'Test Student', number: '1234567', email: 'student@students.wits.ac.za',
+      fullName: 'Test Student', number: '2434427', email: 'student@students.wits.ac.za',
       password: 'ValidPassword01', confirmPassword: 'ValidPassword02' 
     })
     const res = mockRes()

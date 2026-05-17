@@ -96,13 +96,20 @@
 
   <!-- Topbar -->
   <header class="topbar p-3 d-flex justify-content-between align-items-center">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-      <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
-      <div>
-        <div class="kk-brand-name">KnockKnock<span class="stu-brand-orange">.prof</span></div>
-        <div class="kk-brand-tagline">Open the door to better consultations</div>
-      </div>
-    </a>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-link p-0 d-md-none kk-burger" type="button"
+              data-bs-toggle="offcanvas" data-bs-target="#kkMobileNav"
+              aria-controls="kkMobileNav" aria-label="Open navigation">
+        <i class="bi bi-list" style="font-size:1.75rem;color:var(--kk-green);"></i>
+      </button>
+      <a class="navbar-brand d-flex align-items-center gap-2 mb-0" href="/">
+        <img src="/images/door-logo-transparent.svg" alt="KnockKnock.prof door logo" class="kk-door-logo">
+        <div>
+          <div class="kk-brand-name">KnockKnock<span class="stu-brand-orange">.prof</span></div>
+          <div class="kk-brand-tagline">Open the door to better consultations</div>
+        </div>
+      </a>
+    </div>
     <span class="text-muted small"><%= user.name %> (Student)</span>
   </header>
 
@@ -140,6 +147,30 @@
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="alert alert-dismissible fade show stu-alert-success" role="alert">
           🎉 <%= success %><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+
+      <% if (typeof cancellationNotices !== 'undefined' && cancellationNotices.length > 0) { %>
+        <div class="mb-4">
+          <% cancellationNotices.forEach(function(notice) { %>
+            <div class="alert alert-warning d-flex justify-content-between align-items-start mb-2" role="alert" style="border-left:4px solid #b45309;">
+              <div>
+                <div class="fw-semibold mb-1">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  Consultation cancelled by organiser
+                </div>
+                <div class="small">
+                  <strong><%= notice.consultation_title %></strong> on
+                  <%= notice.consultation_date %> at <%= notice.consultation_time %>
+                  <% if (notice.lecturer_name) { %>with <%= notice.lecturer_name %><% } %>
+                  was cancelled<% if (notice.organiser_name) { %> by <%= notice.organiser_name %><% } %>.
+                </div>
+              </div>
+              <form method="POST" action="/consultations/<%= notice.const_id %>/dismiss-cancellation" class="ms-3">
+                <button type="submit" class="btn-close" aria-label="Dismiss"></button>
+              </form>
+            </div>
+          <% }); %>
         </div>
       <% } %>
 
@@ -552,7 +583,8 @@
 
               <div class="alert mt-3 mb-0" style="background:var(--kk-green-light);border-color:var(--kk-sage);color:var(--kk-green);font-size:0.875rem;">
                 <i class="bi bi-info-circle me-2"></i>
-                To update your profile details, contact your system administrator.
+                To update your profile details, contact your system administrator at
+                <a href="mailto:2549449@students.wits.ac.za" class="fw-semibold" style="color:var(--kk-green);">2549449@students.wits.ac.za</a>.
               </div>
             </div>
           </div>
@@ -667,5 +699,6 @@
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
 </script>
 <script src="/js/app.js"></script>
+<%- include('partials/mobile-nav-student.html') %>
 </body>
 </html>

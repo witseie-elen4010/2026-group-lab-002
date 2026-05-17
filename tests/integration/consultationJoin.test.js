@@ -24,9 +24,9 @@ describe('POST /consultations/:constId/join', () => {
       INSERT OR IGNORE INTO consultations
         (const_id, consultation_title, consultation_date, consultation_time,
          lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
-      VALUES (?, 'Join Test', ?, '10:00', 'A000356', 1234567, 1, 30, 3, 'Room 101', 'Booked', 1)
+      VALUES (?, 'Join Test', ?, '10:00', 'A000356', 2434427, 1, 30, 3, 'Room 101', 'Booked', 1)
     `).run(constId, date);
-    db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 1234567);
+    db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 2434427);
   });
 
   afterEach(() => {
@@ -37,23 +37,23 @@ describe('POST /consultations/:constId/join', () => {
 
   test('rejects join when student is already an attendee', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error');
   });
 
   test('adds student as attendee on successful join', async () => {
-    db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = ?').run(constId, 1234567);
+    db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = ?').run(constId, 2434427);
 
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');
 
     const attendee = db.prepare('SELECT * FROM consultation_attendees WHERE const_id = ? AND student_number = ?')
-      .get(constId, 1234567);
+      .get(constId, 2434427);
     expect(attendee).toBeTruthy();
   });
 
@@ -66,11 +66,11 @@ describe('POST /consultations/:constId/join', () => {
     ).run();
     db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 9000001);
     db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 9000002);
-    // 1234567 + 9000001 + 9000002 = 3 attendees = max_number_of_students(3)
+    // 2434427 + 9000001 + 9000002 = 3 attendees = max_number_of_students(3)
     // capacity check fires before already-attending check → correct rejection reason
 
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.post(`/consultations/${constId}/join`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('error');

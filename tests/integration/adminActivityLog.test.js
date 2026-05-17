@@ -20,7 +20,7 @@ describe('GET /admin/activity-log', () => {
 
   test('returns 403 when authenticated as a student', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/admin/activity-log');
     expect(res.status).toBe(403);
   });

@@ -71,9 +71,7 @@ const showCourseDetail = (req, res) => {
     }
   }
 
-  const user = req.session && req.session.userId
-    ? { id: req.session.userId, name: req.session.userName, role: req.session.userRole }
-    : { id: 1234567, name: 'Test Student', role: 'student' };
+  const user = { id: req.session.userId, name: req.session.userName, role: req.session.userRole };
 
   // Compute the next future occurrence of each weekday (starting from tomorrow
   // so we never point at a slot that may have already passed today).

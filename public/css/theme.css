@@ -322,4 +322,14 @@ a:hover { color: var(--kk-green-mid); }
 @media (max-width: 768px) {
   .kk-sidebar      { display: none; }
   .kk-sidebar-dark { display: none; }
+  /* Desktop sidebar is replaced by the offcanvas drawer on mobile */
+  .sidebar         { display: none !important; }
+  /* Topbar tagline becomes noise on small screens — keep the brand name only */
+  .kk-brand-tagline { display: none; }
+  .kk-brand-name    { font-size: 1.1rem; }
 }
+
+/* Hamburger button — only visible below md (Bootstrap d-md-none also handles this);
+   this rule just tightens the touch target. */
+.kk-burger { line-height: 1; }
+.kk-burger:focus { outline: 2px solid var(--kk-sage); outline-offset: 2px; }

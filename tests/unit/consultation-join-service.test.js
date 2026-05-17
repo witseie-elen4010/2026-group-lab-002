@@ -45,8 +45,8 @@ describe('validateJoin()', () => {
   });
 
   test('returns invalid when student is already an attendee', () => {
-    const attendees = [{ student_number: 1234567 }];
-    const result = validateJoin(makeConsultation(), 1234567, attendees);
+    const attendees = [{ student_number: 2434427 }];
+    const result = validateJoin(makeConsultation(), 2434427, attendees);
     expect(result.valid).toBe(false);
     expect(result.reason).toMatch(/already attending/);
   });

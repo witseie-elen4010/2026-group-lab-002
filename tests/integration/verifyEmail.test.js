@@ -123,7 +123,7 @@ describe('POST /login — email_verified guard', () => {
     const res = await request(app)
       .post('/login')
       .type('form')
-      .send({ staffStudentNumber: '1234567', password: 'Password01' })
+      .send({ staffStudentNumber: '2434427', password: 'Password01' })
 
     expect(res.status).toBe(302)
     expect(res.headers.location).toContain('/student/dashboard')

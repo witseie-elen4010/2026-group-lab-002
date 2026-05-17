@@ -12,7 +12,7 @@ test('responds with 404 and custom knock-knock message for unknown routes', asyn
 test('prevents access after logout by clearing session and setting Cache-Control headers', async () => {
   const agent = request.agent(app);
 
-  await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+  await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
 
   const dashboardRes = await agent.get('/student/dashboard');
   expect(dashboardRes.status).toBe(200);

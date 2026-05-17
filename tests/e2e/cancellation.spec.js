@@ -13,13 +13,13 @@ const purgeE2ECancelRows = () => {
 
 test.beforeAll(() => {
   purgeE2ECancelRows();
-  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 2434427').run();
 });
 test.afterEach(purgeE2ECancelRows);
 
 test('organiser can cancel their own consultation', async ({ page }) => {
   await page.goto('/login');
-  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="staffStudentNumber"]', '2434427');
   await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
@@ -63,7 +63,7 @@ test('non-organiser cannot cancel a consultation', async ({ page }) => {
   }
 
   await page.goto('/login');
-  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="staffStudentNumber"]', '2434427');
   await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
@@ -82,10 +82,10 @@ test('non-organiser attendee can leave a consultation', async ({ page }) => {
     return;
   }
 
-  db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, 1234567)').run(row.const_id);
+  db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, 2434427)').run(row.const_id);
 
   await page.goto('/login');
-  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="staffStudentNumber"]', '2434427');
   await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');
@@ -97,7 +97,7 @@ test('non-organiser attendee can leave a consultation', async ({ page }) => {
   await page.waitForURL('**/student/dashboard**');
   await expect(page.locator('text=left the consultation')).toBeVisible();
 
-  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = 1234567').run(row.const_id);
+  db.prepare('DELETE FROM consultation_attendees WHERE const_id = ? AND student_number = 2434427').run(row.const_id);
 });
 
 test('student can join a joinable consultation', async ({ page }) => {
@@ -118,7 +118,7 @@ test('student can join a joinable consultation', async ({ page }) => {
          'A000356', 60, 5, 'Room 101', 'Booked', 1);
 
   await page.goto('/login');
-  await page.fill('input[name="staffStudentNumber"]', '1234567');
+  await page.fill('input[name="staffStudentNumber"]', '2434427');
   await page.fill('input[name="password"]', 'Password01');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/student/dashboard**');

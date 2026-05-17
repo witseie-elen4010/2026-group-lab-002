@@ -5,15 +5,20 @@ const {
   joinConsultation,
   cancelConsultation,
   leaveConsultation,
+  dismissCancellation,
 } = require('../controllers/consultation-detail-controller');
+const { requireAuth, requireRole } = require('../middleware/auth-middleware');
 
 const router = express.Router();
 
-router.get('/consultations/new', showBookingPage);
-router.post('/consultations/new', createBooking);
-router.get('/consultations/:constId', showConsultationDetail);
-router.post('/consultations/:constId/join', joinConsultation);
-router.post('/consultations/:constId/cancel', cancelConsultation);
-router.post('/consultations/:constId/leave', leaveConsultation);
+const studentGuard = [requireAuth, requireRole('student')];
+
+router.get('/consultations/new', studentGuard, showBookingPage);
+router.post('/consultations/new', studentGuard, createBooking);
+router.get('/consultations/:constId', studentGuard, showConsultationDetail);
+router.post('/consultations/:constId/join', studentGuard, joinConsultation);
+router.post('/consultations/:constId/cancel', studentGuard, cancelConsultation);
+router.post('/consultations/:constId/leave', studentGuard, leaveConsultation);
+router.post('/consultations/:constId/dismiss-cancellation', studentGuard, dismissCancellation);
 
 module.exports = router;

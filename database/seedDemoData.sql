@@ -286,15 +286,15 @@ INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
   -- Chen Wei (CHMT) → sees Steve Rogers + Nick Fury
   (6789012, 'CHMT3038'), (6789012, 'CHMT4011'), (6789012, 'CHMT4009');
 
--- Enroll existing test student (Aditya, 1234567) in one course per lecturer
+-- Enroll existing test student (Aditya, 2434427) in one course per lecturer
 -- that has pre-seeded consultations, so logging in as Aditya shows all of them.
 -- Bruce Wayne is already covered via ELEN4010 + ELEN3009 in seedVitalInfo.sql.
 INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
-  (1234567, 'ELEN4025'),  -- Bruce Wayne (extra, already covered)
-  (1234567, 'ELEN4020'),  -- Diana Prince  → sees her Wed/Thu/Fri consultations
-  (1234567, 'MECN4034'),  -- Tony Stark    → sees his Thu/Fri/Tue consultations
-  (1234567, 'CIVN3027'),  -- Natasha Romanoff → sees her Fri/Wed consultations
-  (1234567, 'CHMT4009');  -- Steve Rogers  → sees his Wed/Mon consultations
+  (2434427, 'ELEN4025'),  -- Bruce Wayne (extra, already covered)
+  (2434427, 'ELEN4020'),  -- Diana Prince  → sees her Wed/Thu/Fri consultations
+  (2434427, 'MECN4034'),  -- Tony Stark    → sees his Thu/Fri/Tue consultations
+  (2434427, 'CIVN3027'),  -- Natasha Romanoff → sees her Fri/Wed consultations
+  (2434427, 'CHMT4009');  -- Steve Rogers  → sees his Wed/Mon consultations
 
 -- ─── Consultations ───────────────────────────────────────────────────────────
 -- Date → day_of_week mapping:
@@ -448,3 +448,71 @@ INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES
 
 INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES
   ('2026-05-27-00003', 3456789);
+
+-- ─── Past Consultations for demo student (2434427) ───────────────────────────
+-- These all sit before "today" (2026-05-17) so they appear in the Past tab.
+-- A mix of attendee-only and organiser sessions across three weeks of history,
+-- so the demo video has a believable activity trail.
+--   Date            DOW    Lecturer (avail_id)        Role for 2434427
+--   2026-04-27 Mon  Clark Kent (1)                    attendee
+--   2026-04-30 Thu  Bruce Wayne (10)                  organiser
+--   2026-05-05 Tue  Diana Prince (14)                 attendee
+--   2026-05-08 Fri  Lois Lane (3)                     organiser
+--   2026-05-13 Wed  Steve Rogers (34)                 attendee
+--   2026-05-15 Fri  Bruce Wayne (11)                  organiser
+INSERT OR IGNORE INTO consultations
+  (const_id, consultation_title, consultation_description, consultation_date, consultation_time,
+   lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
+VALUES
+  ('2026-04-27-00001', 'SD3 - Intro to Scrum',
+   'First sprint kickoff Q&A: roles, ceremonies, and definition of done.',
+   '2026-04-27', '09:00', 'A000356', 3456789,  1, 60, 4, 'Room 101',  'Booked', 1),
+
+  ('2026-04-30-00001', 'ELEN4009 - Lab Report Help',
+   'Walkthrough of the report rubric and common feedback from last year.',
+   '2026-04-30', '09:00', 'A000358', 2434427, 10, 60, 3, 'Room 204',  'Booked', 1),
+
+  ('2026-05-05-00001', 'ELEN4020 - DB Modelling Catch-up',
+   'Going over ER → relational mapping and 3NF examples.',
+   '2026-05-05', '10:00', 'A000359', 4567890, 14, 60, 4, 'Room 207',  'Booked', 1),
+
+  ('2026-05-08-00001', 'ELEN3009 - Signal Processing Revision',
+   'Pre-test review: convolution, sampling, and worked exam problems.',
+   '2026-05-08', '11:00', 'A000357', 2434427,  3, 60, 5, 'Room 102',  'Booked', 1),
+
+  ('2026-05-13-00001', 'CHMT4009 - Reaction Engineering Q&A',
+   'Discussion of batch vs CSTR design problems from tutorial 6.',
+   '2026-05-13', '09:00', 'A000362', 6789012, 34, 60, 4, 'Chem Lab 2','Booked', 1),
+
+  ('2026-05-15-00001', 'SD3 - Sprint 2 Retro Prep',
+   'Aligning on retro talking points and velocity calculation.',
+   '2026-05-15', '10:00', 'A000358', 2434427, 11, 60, 5, 'Room 205',  'Booked', 1);
+
+-- Demo student is an attendee on all six past consultations.
+INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES
+  ('2026-04-27-00001', 2434427),
+  ('2026-04-27-00001', 3456789),
+  ('2026-04-30-00001', 2434427),
+  ('2026-05-05-00001', 2434427),
+  ('2026-05-05-00001', 4567890),
+  ('2026-05-08-00001', 2434427),
+  ('2026-05-08-00001', 3456789),
+  ('2026-05-13-00001', 2434427),
+  ('2026-05-13-00001', 6789012),
+  ('2026-05-15-00001', 2434427);
+
+-- ─── Demo cancellation notice ────────────────────────────────────────────────
+-- Pre-seeds one upcoming consultation that an organiser has already cancelled
+-- but where the demo student is still an attendee. This drives the new "your
+-- consultation was cancelled" banner on the student dashboard.
+INSERT OR IGNORE INTO consultations
+  (const_id, consultation_title, consultation_description, consultation_date, consultation_time,
+   lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
+VALUES
+  ('2026-05-21-00099', 'ELEN4020 - Group Study Session',
+   'Pre-test group study (organiser cancelled last minute).',
+   '2026-05-21', '10:00', 'A000359', 3456789, 17, 60, 4, 'Room 209', 'Cancelled', 1);
+
+INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES
+  ('2026-05-21-00099', 2434427),
+  ('2026-05-21-00099', 3456789);

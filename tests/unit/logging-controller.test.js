@@ -37,9 +37,9 @@ describe('Logging Service', () => {
       { table: 'consultations', id: 'CONST-123' },
       { table: 'lecturer_availability', id: 45 }
     ]
-    const result = await logActivity('1234567', ActionTypes.CONSULT_CREATE, affected)
+    const result = await logActivity('2434427', ActionTypes.CONSULT_CREATE, affected)
     expect(result).toBe(true)
-    expect(mockInsertLogRun).toHaveBeenCalledWith('1234567', ActionTypes.CONSULT_CREATE)
+    expect(mockInsertLogRun).toHaveBeenCalledWith('2434427', ActionTypes.CONSULT_CREATE)
     expect(mockInsertAffectedRun).toHaveBeenCalledTimes(2)
     expect(mockInsertAffectedRun).toHaveBeenCalledWith(99, 'consultations', 'CONST-123')
     expect(mockInsertAffectedRun).toHaveBeenCalledWith(99, 'lecturer_availability', 45)

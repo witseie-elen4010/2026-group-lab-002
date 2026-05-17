@@ -1,0 +1,24 @@
+<!-- Mobile off-canvas nav for student pages (only used below 768px) -->
+<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="kkMobileNav" aria-labelledby="kkMobileNavLabel" style="max-width:80vw;">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-bold" id="kkMobileNavLabel" style="color:var(--kk-green);">Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-3">
+    <%
+      const mobileCurrentPage = typeof activePage !== 'undefined' ? activePage : 'dashboard';
+    %>
+    <a href="/student/dashboard"              class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'dashboard' ? 'active' : '' %>"><i class="bi bi-house-door"></i> Dashboard</a>
+    <a href="/student/dashboard?view=courses"  class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'courses'   ? 'active' : '' %>"><i class="bi bi-journal-text me-1"></i>My Courses</a>
+    <a href="/student/dashboard?view=find"     class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'find'      ? 'active' : '' %>"><i class="bi bi-search me-1"></i>Find a Consultation</a>
+    <a href="/student/dashboard?view=upcoming" class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'upcoming'  ? 'active' : '' %>"><i class="bi bi-calendar-check me-1"></i>Upcoming</a>
+    <a href="/student/dashboard?view=past"     class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'past'      ? 'active' : '' %>"><i class="bi bi-clock-history me-1"></i>Past</a>
+    <a href="/student/dashboard?view=settings" class="table-link d-flex align-items-center gap-2 mb-1 <%= mobileCurrentPage === 'settings'  ? 'active' : '' %>"><i class="bi bi-gear me-1"></i>Settings</a>
+    <hr style="border-color:var(--kk-border);margin:1rem 0 0.5rem;">
+    <form action="/logout" method="POST">
+      <button type="submit" class="table-link stu-logout w-100 text-start border-0 bg-transparent">
+        <i class="bi bi-box-arrow-left me-1"></i> Logout
+      </button>
+    </form>
+  </div>
+</div>

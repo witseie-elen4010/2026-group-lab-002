@@ -12,7 +12,7 @@ describe('GET /courses/:courseCode', () => {
 
   test('renders course detail page for enrolled student', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/courses/ELEN4010');
     expect(res.status).toBe(200);
     expect(res.text).toContain('ELEN4010');
@@ -21,7 +21,7 @@ describe('GET /courses/:courseCode', () => {
 
   test('shows lecturer names for enrolled course', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/courses/ELEN4010');
     expect(res.status).toBe(200);
     expect(res.text).toContain('Clark Kent');
@@ -29,7 +29,7 @@ describe('GET /courses/:courseCode', () => {
 
   test('redirects non-enrolled student to dashboard with error', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/courses/MECN2026');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');
@@ -38,7 +38,7 @@ describe('GET /courses/:courseCode', () => {
 
   test('renders course detail page for enrolled course with no base-seed lecturers', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: 'Password01' });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: 'Password01' });
     const res = await agent.get('/courses/ELEN4009');
     expect(res.status).toBe(200);
     expect(res.text).toContain('ELEN4009');

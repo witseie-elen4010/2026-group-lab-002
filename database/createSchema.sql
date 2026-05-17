@@ -5,6 +5,7 @@
 PRAGMA foreign_keys = OFF;
 
 DROP TABLE IF EXISTS staff_courses;
+DROP TABLE IF EXISTS dismissed_cancellations;
 DROP TABLE IF EXISTS consultation_attendees;
 DROP TABLE IF EXISTS enrollments;
 DROP TABLE IF EXISTS consultations;
@@ -122,6 +123,19 @@ CREATE TABLE consultation_attendees (
 
   FOREIGN KEY (const_id)       REFERENCES consultations(const_id) ON DELETE CASCADE,
   FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
+);
+
+-- Tracks which cancellation notices a student has dismissed from their dashboard.
+-- A row here means: don't show this user the "Cancelled" banner for this consultation.
+CREATE TABLE dismissed_cancellations (
+  student_number INTEGER NOT NULL,
+  const_id       TEXT    NOT NULL,
+  dismissed_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+
+  PRIMARY KEY (student_number, const_id),
+
+  FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE,
+  FOREIGN KEY (const_id)       REFERENCES consultations(const_id)  ON DELETE CASCADE
 );
 
 CREATE TABLE lecturer_availability (

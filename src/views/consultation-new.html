@@ -99,6 +99,11 @@
           <label for="duration-slider" class="form-label fw-semibold">
             Duration: <span id="duration-display">15</span> minutes
           </label>
+          <div class="text-muted small mb-1">
+            <i class="bi bi-info-circle me-1"></i>
+            This lecturer accepts consultations of up to
+            <strong><%= window.max_booking_min %> minutes</strong>.
+          </div>
           <input type="range" class="form-range" id="duration-slider" name="duration_min"
                  min="15" max="<%= window.max_booking_min %>" step="15" value="15"
                  oninput="updateDuration(this.value)">

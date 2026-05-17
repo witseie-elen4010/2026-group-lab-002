@@ -26,9 +26,9 @@ describe('GET /consultations/:constId', () => {
       INSERT OR IGNORE INTO consultations
         (const_id, consultation_title, consultation_date, consultation_time,
          lecturer_id, organiser, availability_id, duration_min, max_number_of_students, venue, status, allow_join)
-      VALUES (?, 'Detail Test Consultation', ?, '11:00', 'A000356', 1234567, 1, 30, 3, 'Room 101', 'Booked', 1)
+      VALUES (?, 'Detail Test Consultation', ?, '11:00', 'A000356', 2434427, 1, 30, 3, 'Room 101', 'Booked', 1)
     `).run(constId, date);
-    db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 1234567);
+    db.prepare('INSERT OR IGNORE INTO consultation_attendees (const_id, student_number) VALUES (?, ?)').run(constId, 2434427);
   });
 
   afterAll(() => {
@@ -38,7 +38,7 @@ describe('GET /consultations/:constId', () => {
 
   test('renders detail page with correct title and attendees for enrolled student', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get(`/consultations/${constId}`);
     expect(res.status).toBe(200);
     expect(res.text).toContain('Detail Test Consultation');
@@ -47,7 +47,7 @@ describe('GET /consultations/:constId', () => {
 
   test('shows organiser badge for the consultation creator', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get(`/consultations/${constId}`);
     expect(res.status).toBe(200);
     expect(res.text).toContain('Organiser');
@@ -62,7 +62,7 @@ describe('GET /consultations/:constId', () => {
 
   test('redirects to dashboard when consultation does not exist', async () => {
     const agent = request.agent(app);
-    await agent.post('/login').type('form').send({ staffStudentNumber: '1234567', password: VALID_PLAINTEXT_PASSWORD });
+    await agent.post('/login').type('form').send({ staffStudentNumber: '2434427', password: VALID_PLAINTEXT_PASSWORD });
     const res = await agent.get('/consultations/nonexistent-id');
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('/student/dashboard');

@@ -159,6 +159,32 @@ const showStudentDashboard = async (req, res) => {
       bookedConsultationsByDay[dateStr] = joinableRows.filter(r => r.consultation_date === dateStr);
     }
 
+    // Cancellation notices: consultations the student was attending that were
+    // cancelled by their organiser (status='Cancelled') and that the student has
+    // not yet dismissed. Only surface notices for sessions still in the future —
+    // there's no point telling someone a session they would have attended last
+    // week was cancelled.
+    const cancellationNotices = db.prepare(`
+      SELECT
+        c.const_id, c.consultation_title, c.consultation_date, c.consultation_time,
+        c.venue, c.duration_min,
+        s.name AS lecturer_name,
+        org.name AS organiser_name
+      FROM consultations c
+      JOIN consultation_attendees ca ON ca.const_id = c.const_id
+      LEFT JOIN staff    s   ON s.staff_number    = c.lecturer_id
+      LEFT JOIN students org ON org.student_number = c.organiser
+      WHERE ca.student_number = ?
+        AND c.status = 'Cancelled'
+        AND c.organiser != ?
+        AND c.consultation_date >= ?
+        AND NOT EXISTS (
+          SELECT 1 FROM dismissed_cancellations dc
+          WHERE dc.student_number = ? AND dc.const_id = c.const_id
+        )
+      ORDER BY c.consultation_date ASC, c.consultation_time ASC
+    `).all(user.id, user.id, today, user.id);
+
     let success = null;
     if (showWelcome) {
       success = `Welcome back, ${user.name}! Check your upcoming consultations below.`;
@@ -185,6 +211,7 @@ const showStudentDashboard = async (req, res) => {
       publicHolidays,
       noHolidaysInWindow,
       weatherByDay,
+      cancellationNotices,
       activePage: req.query.view || 'dashboard',
     });
 
@@ -207,6 +234,7 @@ const showStudentDashboard = async (req, res) => {
       publicHolidays: [],
       noHolidaysInWindow: false,
       weatherByDay: {},
+      cancellationNotices: [],
       activePage: 'dashboard',
     });
   }

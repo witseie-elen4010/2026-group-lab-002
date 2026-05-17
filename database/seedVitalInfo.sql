@@ -301,12 +301,12 @@ INSERT OR IGNORE INTO staff_courses (staff_number, course_code) VALUES
 
 -- ─── Test student ─────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO students (student_number, name, email, password, degree_code, email_verified) VALUES
-  (1234567, 'Aditya Raghunandan', '2434427@students.wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 'BSCENGINFO', 1);
+  (2434427, 'Aditya Raghunandan', '2434427@students.wits.ac.za', '$2b$11$7WRkOLZ9kVYwEmpHg63tNOAF9hvAgTR5LkCDzYTAy1LxEH/Dyv9Ya', 'BSCENGINFO', 1);
 
 INSERT OR IGNORE INTO enrollments (student_number, course_code) VALUES
-  (1234567, 'ELEN4010'),
-  (1234567, 'ELEN3009'),
-  (1234567, 'ELEN4009');
+  (2434427, 'ELEN4010'),
+  (2434427, 'ELEN3009'),
+  (2434427, 'ELEN4009');
 
 -- ─── Admin ────────────────────────────────────────────────────────────────────
 INSERT OR IGNORE INTO admins (admin_id, name, email, password) VALUES

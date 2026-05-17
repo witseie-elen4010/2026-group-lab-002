@@ -71,7 +71,10 @@ const showStudentCourses = (req, res) => {
 }
 
 const updateStudentCourses = async (req, res) => {
-  const studentNumber = req.session && req.session.userId ? req.session.userId : 1234567
+  if (!req.session || !req.session.userId) {
+    return res.redirect('/login');
+  }
+  const studentNumber = req.session.userId
   const { degree_code, courses } = req.body
 
   const degree = db.prepare(

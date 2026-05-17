@@ -24,7 +24,7 @@ const insertConsultation = (constId, maxStudents = 5) => {
 };
 
 test.beforeEach(() => {
-  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 1234567').run();
+  db.prepare('UPDATE students SET failed_attempts = 0, login_pin = NULL WHERE student_number = 2434427').run();
   insertConsultation(JOIN_ID, 5);
 });
 
@@ -39,7 +39,7 @@ test.afterEach(() => {
 test.describe('Student joins a consultation', () => {
   test('student can join an available consultation from the calendar', async ({ page }) => {
     await page.goto('/login');
-    await page.fill('input[name="staffStudentNumber"]', '1234567');
+    await page.fill('input[name="staffStudentNumber"]', '2434427');
     await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
@@ -64,7 +64,7 @@ test.describe('Student joins a consultation', () => {
     db.prepare('INSERT INTO consultation_attendees (const_id, student_number) VALUES (?, 8888888)').run(FULL_ID);
 
     await page.goto('/login');
-    await page.fill('input[name="staffStudentNumber"]', '1234567');
+    await page.fill('input[name="staffStudentNumber"]', '2434427');
     await page.fill('input[name="password"]', 'Password01');
     await page.click('button[type="submit"]');
 
