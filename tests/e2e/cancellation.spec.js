@@ -49,7 +49,7 @@ test('organiser can cancel their own consultation', async ({ page }) => {
   await page.click('[data-testid="cancel-btn"]');
 
   await page.waitForURL('**/student/dashboard**');
-  await expect(page.locator('text=cancelled')).toBeVisible();
+  await expect(page.locator('text=Consultation cancelled successfully')).toBeVisible();
 });
 
 test('non-organiser cannot cancel a consultation', async ({ page }) => {
