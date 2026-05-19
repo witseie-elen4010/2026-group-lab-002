@@ -13,6 +13,12 @@
 
 A web application for scheduling group consultations between students and lecturers.
 
+## Demo
+
+[![Watch the KnockKnock.prof demo on YouTube](https://img.youtube.com/vi/QJ77INV7oSs/maxresdefault.jpg)](https://youtu.be/QJ77INV7oSs)
+
+▶ [Watch on YouTube](https://youtu.be/QJ77INV7oSs)
+
 **Group members:** 
 - Suné Toerien
 - Aditya Raghunandan

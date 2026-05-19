@@ -597,6 +597,30 @@
       .homepage-door-art       { left: 0; transform: scale(0.9); }
       .homepage-plant          { right: 0; }
     }
+
+    /* Demo video section */
+    .homepage-demo {
+      padding: 80px 0;
+      background: var(--kk-cream);
+    }
+    .homepage-demo-frame {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+      aspect-ratio: 16 / 9;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(30, 125, 60, 0.18);
+      border: 4px solid var(--kk-green-pale);
+      background: #000;
+    }
+    .homepage-demo-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
   </style>
 </head>
 
@@ -770,6 +794,27 @@
               <div class="homepage-plant" aria-hidden="true">🌿</div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Video -->
+    <section class="homepage-demo" id="demo">
+      <div class="container">
+        <div class="text-center mb-4">
+          <div class="homepage-eyebrow">See it in action</div>
+          <h2 class="homepage-section-title">Watch the demo <span aria-hidden="true">🎬</span></h2>
+          <p class="homepage-hero-text mt-2 mb-0">
+            A short walkthrough of booking, joining, and managing consultations on KnockKnock.prof.
+          </p>
+        </div>
+        <div class="homepage-demo-frame">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/QJ77INV7oSs"
+            title="KnockKnock.prof demo video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen></iframe>
         </div>
       </div>
     </section>
