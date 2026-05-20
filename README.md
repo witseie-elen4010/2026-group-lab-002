@@ -59,18 +59,26 @@ After cloning, set up your local SQLite database with:
 ```bash
 npm run setup
 ```
-
-To run locally
-```bash
-node app.js
-```
-
 This script will 
 - Create the database
 - Run the schema 
 - Seed the initial degrees and courses
-
 This is gitignored — each dev maintains their own local copy.
+
+## All in one build command
+
+After cloning, set up your local SQLite database and download all dependencies with:
+
+```bash
+npm run build
+```
+## Run locally
+
+Use the command below to run the website locally
+```bash
+node app.js
+```
+> Note: If your .env file has not been setup, some features may not be functional
 
 ## Email setup (local development)
 
@@ -94,4 +102,4 @@ Google does not allow regular passwords for SMTP. You need a 16-character App Pa
 3. Click **Create**, give it any name (e.g. "KnockKnock local")
 4. Copy the 16-character password shown and paste it as `SMTP_PASS` — no spaces
 
-Without a `.env` file the app still runs, but any action that triggers an email will log an error and silently continue.
+> Without a `.env` file the app still runs, but any action that triggers an email will log an error and silently continue.
