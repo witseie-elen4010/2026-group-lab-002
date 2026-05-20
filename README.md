@@ -67,7 +67,7 @@ This is gitignored — each dev maintains their own local copy.
 
 ## All in one build command
 
-After cloning, set up your local SQLite database and download all dependencies with:
+After cloning, set up your local SQLite database and install all dependencies with:
 
 ```bash
 npm run build
