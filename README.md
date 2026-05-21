@@ -15,9 +15,9 @@ A web application for scheduling group consultations between students and lectur
 
 ## Demo
 
-[![Watch the KnockKnock.prof demo on YouTube](https://img.youtube.com/vi/qGLHbc507fc/maxresdefault.jpg)](https://youtu.be/qGLHbc507fc)
+[![Watch the KnockKnock.prof demo on YouTube](https://img.youtube.com/vi/dEKyNDD55ZE/maxresdefault.jpg)](https://youtu.be/dEKyNDD55ZE)
 
-▶ [Watch on YouTube](https://youtu.be/qGLHbc507fc)
+▶ [Watch on YouTube](https://youtu.be/dEKyNDD55ZE)
 
 **Group members:** 
 - Suné Toerien
