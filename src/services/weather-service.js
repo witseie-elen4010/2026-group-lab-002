@@ -20,7 +20,8 @@ const getWitsWeather = async () => {
   if (cache && (now - cacheTime) < TTL_MS) return cache;
   try {
     const res = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=-26.1892&longitude=28.0306&daily=weathercode,temperature_2m_max,precipitation_sum&timezone=Africa/Johannesburg&forecast_days=10'
+      'https://api.open-meteo.com/v1/forecast?latitude=-26.1892&longitude=28.0306&daily=weathercode,temperature_2m_max,precipitation_sum&timezone=Africa/Johannesburg&forecast_days=10',
+      { signal: AbortSignal.timeout(2500) }
     );
     if (!res.ok) return {};
     const data = await res.json();

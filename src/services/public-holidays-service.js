@@ -3,7 +3,10 @@ const cache = {};
 const getSAPublicHolidays = async (year) => {
   if (cache[year]) return cache[year];
   try {
-    const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/ZA`);
+    const res = await fetch(
+      `https://date.nager.at/api/v3/PublicHolidays/${year}/ZA`,
+      { signal: AbortSignal.timeout(2500) }
+    );
     if (!res.ok) return [];
     const data = await res.json();
     const holidays = data.map(h => ({ date: h.date, localName: h.localName }));
