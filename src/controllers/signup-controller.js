@@ -69,11 +69,11 @@ const registerUser = async (req, res) => {
     const rawNumber = (number || '').trim()
     const role = rawNumber.toUpperCase().startsWith('A') ? 'lecturer' : 'student'
 
-    const isLecturerNumber = /^A\d{6}$/i.test(rawNumber)
+    const isLecturerNumber = /^A\d{7}$/i.test(rawNumber)
     const isStudentNumber = /^[1-9]\d{6}$/.test(rawNumber)
     if (role === 'lecturer') {
       if (!isLecturerNumber) {
-        throw new Error('Staff numbers must start with A followed by 6 digits')
+        throw new Error('Staff numbers must start with A followed by 7 digits')
       }
     } else {
       if (!isStudentNumber) {

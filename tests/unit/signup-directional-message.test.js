@@ -110,7 +110,7 @@ describe('Sign Up error message validation', () => {
     expect(res.render).toHaveBeenCalledWith(
       'sign-up',
       expect.objectContaining({
-        error: 'Registration error: Staff numbers must start with A followed by 6 digits.'
+        error: 'Registration error: Staff numbers must start with A followed by 7 digits.'
       })
     )
   })
@@ -139,7 +139,7 @@ describe('Sign Up error message validation', () => {
   test('rejects lecturer using student email', async () => {
     const req = mockReq({
       fullName: 'Test Lecturer',
-      number: 'A000999',
+      number: 'A0009991',
       email: 'lecturer@students.wits.ac.za',
       password: 'Password01',
       confirmPassword: 'Password01'
